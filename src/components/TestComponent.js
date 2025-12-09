@@ -1,0 +1,1 @@
+import React from 'react';\n\nfunction TestComponent() {\n  return (\n    <div className=\"p-4 bg-blue-100 rounded-md\">\n      <h2 className=\"text-lg font-medium text-blue-800\">Test Component</h2>\n      <p className=\"text-blue-700\">If you can see this, React is rendering components correctly!</p>\n    </div>\n  );\n}\n\nexport default TestComponent;\n

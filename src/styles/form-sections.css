@@ -1,0 +1,694 @@
+/* For better form section display and adding separator styles */
+.road-risk-form {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Form content container for better spacing/layout */
+.form-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* Basic information section styling */
+.form-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+/* Form section header styling */
+.form-section-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-section-icon {
+  font-size: 1.5rem;
+  color: #2196f3;
+}
+
+.form-section-title {
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Enhanced Rating Options - Beautiful Gradient Toggle Style */
+.rating-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+  padding: 0;
+}
+
+.rating-option {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 3px solid transparent;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(0);
+}
+
+.rating-option:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.rating-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  min-height: 120px;
+  text-align: center;
+}
+
+.option-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+  transition: all 0.4s ease;
+}
+
+.option-label {
+  font-weight: 700;
+  font-size: 20px;
+  color: #1e293b;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.option-description {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  max-width: 180px;
+}
+
+/* Beautiful Score Number Styling */
+.option-content::after {
+  content: attr(data-score);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Score Value 2 - Beautiful Green Gradient */
+.factor-group .rating-option:nth-child(1) {
+  border-color: transparent;
+}
+
+.factor-group .rating-option:nth-child(1) .option-content::before {
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+}
+
+.factor-group .rating-option:nth-child(1) input[type="radio"]:checked + .option-content {
+  background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+  color: #065f46;
+}
+
+.factor-group .rating-option:nth-child(1) input[type="radio"]:checked + .option-content::before {
+  background: linear-gradient(90deg, #059669, #10b981, #34d399);
+  height: 8px;
+  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.4);
+}
+
+.factor-group .rating-option:nth-child(1) input[type="radio"]:checked + .option-content::after {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.factor-group .rating-option:nth-child(1) input[type="radio"]:checked + .option-content .option-label {
+  color: #065f46;
+  text-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+/* Score Value 4 - Beautiful Yellow/Gold Gradient */
+.factor-group .rating-option:nth-child(2) .option-content::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #fcd34d);
+}
+
+.factor-group .rating-option:nth-child(2) input[type="radio"]:checked + .option-content {
+  background: linear-gradient(145deg, #fffbeb, #fef3c7);
+  color: #92400e;
+}
+
+.factor-group .rating-option:nth-child(2) input[type="radio"]:checked + .option-content::before {
+  background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24);
+  height: 8px;
+  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.4);
+}
+
+.factor-group .rating-option:nth-child(2) input[type="radio"]:checked + .option-content::after {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.factor-group .rating-option:nth-child(2) input[type="radio"]:checked + .option-content .option-label {
+  color: #92400e;
+  text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
+}
+
+/* Score Value 6 - Beautiful Orange Gradient */
+.factor-group .rating-option:nth-child(3) .option-content::before {
+  background: linear-gradient(90deg, #ea580c, #fb923c, #fdba74);
+}
+
+.factor-group .rating-option:nth-child(3) input[type="radio"]:checked + .option-content {
+  background: linear-gradient(145deg, #fff7ed, #fed7aa);
+  color: #9a3412;
+}
+
+.factor-group .rating-option:nth-child(3) input[type="radio"]:checked + .option-content::before {
+  background: linear-gradient(90deg, #c2410c, #ea580c, #fb923c);
+  height: 8px;
+  box-shadow: 0 2px 12px rgba(234, 88, 12, 0.4);
+}
+
+.factor-group .rating-option:nth-child(3) input[type="radio"]:checked + .option-content::after {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
+}
+
+.factor-group .rating-option:nth-child(3) input[type="radio"]:checked + .option-content .option-label {
+  color: #9a3412;
+  text-shadow: 0 1px 2px rgba(234, 88, 12, 0.2);
+}
+
+/* Score Value 10 - Beautiful Red Gradient */
+.factor-group .rating-option:nth-child(4) .option-content::before {
+  background: linear-gradient(90deg, #dc2626, #ef4444, #f87171);
+}
+
+.factor-group .rating-option:nth-child(4) input[type="radio"]:checked + .option-content {
+  background: linear-gradient(145deg, #fef2f2, #fecaca);
+  color: #991b1b;
+}
+
+.factor-group .rating-option:nth-child(4) input[type="radio"]:checked + .option-content::before {
+  background: linear-gradient(90deg, #b91c1c, #dc2626, #ef4444);
+  height: 8px;
+  box-shadow: 0 2px 12px rgba(220, 38, 38, 0.4);
+}
+
+.factor-group .rating-option:nth-child(4) input[type="radio"]:checked + .option-content::after {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+}
+
+.factor-group .rating-option:nth-child(4) input[type="radio"]:checked + .option-content .option-label {
+  color: #991b1b;
+  text-shadow: 0 1px 2px rgba(220, 38, 38, 0.2);
+}
+
+/* Selected State Global Enhancements */
+.rating-option input[type="radio"]:checked {
+  + .option-content {
+    transform: scale(1.05);
+  }
+}
+
+.rating-option input[type="radio"]:checked + .option-content .option-description {
+  color: #4b5563;
+  font-weight: 600;
+}
+
+/* Factor Group Styling */
+.factor-group {
+  margin-bottom: 48px;
+  padding: 32px;
+  background: linear-gradient(145deg, #fafbfc, #f1f5f9);
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.factor-group h3 {
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.factor-group h3::before {
+  content: '🔍';
+  font-size: 22px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.factor-group p {
+  color: #64748b;
+  font-size: 16px;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Hazard and Consequence Factor specific styling */
+.hazard-factors .factor-group h3::before {
+  content: '⚠️';
+}
+
+.consequence-factors .factor-group h3::before {
+  content: '🎯';
+}
+
+/* Total Score Display Enhancement */
+.total-score-display {
+  margin-top: 32px;
+  padding: 24px;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  border-radius: 16px;
+  border: 2px solid #cbd5e1;
+  text-align: center;
+}
+
+.total-score-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.total-score-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1e293b;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Optional Assessments Toggle Styling */
+.assessment-toggle {
+  display: block;
+  margin-bottom: 24px;
+  cursor: pointer;
+  border-radius: 16px;
+  border: 3px solid #e2e8f0;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.assessment-toggle:hover {
+  border-color: #9c27b0;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(156, 39, 176, 0.15);
+}
+
+.assessment-toggle label {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.assessment-toggle input[type="checkbox"] {
+  margin-right: 20px;
+  width: 24px;
+  height: 24px;
+  accent-color: #9c27b0;
+  cursor: pointer;
+  transform: scale(1.2);
+}
+
+.toggle-content {
+  flex-grow: 1;
+}
+
+.toggle-content strong {
+  display: block;
+  font-size: 20px;
+  color: #1e293b;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.toggle-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Form action buttons with improved styling */
+.form-action-buttons {
+  margin-top: 40px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.form-action-button {
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  min-width: 160px;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-action-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.6s ease;
+  transform: translate(-50%, -50%);
+}
+
+.form-action-button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.form-action-button.primary {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+.form-action-button.primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+}
+
+.form-action-button.secondary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.form-action-button.secondary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+}
+
+.form-action-button.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.form-action-button.danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+}
+
+.form-action-button.tertiary {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.form-action-button.tertiary:hover {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  color: #1e293b;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+/* Form tab navigation styling */
+.form-tab-nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.form-tab-button {
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.form-tab-button::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #9c27b0);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.form-tab-button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+  transform: translateY(-2px);
+}
+
+.form-tab-button.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+.form-tab-button.active::before {
+  width: 100%;
+}
+
+/* Make labels more prominent */
+.form-label {
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+/* Make inputs look more professional */
+.form-input {
+  border: 2px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+/* Fixed action bar at the bottom */
+.fixed-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  border-top: 1px solid #e2e8f0;
+}
+
+.fixed-action-bar-content {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Add necessary padding to prevent content from being hidden behind the fixed bar */
+body {
+  padding-bottom: 90px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .rating-options {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rating-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .rating-option {
+    border-radius: 12px;
+  }
+  
+  .option-content {
+    padding: 16px 12px;
+    min-height: 100px;
+  }
+  
+  .option-label {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  
+  .option-description {
+    font-size: 12px;
+    max-width: none;
+  }
+  
+  .option-content::after {
+    right: 8px;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  
+  .factor-group {
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+  
+  .factor-group h3 {
+    font-size: 20px;
+  }
+  
+  .form-action-buttons {
+    flex-direction: column;
+  }
+  
+  .form-tab-nav {
+    overflow-x: auto;
+    padding: 12px;
+  }
+  
+  .form-tab-button {
+    padding: 12px 20px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  
+  .fixed-action-bar {
+    padding: 16px;
+  }
+  
+  .fixed-action-bar-content {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .rating-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .option-content {
+    min-height: 80px;
+    padding: 12px;
+  }
+  
+  .factor-group h3 {
+    font-size: 18px;
+  }
+}

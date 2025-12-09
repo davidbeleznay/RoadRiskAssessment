@@ -1,0 +1,238 @@
+/* Styles for the high water info component */
+
+.high-water-info {
+  margin: 20px 0 30px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border: 1px solid #e0e0e0;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #e8f5e9;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.info-header h3 {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.info-icon {
+  font-size: 24px;
+}
+
+.info-content {
+  padding: 20px;
+}
+
+.info-content p {
+  margin: 0 0 15px;
+  line-height: 1.5;
+  color: #424242;
+}
+
+.info-list {
+  margin: 0 0 20px;
+  padding-left: 20px;
+}
+
+.info-list li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+  color: #424242;
+}
+
+.measurement-steps {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.step-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #424242;
+}
+
+.measurement-steps ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.measurement-steps li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.important-note {
+  background-color: #fff8e1;
+  padding: 15px;
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+}
+
+.important-note p {
+  margin: 0;
+  color: #795548;
+}
+
+/* California Method Table Styles */
+.california-table-container {
+  margin: 20px 0 30px;
+  overflow-x: auto;
+}
+
+.california-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.california-table th {
+  background-color: #2e7d32;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #1b5e20;
+}
+
+.california-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.california-table tr:nth-child(even) {
+  background-color: #f5f5f5;
+}
+
+.california-table tr:hover {
+  background-color: #e8f5e9;
+}
+
+.table-header-row th:first-child {
+  background-color: #1b5e20;
+}
+
+.table-header-col {
+  background-color: #c8e6c9 !important;
+  color: #2e7d32 !important;
+  font-weight: 600;
+}
+
+.table-note {
+  font-size: 12px;
+  margin-top: 10px;
+  color: #757575;
+  font-style: italic;
+}
+
+/* Method info accordions */
+.method-accordion {
+  margin-bottom: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.accordion-header {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accordion-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #424242;
+  font-weight: 600;
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.accordion-content {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.accordion-open .accordion-content {
+  padding: 20px;
+  max-height: 600px;
+}
+
+.accordion-open .accordion-icon {
+  transform: rotate(180deg);
+}
+
+/* Toggleable info sections */
+.toggle-info-button {
+  background: none;
+  border: none;
+  color: #2196f3;
+  font-weight: 500;
+  padding: 8px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-info-button:hover {
+  color: #0d47a1;
+}
+
+.toggle-info-button svg {
+  margin-right: 6px;
+  transition: transform 0.3s ease;
+}
+
+.toggle-info-button.open svg {
+  transform: rotate(90deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .info-header {
+    padding: 12px 15px;
+  }
+  
+  .info-header h3 {
+    font-size: 16px;
+  }
+  
+  .info-content {
+    padding: 15px;
+  }
+  
+  .measurement-steps {
+    padding: 12px;
+  }
+  
+  .california-table th,
+  .california-table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+}

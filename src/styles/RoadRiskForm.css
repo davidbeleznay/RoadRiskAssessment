@@ -1,0 +1,663 @@
+/* Results Section Enhanced Styles */
+.risk-results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Risk Calculation Display */
+.risk-calculation-display {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 16px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.calculation-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 240px;
+  flex: 1;
+}
+
+.step-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  background: #2196f3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.step-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+/* Score Cards */
+.score-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e9ecef;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.hazard-card {
+  border-color: #ff9800;
+  background: linear-gradient(135deg, #fff8e1, #ffffff);
+}
+
+.consequence-card {
+  border-color: #f44336;
+  background: linear-gradient(135deg, #ffebee, #ffffff);
+}
+
+.risk-result-card {
+  border-width: 3px;
+  background: linear-gradient(135deg, #e8f5e9, #ffffff);
+}
+
+.score-main {
+  margin-bottom: 16px;
+}
+
+.score-value {
+  display: block;
+  font-size: 36px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.score-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-description {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Risk Result Card Specific */
+.risk-level-main {
+  margin-bottom: 16px;
+}
+
+.risk-level-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-score-display {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.risk-reasoning {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Risk Level Colors */
+.low-risk .risk-level-badge,
+.low-risk.risk-result-card {
+  border-color: #4CAF50;
+}
+
+.low-risk .risk-level-badge {
+  background: #4CAF50;
+}
+
+.moderate-risk .risk-level-badge,
+.moderate-risk.risk-result-card {
+  border-color: #FF9800;
+}
+
+.moderate-risk .risk-level-badge {
+  background: #FF9800;
+}
+
+.high-risk .risk-level-badge,
+.high-risk.risk-result-card {
+  border-color: #FF5722;
+}
+
+.high-risk .risk-level-badge {
+  background: #FF5722;
+}
+
+.very-high-risk .risk-level-badge,
+.very-high-risk.risk-result-card {
+  border-color: #D32F2F;
+}
+
+.very-high-risk .risk-level-badge {
+  background: #D32F2F;
+}
+
+/* Calculation Operators */
+.calculation-operator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  margin: 0 16px;
+}
+
+.operator-symbol {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2196f3;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.operator-label {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Summary Card */
+.risk-summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.summary-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.risk-status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.detail-value {
+  color: #666;
+  font-size: 14px;
+  text-align: right;
+  max-width: 60%;
+  overflow-wrap: break-word;
+}
+
+/* Override Cards */
+.override-applied-card,
+.professional-override-card,
+.override-form-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.override-applied-card {
+  border-left: 4px solid #ff9800;
+  background: linear-gradient(135deg, #fff8e1, #ffffff);
+}
+
+.professional-override-card {
+  border-left: 4px solid #2196f3;
+  background: linear-gradient(135deg, #e3f2fd, #ffffff);
+}
+
+.override-form-card {
+  border-left: 4px solid #9c27b0;
+  background: linear-gradient(135deg, #f3e5f5, #ffffff);
+}
+
+.override-header h4 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.override-header p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.override-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.original-result,
+.override-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.comparison-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.comparison-value {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #e9ecef;
+  color: #333;
+}
+
+.override-arrow {
+  font-size: 20px;
+  color: #666;
+  margin: 0 16px;
+}
+
+.override-justification {
+  margin: 16px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #ff9800;
+}
+
+.override-justification strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.override-justification p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Override Actions */
+.override-actions,
+.override-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.override-action-button,
+.show-override-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.show-override-button {
+  background: #2196f3;
+  color: white;
+  padding: 14px 24px;
+  font-size: 15px;
+}
+
+.show-override-button:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.override-action-button.apply {
+  background: #4CAF50;
+  color: white;
+}
+
+.override-action-button.apply:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.override-action-button.apply:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.override-action-button.modify {
+  background: #ff9800;
+  color: white;
+}
+
+.override-action-button.modify:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
+}
+
+.override-action-button.remove,
+.override-action-button.cancel {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #e9ecef;
+}
+
+.override-action-button.remove:hover,
+.override-action-button.cancel:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+/* Override Form */
+.override-form-header {
+  margin-bottom: 24px;
+}
+
+.override-form-header h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.override-form-header p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.override-form-content .form-group {
+  margin-bottom: 20px;
+}
+
+.override-select,
+.override-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.override-select:focus,
+.override-textarea:focus {
+  outline: none;
+  border-color: #9c27b0;
+  box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
+}
+
+.override-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+/* Additional Assessments Card */
+.additional-assessments-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #9c27b0;
+}
+
+.additional-assessments-card h4 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.assessment-badges {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.assessment-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  background: #9c27b0;
+}
+
+.assessment-badge.geotechnical {
+  background: #795548;
+}
+
+.assessment-badge.infrastructure {
+  background: #607d8b;
+}
+
+.assessment-note {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* No Results Card */
+.no-results-card {
+  text-align: center;
+  padding: 48px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.no-results-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.no-results-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.no-results-card p {
+  margin: 0 0 24px 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+.completion-status {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.complete {
+  background: #4CAF50;
+}
+
+.status-indicator.incomplete {
+  background: #ff9800;
+}
+
+/* Responsive Design for Results */
+@media (max-width: 768px) {
+  .risk-calculation-display {
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  .calculation-operator {
+    margin: 16px 0;
+    transform: rotate(90deg);
+  }
+
+  .operator-symbol {
+    font-size: 24px;
+  }
+
+  .calculation-step {
+    min-width: auto;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .summary-details {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .detail-value {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .override-comparison {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .override-arrow {
+    transform: rotate(90deg);
+    margin: 8px 0;
+  }
+
+  .override-actions,
+  .override-form-actions {
+    flex-direction: column;
+  }
+
+  .assessment-badges {
+    justify-content: center;
+  }
+}

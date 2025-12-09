@@ -1,0 +1,1 @@
+// This file has been removed - reverting to original color bar implementation

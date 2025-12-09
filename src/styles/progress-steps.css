@@ -1,0 +1,196 @@
+/* Add styles for progress indicator steps based on the mockup */
+
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 30px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-step {
+  padding: 12px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-step:last-child {
+  border-bottom: none;
+}
+
+.progress-step.active {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  color: #43A047;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #757575;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.progress-step.active .step-number {
+  background-color: #43A047;
+  color: white;
+}
+
+.step-label {
+  font-size: 16px;
+  color: #424242;
+}
+
+.progress-step.active .step-label {
+  color: #43A047;
+}
+
+/* High water width diagram for measurement instructions */
+.high-water-diagram {
+  margin: 30px auto;
+  max-width: 500px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.diagram-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #424242;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.diagram-image {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: block;
+}
+
+.instruction-list {
+  margin-top: 20px;
+  padding-left: 20px;
+}
+
+.instruction-item {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #424242;
+  line-height: 1.5;
+}
+
+.instruction-note {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #E8F5E9;
+  border-left: 4px solid #43A047;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.instruction-formula {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #F5F5F5;
+  border-radius: 4px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.measurement-example {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #F5F5F5;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.example-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.example-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.example-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.example-label {
+  font-weight: 500;
+}
+
+/* Site information section */
+.site-information-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.site-information-header h2 {
+  color: #4CAF50;
+  font-size: 22px;
+  margin: 0;
+}
+
+/* Field evidence section */
+.field-evidence-section {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #ECEFF1;
+  border-radius: 8px;
+}
+
+.field-evidence-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #455A64;
+  margin-bottom: 12px;
+}
+
+.evidence-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.evidence-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.evidence-item:before {
+  content: "—";
+  margin-right: 8px;
+  color: #78909C;
+}
+
+.evidence-item:last-child {
+  margin-bottom: 0;
+}
