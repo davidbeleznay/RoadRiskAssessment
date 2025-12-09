@@ -5,6 +5,7 @@ import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/enhanced-form.css';
 import '../styles/optional-assessments.css';
 import { FieldNotesSection } from '../components/FieldNotesSection';
+import { SaveAssessmentButton } from '../components/SaveAssessmentButton';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
@@ -970,6 +971,16 @@ const RoadRiskForm = () => {
                   <div className="priority-badge">
                     <strong>Priority: {riskAssessment.priority}</strong>
                   </div>
+                    {/* Save Assessment Button */}
+                <SaveAssessmentButton 
+                  basicInfo={basicInfo}
+                  hazardFactors={hazardFactors}
+                  consequenceFactors={consequenceFactors}
+                  optionalAssessments={optionalAssessments}
+                  fieldNotes={fieldNotes}
+                  riskAssessment={riskAssessment}
+                  disabled={!riskAssessment}
+                />
                 </div>
 
                 {/* Optional Assessment Summary */}
