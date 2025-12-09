@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/enhanced-form.css';
 import '../styles/optional-assessments.css';
+import { FieldNotesSection } from '../components/FieldNotesSection';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
@@ -73,6 +74,13 @@ const RoadRiskForm = () => {
   });
 
   // Results and Override State
+// Field Notes State
+  const [fieldNotes, setFieldNotes] = useState({
+    hazardObservations: '',
+    consequenceObservations: '',
+    generalComments: '',
+    recommendations: ''
+  });  
   const [riskAssessment, setRiskAssessment] = useState(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideRiskLevel, setOverrideRiskLevel] = useState('');
@@ -226,6 +234,7 @@ const RoadRiskForm = () => {
     { id: 'hazard', title: 'Hazard Factors', icon: '⚠️' },
     { id: 'consequence', title: 'Consequence Factors', icon: '🎯' },
     { id: 'optional', title: 'Optional Assessments', icon: '📊' },
+    { id: 'notes', title: 'Field Notes', icon: '📋' },
     { id: 'results', title: 'Results', icon: '📈' }
   ];
 
@@ -865,6 +874,17 @@ const RoadRiskForm = () => {
           </div>
         )}
 
+        
+{/* Field Notes Section */}
+        {activeSection === 'notes' && (
+          <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
+            <h2 className="section-header" style={{ color: '#2e7d32' }}>
+              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
+              Field Notes & Observations
+            </h2>
+            <FieldNotesSection onSave={setFieldNotes} />
+          </div>
+        )}
         {/* Results Section */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
