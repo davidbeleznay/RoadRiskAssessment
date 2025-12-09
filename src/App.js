@@ -5,6 +5,8 @@ import './styles/home.css';
 import './styles/RoadRiskForm.css';
 import './styles/form-elements.css';
 import './styles/form-sections.css';
+import './styles/info-components.css';
+import './styles/progress-steps.css';
 
 function App() {
   return (
