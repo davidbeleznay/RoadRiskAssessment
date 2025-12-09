@@ -1,80 +1,32 @@
 // src/utils/dataExport.js
 // Data export utilities for road risk assessments
 
-import { db } from './db';
-
 /**
- * Export assessments to JSON format
+ * Export assessments to JSON format from localStorage
  * @param {Object} options - Export options
- * @returns {Promise<Object>} - Export data
+ * @returns {Object} - Export data
  */
-export async function exportToJSON(options = {}) {
+export function exportToJSON(options = {}) {
   const {
-    includeAll = true,
-    startDate = null,
-    endDate = null,
-    riskMethodId = null
+    includeAll = true
   } = options;
 
   try {
-    let inspections = await db.inspections.toArray();
+    // Get data from localStorage
+    const historyData = localStorage.getItem('assessmentHistory');
+    const inspections = historyData ? JSON.parse(historyData) : [];
     
-    // Apply filters
-    if (startDate) {
-      inspections = inspections.filter(i => 
-        new Date(i.assessmentDate) >= new Date(startDate)
-      );
-    }
-    
-    if (endDate) {
-      inspections = inspections.filter(i => 
-        new Date(i.assessmentDate) <= new Date(endDate)
-      );
-    }
-    
-    if (riskMethodId) {
-      inspections = inspections.filter(i => i.riskMethodId === riskMethodId);
-    }
-
-    // Get all related data
-    const inspectionIds = inspections.map(i => i.id);
-    
-    const riskAssessments = await db.riskAssessments
-      .where('inspectionId')
-      .anyOf(inspectionIds)
-      .toArray();
-      
-    const issues = await db.issues
-      .where('inspectionId')
-      .anyOf(inspectionIds)
-      .toArray();
-      
-    const actionItems = await db.actionItems
-      .where('inspectionId')
-      .anyOf(inspectionIds)
-      .toArray();
+    // Filter to road risk only
+    const roadRiskInspections = inspections.filter(i => i.type === 'roadRisk');
 
     const exportData = {
       metadata: {
         exportDate: new Date().toISOString(),
         appVersion: '2.0.0',
-        totalInspections: inspections.length,
-        filters: { startDate, endDate, riskMethodId }
+        totalInspections: roadRiskInspections.length
       },
-      inspections,
-      riskAssessments,
-      issues,
-      actionItems
+      inspections: roadRiskInspections
     };
-
-    if (includeAll) {
-      exportData.roadSegments = await db.roadSegments.toArray();
-      exportData.riskMethods = await db.riskMethods.toArray();
-      exportData.factorGroups = await db.factorGroups.toArray();
-      exportData.factors = await db.factors.toArray();
-      exportData.factorOptions = await db.factorOptions.toArray();
-      exportData.riskCategories = await db.riskCategories.toArray();
-    }
 
     return exportData;
   } catch (error) {
@@ -84,67 +36,90 @@ export async function exportToJSON(options = {}) {
 }
 
 /**
- * Export assessments to CSV format (flattened)
- * @param {Object} options - Export options
- * @returns {Promise<string>} - CSV string
+ * Export assessments to CSV format
+ * @returns {string} - CSV string
  */
-export async function exportToCSV(options = {}) {
+export function exportToCSV() {
   try {
-    const inspections = await db.inspections.toArray();
-    const riskAssessments = await db.riskAssessments.toArray();
+    // Get data from localStorage
+    const historyData = localStorage.getItem('assessmentHistory');
+    const allInspections = historyData ? JSON.parse(historyData) : [];
     
-    // Create a map of assessments by inspection ID
-    const assessmentMap = {};
-    for (const assessment of riskAssessments) {
-      assessmentMap[assessment.inspectionId] = assessment;
+    // Filter to road risk only
+    const inspections = allInspections.filter(i => i.type === 'roadRisk');
+    
+    if (inspections.length === 0) {
+      return 'No assessments to export';
     }
 
     // CSV headers
     const headers = [
-      'Inspection ID',
-      'Assessment Date',
-      'Inspector',
-      'Road Segment ID',
       'Road Name',
-      'Risk Method ID',
+      'Assessment Date',
+      'Inspector/Assessor',
+      'Start KM',
+      'End KM',
       'Hazard Score',
       'Consequence Score',
       'Total Risk Score',
       'Risk Category',
-      'Latitude',
-      'Longitude',
-      'Sync Status',
+      'Risk Level',
+      'Priority',
+      'Start Latitude',
+      'Start Longitude',
+      'End Latitude',
+      'End Longitude',
+      'Weather Conditions',
+      'Hazard Notes',
+      'Consequence Notes',
+      'General Comments',
+      'Recommendations',
       'Created Date'
     ];
 
     // Convert data to rows
     const rows = inspections.map(inspection => {
-      const assessment = assessmentMap[inspection.id] || {};
+      const data = inspection.data || {};
+      const basicInfo = data.basicInfo || {};
+      const riskAssessment = data.riskAssessment || {};
+      const fieldNotes = data.fieldNotes || {};
+      
+      // Calculate scores
+      const hazardScore = Object.values(data.hazardFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
+      const consequenceScore = Object.values(data.consequenceFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
+      const totalRiskScore = data.riskScore || (hazardScore * consequenceScore);
       
       return [
-        inspection.id,
-        inspection.assessmentDate,
-        inspection.inspector,
-        inspection.roadSegmentId || '',
-        inspection.roadName || '',
-        inspection.riskMethodId || assessment.riskMethodId || '',
-        assessment.hazardTotal || '',
-        assessment.consequenceTotal || '',
-        assessment.riskScore || '',
-        assessment.riskCategory || '',
-        inspection.latitude || '',
-        inspection.longitude || '',
-        inspection.syncStatus || 'pending',
-        new Date(inspection.timestamp).toISOString()
+        basicInfo.roadName || 'Untitled',
+        basicInfo.assessmentDate || '',
+        basicInfo.assessor || data.assessor || '',
+        basicInfo.startKm || '',
+        basicInfo.endKm || '',
+        hazardScore,
+        consequenceScore,
+        totalRiskScore,
+        data.riskCategory || riskAssessment.riskLevel || '',
+        riskAssessment.finalRisk || riskAssessment.riskLevel || '',
+        riskAssessment.priority || data.recommendation || '',
+        basicInfo.startGPS?.latitude || '',
+        basicInfo.startGPS?.longitude || '',
+        basicInfo.endGPS?.latitude || '',
+        basicInfo.endGPS?.longitude || '',
+        basicInfo.weatherConditions || '',
+        fieldNotes.hazardObservations || '',
+        fieldNotes.consequenceObservations || '',
+        fieldNotes.generalComments || '',
+        fieldNotes.recommendations || '',
+        inspection.dateCreated || inspection.completedAt || ''
       ];
     });
 
-    // Build CSV string
+    // Build CSV string with proper escaping
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => {
-        // Escape commas and quotes in cell content
-        const cellStr = String(cell);
+        const cellStr = String(cell || '');
+        // Escape commas, quotes, and newlines
         if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
           return `"${cellStr.replace(/"/g, '""')}"`;
         }
@@ -160,11 +135,15 @@ export async function exportToCSV(options = {}) {
 }
 
 /**
- * Download JSON export as file
+ * Download JSON export as file with road name
  * @param {Object} data - Data to export
- * @param {string} filename - Output filename
+ * @param {string} roadName - Road name for filename
  */
-export function downloadJSON(data, filename = 'road-risk-export.json') {
+export function downloadJSON(data, roadName = null) {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const safeName = roadName ? roadName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'road-risk';
+  const filename = `${safeName}_export_${timestamp}.json`;
+  
   const jsonString = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -180,9 +159,11 @@ export function downloadJSON(data, filename = 'road-risk-export.json') {
 /**
  * Download CSV export as file
  * @param {string} csvContent - CSV string
- * @param {string} filename - Output filename
  */
-export function downloadCSV(csvContent, filename = 'road-risk-export.csv') {
+export function downloadCSV(csvContent) {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = `road_risk_assessments_${timestamp}.csv`;
+  
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -196,44 +177,51 @@ export function downloadCSV(csvContent, filename = 'road-risk-export.csv') {
 
 /**
  * Export to GeoJSON format (for GIS integration)
- * @returns {Promise<Object>} - GeoJSON FeatureCollection
+ * @returns {Object} - GeoJSON FeatureCollection
  */
-export async function exportToGeoJSON() {
+export function exportToGeoJSON() {
   try {
-    const inspections = await db.inspections
-      .filter(i => i.latitude && i.longitude)
-      .toArray();
+    // Get data from localStorage
+    const historyData = localStorage.getItem('assessmentHistory');
+    const allInspections = historyData ? JSON.parse(historyData) : [];
     
-    const riskAssessments = await db.riskAssessments.toArray();
-    const assessmentMap = {};
-    for (const assessment of riskAssessments) {
-      assessmentMap[assessment.inspectionId] = assessment;
-    }
+    // Filter to road risk with GPS coordinates
+    const inspections = allInspections.filter(i => 
+      i.type === 'roadRisk' && 
+      i.data?.basicInfo?.startGPS?.latitude
+    );
 
     const features = inspections.map(inspection => {
-      const assessment = assessmentMap[inspection.id] || {};
+      const data = inspection.data || {};
+      const basicInfo = data.basicInfo || {};
+      const riskAssessment = data.riskAssessment || {};
+      
+      const hazardScore = Object.values(data.hazardFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
+      const consequenceScore = Object.values(data.consequenceFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
       
       return {
         type: 'Feature',
         geometry: {
           type: 'Point',
           coordinates: [
-            parseFloat(inspection.longitude),
-            parseFloat(inspection.latitude)
+            parseFloat(basicInfo.startGPS.longitude),
+            parseFloat(basicInfo.startGPS.latitude)
           ]
         },
         properties: {
           inspectionId: inspection.id,
-          assessmentDate: inspection.assessmentDate,
-          inspector: inspection.inspector,
-          roadSegmentId: inspection.roadSegmentId,
-          riskMethodId: inspection.riskMethodId,
-          hazardScore: assessment.hazardTotal,
-          consequenceScore: assessment.consequenceTotal,
-          riskScore: assessment.riskScore,
-          riskCategory: assessment.riskCategory,
-          syncStatus: inspection.syncStatus,
-          timestamp: inspection.timestamp
+          roadName: basicInfo.roadName || 'Untitled',
+          assessmentDate: basicInfo.assessmentDate,
+          inspector: basicInfo.assessor,
+          startKm: basicInfo.startKm,
+          endKm: basicInfo.endKm,
+          hazardScore: hazardScore,
+          consequenceScore: consequenceScore,
+          riskScore: data.riskScore || (hazardScore * consequenceScore),
+          riskCategory: data.riskCategory || riskAssessment.riskLevel,
+          priority: riskAssessment.priority,
+          weatherConditions: basicInfo.weatherConditions,
+          timestamp: inspection.dateCreated
         }
       };
     });
@@ -243,7 +231,8 @@ export async function exportToGeoJSON() {
       features,
       metadata: {
         exportDate: new Date().toISOString(),
-        count: features.length
+        count: features.length,
+        appVersion: '2.0.0'
       }
     };
   } catch (error) {
@@ -255,9 +244,11 @@ export async function exportToGeoJSON() {
 /**
  * Download GeoJSON export as file
  * @param {Object} geoJSON - GeoJSON data
- * @param {string} filename - Output filename
  */
-export function downloadGeoJSON(geoJSON, filename = 'road-risk-export.geojson') {
+export function downloadGeoJSON(geoJSON) {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = `road_risk_gis_${timestamp}.geojson`;
+  
   const jsonString = JSON.stringify(geoJSON, null, 2);
   const blob = new Blob([jsonString], { type: 'application/geo+json' });
   const url = URL.createObjectURL(blob);
