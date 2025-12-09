@@ -7,10 +7,6 @@
  * @returns {Object} - Export data
  */
 export function exportToJSON(options = {}) {
-  const {
-    includeAll = true
-  } = options;
-
   try {
     // Get data from localStorage
     const historyData = localStorage.getItem('assessmentHistory');
