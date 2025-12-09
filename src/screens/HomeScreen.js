@@ -105,6 +105,18 @@ const HomeScreen = () => {
       <div className="app-header">
         <h1 className="app-title">Road Risk Assessment</h1>
         <p className="app-subtitle">Professional risk evaluation for forest roads</p>
+        {/* DEPLOYMENT TEST BANNER */}
+        <div style={{
+          background: '#4caf50',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '6px',
+          marginTop: '10px',
+          textAlign: 'center',
+          fontWeight: 'bold'
+        }}>
+          ✅ v2.0.0 - UPDATED WITH EXPORT & NOTES - Dec 9, 2024
+        </div>
       </div>
 
       {/* Stats Display */}
@@ -161,38 +173,46 @@ const HomeScreen = () => {
             <div className="field-card-icon">📋</div>
           </div>
 
-          {/* NEW: Export Card */}
-          <div className="field-card success" onClick={() => setShowExport(!showExport)}>
+          {/* Export Card with Visual Indicator */}
+          <div className="field-card success" onClick={() => setShowExport(!showExport)} style={{
+            border: showExport ? '3px solid #4caf50' : undefined,
+            transform: showExport ? 'scale(1.02)' : undefined
+          }}>
             <div className="field-card-content">
-              <div className="field-card-title">Export Data</div>
+              <div className="field-card-title">📤 Export Data</div>
               <div className="field-card-description">
-                Download assessments as JSON, CSV, or PDF reports
+                Download assessments as JSON or CSV files
               </div>
             </div>
-            <div className="field-card-icon">📤</div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>
+              {showExport ? '▼' : '📤'}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Export Panel */}
+      {/* Export Panel - NOW VERY VISIBLE */}
       {showExport && (
         <div style={{
-          background: 'white',
+          background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
           borderRadius: '12px',
-          padding: '20px',
+          padding: '24px',
           marginTop: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
+          border: '3px solid #4caf50'
         }}>
-          <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Your Data</h3>
-          <p style={{color: '#666', fontSize: '14px'}}>
-            Choose a format to download your assessment data
+          <h3 style={{marginTop: 0, color: '#2e7d32', fontSize: '24px'}}>
+            📊 Export Your Assessment Data
+          </h3>
+          <p style={{color: '#666', fontSize: '14px', marginBottom: '20px'}}>
+            Download your data for backup, analysis in Excel, or import to other systems
           </p>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px',
-            marginTop: '16px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '16px',
+            marginBottom: '16px'
           }}>
             <button
               onClick={() => handleExport('json')}
@@ -201,15 +221,21 @@ const HomeScreen = () => {
                 background: 'linear-gradient(135deg, #2196f3 0%, #64b5f6 100%)',
                 color: 'white',
                 border: 'none',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '20px',
+                borderRadius: '12px',
                 cursor: isExporting ? 'not-allowed' : 'pointer',
-                opacity: isExporting ? 0.6 : 1
+                opacity: isExporting ? 0.6 : 1,
+                fontSize: '16px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 8px rgba(33, 150, 243, 0.3)',
+                transition: 'transform 0.2s'
               }}
+              onMouseEnter={(e) => !isExporting && (e.target.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
-              <div style={{fontSize: '32px'}}>📄</div>
-              <div style={{fontWeight: 'bold', marginTop: '8px'}}>JSON</div>
-              <div style={{fontSize: '12px', opacity: 0.9}}>Complete backup</div>
+              <div style={{fontSize: '40px', marginBottom: '8px'}}>📄</div>
+              <div>JSON Export</div>
+              <div style={{fontSize: '11px', opacity: 0.9, marginTop: '4px'}}>Complete backup</div>
             </button>
 
             <button
@@ -219,15 +245,21 @@ const HomeScreen = () => {
                 background: 'linear-gradient(135deg, #4caf50 0%, #81c784 100%)',
                 color: 'white',
                 border: 'none',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '20px',
+                borderRadius: '12px',
                 cursor: isExporting ? 'not-allowed' : 'pointer',
-                opacity: isExporting ? 0.6 : 1
+                opacity: isExporting ? 0.6 : 1,
+                fontSize: '16px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 8px rgba(76, 175, 80, 0.3)',
+                transition: 'transform 0.2s'
               }}
+              onMouseEnter={(e) => !isExporting && (e.target.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
-              <div style={{fontSize: '32px'}}>📊</div>
-              <div style={{fontWeight: 'bold', marginTop: '8px'}}>CSV</div>
-              <div style={{fontSize: '12px', opacity: 0.9}}>For Excel</div>
+              <div style={{fontSize: '40px', marginBottom: '8px'}}>📊</div>
+              <div>CSV Export</div>
+              <div style={{fontSize: '11px', opacity: 0.9, marginTop: '4px'}}>For Excel</div>
             </button>
 
             <button
@@ -236,27 +268,34 @@ const HomeScreen = () => {
                 background: 'linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%)',
                 color: 'white',
                 border: 'none',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '20px',
+                borderRadius: '12px',
                 cursor: 'not-allowed',
-                opacity: 0.6
+                opacity: 0.5,
+                fontSize: '16px',
+                fontWeight: 'bold'
               }}
             >
-              <div style={{fontSize: '32px'}}>📑</div>
-              <div style={{fontWeight: 'bold', marginTop: '8px'}}>PDF</div>
-              <div style={{fontSize: '12px', opacity: 0.9}}>Coming soon</div>
+              <div style={{fontSize: '40px', marginBottom: '8px'}}>📑</div>
+              <div>PDF Export</div>
+              <div style={{fontSize: '11px', opacity: 0.9, marginTop: '4px'}}>Coming soon</div>
             </button>
           </div>
 
           <div style={{
-            marginTop: '16px',
             padding: '12px',
-            background: '#e8f5e9',
-            borderRadius: '6px',
+            background: 'white',
+            borderRadius: '8px',
             fontSize: '13px',
-            color: '#2e7d32'
+            color: '#666',
+            border: '2px solid #4caf50'
           }}>
-            💡 <strong>Tip:</strong> Export your data regularly to back up field assessments. CSV opens in Excel for quick analysis.
+            <strong style={{color: '#2e7d32'}}>💡 How to use:</strong>
+            <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
+              <li><strong>JSON:</strong> Complete data - all assessments and settings</li>
+              <li><strong>CSV:</strong> Simplified format - opens in Excel</li>
+              <li><strong>PDF:</strong> Formatted reports with photos (coming next!)</li>
+            </ul>
           </div>
         </div>
       )}
@@ -300,7 +339,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">Road Risk Assessment v2.0.0</div>
+        <div className="app-version">Road Risk Assessment v2.0.0 - Updated Dec 9</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
