@@ -1,7 +1,7 @@
 // src/components/FieldNotesSection.jsx
-// General field notes section for road assessments
+// General field notes section for road assessments - with localStorage persistence
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FieldNotesSection.css';
 
 export function FieldNotesSection({ onSave }) {
@@ -12,9 +12,28 @@ export function FieldNotesSection({ onSave }) {
     recommendations: ''
   });
 
+  // Load saved notes from localStorage on mount
+  useEffect(() => {
+    const savedNotes = localStorage.getItem('currentFieldNotes');
+    if (savedNotes) {
+      try {
+        const parsed = JSON.parse(savedNotes);
+        setNotes(parsed);
+        if (onSave) onSave(parsed);
+      } catch (error) {
+        console.error('Error loading saved notes:', error);
+      }
+    }
+  }, [onSave]);
+
   const handleChange = (field, value) => {
     const updated = { ...notes, [field]: value };
     setNotes(updated);
+    
+    // Save to localStorage immediately
+    localStorage.setItem('currentFieldNotes', JSON.stringify(updated));
+    
+    // Call parent callback
     if (onSave) {
       onSave(updated);
     }
@@ -25,6 +44,7 @@ export function FieldNotesSection({ onSave }) {
       <h2>📝 Field Notes & Observations</h2>
       <p className="section-description">
         Document your observations, reasoning, and site-specific details that informed your risk ratings.
+        Notes are automatically saved as you type.
       </p>
 
       <div className="notes-grid">
@@ -82,7 +102,7 @@ export function FieldNotesSection({ onSave }) {
       </div>
 
       <div className="notes-saved-indicator">
-        💾 Notes auto-save as you type
+        💾 Notes auto-save as you type and persist when you navigate away
       </div>
     </div>
   );
