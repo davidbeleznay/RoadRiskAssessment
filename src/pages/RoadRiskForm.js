@@ -1,5 +1,5 @@
 // Road Risk Assessment Form - Updated with Complete Optional Assessments
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/enhanced-form.css';
@@ -7,7 +7,9 @@ import '../styles/optional-assessments.css';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
-  const riskCalculator = new MatrixRiskAssessment();
+  
+  // Memoize the risk calculator to prevent recreation on every render
+  const riskCalculator = useMemo(() => new MatrixRiskAssessment(), []);
 
   // Form sections
   const [activeSection, setActiveSection] = useState('basic');
@@ -77,7 +79,7 @@ const RoadRiskForm = () => {
   const [overrideJustification, setOverrideJustification] = useState('');
 
   // GPS Capture Function
-  const captureGPS = async (type) => {
+  const captureGPS = useCallback(async (type) => {
     if (!navigator.geolocation) {
       const error = 'GPS not supported by this browser';
       setGpsState(prev => ({
@@ -138,9 +140,9 @@ const RoadRiskForm = () => {
       },
       options
     );
-  };
+  }, []);
 
-  // Calculate Risk Assessment using updated methodology - wrapped in useCallback
+  // Calculate Risk Assessment using updated methodology - wrapped in useCallback with stable dependencies
   const calculateRiskAssessment = useCallback(() => {
     const hazardComplete = Object.values(hazardFactors).filter(val => val !== null).length === 5;
     const consequenceComplete = Object.values(consequenceFactors).filter(val => val !== null).length === 4;
@@ -163,17 +165,17 @@ const RoadRiskForm = () => {
   }, [hazardFactors, consequenceFactors, riskCalculator]);
 
   // Apply Professional Override
-  const applyOverride = () => {
+  const applyOverride = useCallback(() => {
     if (!overrideRiskLevel || !overrideJustification.trim()) return;
     const overriddenAssessment = riskCalculator.applyDirectOverride(riskAssessment, overrideRiskLevel, overrideJustification);
     setRiskAssessment(overriddenAssessment);
     setShowOverride(false);
     setOverrideRiskLevel('');
     setOverrideJustification('');
-  };
+  }, [overrideRiskLevel, overrideJustification, riskAssessment, riskCalculator]);
 
   // Reset Override
-  const resetOverride = () => {
+  const resetOverride = useCallback(() => {
     setRiskAssessment(prev => ({
       ...prev,
       finalRisk: prev.riskLevel,
@@ -182,14 +184,14 @@ const RoadRiskForm = () => {
       overrideJustification: '',
       overrideDetails: null
     }));
-  };
+  }, []);
 
   // Modify Override
-  const modifyOverride = () => {
+  const modifyOverride = useCallback(() => {
     setOverrideRiskLevel(riskAssessment.finalRisk);
     setOverrideJustification(riskAssessment.overrideJustification);
     setShowOverride(true);
-  };
+  }, [riskAssessment]);
 
   // Fixed useEffect with proper dependency
   useEffect(() => {
