@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exportToJSON, exportToCSV, downloadJSON, downloadCSV } from '../utils/dataExport';
-import { getDatabaseStats } from '../utils/db';
 
 const HomeScreen = () => {
   const navigate = useNavigate();
@@ -13,49 +12,48 @@ const HomeScreen = () => {
     loadStats();
   }, []);
 
-  const loadStats = async () => {
+  const loadStats = () => {
     try {
-      const dbStats = await getDatabaseStats();
-      setStats(dbStats);
+      const historyData = localStorage.getItem('assessmentHistory');
+      const history = historyData ? JSON.parse(historyData) : [];
+      const roadRiskAssessments = history.filter(a => a.type === 'roadRisk');
+      
+      setStats({
+        inspections: roadRiskAssessments.length,
+        issues: 0,
+        pendingSync: 0
+      });
     } catch (error) {
       console.error('Error loading stats:', error);
     }
   };
   
   const navigateToRoadRisk = () => {
-    localStorage.removeItem('roadRiskBasicInfo');
-    localStorage.removeItem('roadRiskHazardFactors');
-    localStorage.removeItem('roadRiskConsequenceFactors');
-    localStorage.removeItem('roadRiskOptionalAssessments');
-    localStorage.removeItem('roadRiskGeotechnicalFactors');
-    localStorage.removeItem('roadRiskInfrastructureFactors');
-    
+    // Clear any previous assessment data
+    localStorage.removeItem('currentFieldNotes');
     navigate('/road-risk');
   };
   
   const navigateToHistory = () => {
     navigate('/history');
   };
-  
-  const navigateToRoadRiskEdit = (id) => {
-    navigate(`/road-risk/edit/${id}`);
-  };
 
   const handleExport = async (format) => {
     setIsExporting(true);
     
     try {
-      const timestamp = new Date().toISOString().split('T')[0];
-      
       if (format === 'json') {
-        const data = await exportToJSON({ includeAll: true });
-        downloadJSON(data, `road-risk-export-${timestamp}.json`);
+        const data = exportToJSON({ includeAll: true });
+        downloadJSON(data);
         alert(`✅ Exported ${data.inspections?.length || 0} assessments to JSON`);
       } else if (format === 'csv') {
-        const csvContent = await exportToCSV();
-        downloadCSV(csvContent, `road-risk-export-${timestamp}.csv`);
+        const csvContent = exportToCSV();
+        downloadCSV(csvContent);
         alert('✅ Exported to CSV - open in Excel!');
       }
+      
+      // Reload stats after export
+      loadStats();
     } catch (error) {
       alert('❌ Export failed: ' + error.message);
     } finally {
@@ -92,10 +90,11 @@ const HomeScreen = () => {
     });
   };
   
-  const getLocationString = (location) => {
-    if (typeof location === 'string') return location;
-    if (location?.latitude) {
-      return `Lat: ${String(location.latitude).substring(0, 7)}, Lng: ${String(location.longitude).substring(0, 7)}`;
+  const getLocationString = (assessment) => {
+    if (assessment.data?.basicInfo) {
+      const { startKm, endKm } = assessment.data.basicInfo;
+      if (startKm && endKm) return `KM ${startKm} - ${endKm}`;
+      if (startKm) return `KM ${startKm}`;
     }
     return 'No location';
   };
@@ -105,7 +104,6 @@ const HomeScreen = () => {
       <div className="app-header">
         <h1 className="app-title">Road Risk Assessment</h1>
         <p className="app-subtitle">Professional risk evaluation for forest roads</p>
-        {/* DEPLOYMENT TEST BANNER */}
         <div style={{
           background: '#4caf50',
           color: 'white',
@@ -115,11 +113,10 @@ const HomeScreen = () => {
           textAlign: 'center',
           fontWeight: 'bold'
         }}>
-          ✅ v2.0.0 - UPDATED WITH EXPORT & NOTES - Dec 9, 2024
+          ✅ v2.1.0 - SAVE & EXPORT WORKING - Dec 9, 2024
         </div>
       </div>
 
-      {/* Stats Display */}
       {stats && stats.inspections > 0 && (
         <div style={{
           display: 'grid',
@@ -134,19 +131,7 @@ const HomeScreen = () => {
             <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2e7d32'}}>
               {stats.inspections}
             </div>
-            <div style={{fontSize: '12px', color: '#666'}}>Assessments</div>
-          </div>
-          <div style={{textAlign: 'center'}}>
-            <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2196f3'}}>
-              {stats.issues || 0}
-            </div>
-            <div style={{fontSize: '12px', color: '#666'}}>Issues</div>
-          </div>
-          <div style={{textAlign: 'center'}}>
-            <div style={{fontSize: '24px', fontWeight: 'bold', color: '#ff9800'}}>
-              {stats.pendingSync || 0}
-            </div>
-            <div style={{fontSize: '12px', color: '#666'}}>Pending Sync</div>
+            <div style={{fontSize: '12px', color: '#666'}}>Saved Assessments</div>
           </div>
         </div>
       )}
@@ -173,7 +158,6 @@ const HomeScreen = () => {
             <div className="field-card-icon">📋</div>
           </div>
 
-          {/* Export Card with Visual Indicator */}
           <div className="field-card success" onClick={() => setShowExport(!showExport)} style={{
             border: showExport ? '3px solid #4caf50' : undefined,
             transform: showExport ? 'scale(1.02)' : undefined
@@ -191,7 +175,6 @@ const HomeScreen = () => {
         </div>
       </div>
 
-      {/* Export Panel - NOW VERY VISIBLE */}
       {showExport && (
         <div style={{
           background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
@@ -230,8 +213,6 @@ const HomeScreen = () => {
                 boxShadow: '0 4px 8px rgba(33, 150, 243, 0.3)',
                 transition: 'transform 0.2s'
               }}
-              onMouseEnter={(e) => !isExporting && (e.target.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
               <div style={{fontSize: '40px', marginBottom: '8px'}}>📄</div>
               <div>JSON Export</div>
@@ -254,8 +235,6 @@ const HomeScreen = () => {
                 boxShadow: '0 4px 8px rgba(76, 175, 80, 0.3)',
                 transition: 'transform 0.2s'
               }}
-              onMouseEnter={(e) => !isExporting && (e.target.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
               <div style={{fontSize: '40px', marginBottom: '8px'}}>📊</div>
               <div>CSV Export</div>
@@ -292,8 +271,8 @@ const HomeScreen = () => {
           }}>
             <strong style={{color: '#2e7d32'}}>💡 How to use:</strong>
             <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
-              <li><strong>JSON:</strong> Complete data - all assessments and settings</li>
-              <li><strong>CSV:</strong> Simplified format - opens in Excel</li>
+              <li><strong>JSON:</strong> Complete data - all assessments with field notes</li>
+              <li><strong>CSV:</strong> Simplified format - opens in Excel with all columns</li>
               <li><strong>PDF:</strong> Formatted reports with photos (coming next!)</li>
             </ul>
           </div>
@@ -309,14 +288,14 @@ const HomeScreen = () => {
               <div 
                 className="draft-item" 
                 key={assessment.id}
-                onClick={() => navigateToRoadRiskEdit(assessment.id)}
+                onClick={() => navigate(`/road-risk/view/${assessment.id}`)}
               >
                 <div className="draft-info">
                   <div className="draft-name">
-                    {assessment.title || 'Untitled Assessment'}
+                    {assessment.title || assessment.data?.basicInfo?.roadName || 'Untitled Assessment'}
                   </div>
                   <div className="draft-location">
-                    {getLocationString(assessment.data?.location)}
+                    {getLocationString(assessment)}
                   </div>
                 </div>
                 
@@ -330,7 +309,7 @@ const HomeScreen = () => {
                 </div>
                 
                 <div className="continue-button">
-                  Open →
+                  View →
                 </div>
               </div>
             ))}
@@ -339,7 +318,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">Road Risk Assessment v2.0.0 - Updated Dec 9</div>
+        <div className="app-version">Road Risk Assessment v2.1.0 - Updated Dec 9</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
