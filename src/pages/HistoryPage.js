@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 
 function HistoryPage() {
   const [assessmentHistory, setAssessmentHistory] = useState([]);
-  const [selectedType, setSelectedType] = useState('all');
   
   useEffect(() => {
-    // Load history from localStorage
+    // Load history from localStorage - filter out culvert assessments
     const historyData = localStorage.getItem('assessmentHistory');
     if (historyData) {
-      setAssessmentHistory(JSON.parse(historyData));
+      const allHistory = JSON.parse(historyData);
+      // Only show roadRisk assessments
+      const roadRiskOnly = allHistory.filter(assessment => assessment.type === 'roadRisk');
+      setAssessmentHistory(roadRiskOnly);
     }
   }, []);
   
@@ -26,31 +28,13 @@ function HistoryPage() {
     });
   };
   
-  // Get badge color based on assessment type
-  const getBadgeColor = (type) => {
-    switch(type) {
-      case 'roadRisk':
-        return { bg: '#e6f7ff', text: '#0066cc' };
-      case 'culvertSizing':
-        return { bg: '#e6ffed', text: '#006633' };
-      default:
-        return { bg: '#f5f5f5', text: '#666666' };
-    }
-  };
-  
   // Get title based on assessment data
   const getAssessmentTitle = (assessment) => {
     if (assessment.title) {
       return assessment.title;
     }
     
-    if (assessment.type === 'roadRisk') {
-      return assessment.data?.siteName || assessment.data?.basicInfo?.roadName || 'Untitled Road Risk Assessment';
-    } else if (assessment.type === 'culvertSizing') {
-      return assessment.data?.title || assessment.data?.culvertId || 'Untitled Culvert Sizing';
-    }
-    
-    return 'Untitled Assessment';
+    return assessment.data?.siteName || assessment.data?.basicInfo?.roadName || 'Untitled Road Risk Assessment';
   };
   
   // Get location info
@@ -59,7 +43,7 @@ function HistoryPage() {
       return assessment.data.location;
     }
     
-    if (assessment.type === 'roadRisk' && assessment.data?.basicInfo) {
+    if (assessment.data?.basicInfo) {
       const { startKm, endKm } = assessment.data.basicInfo;
       
       if (startKm && endKm) {
@@ -76,7 +60,7 @@ function HistoryPage() {
   
   // Get risk level for road risk assessment
   const getRiskLevel = (assessment) => {
-    if (assessment.type !== 'roadRisk' || !assessment.data) return null;
+    if (!assessment.data) return null;
     
     // For our new format with riskCategory
     if (assessment.data.riskCategory) {
@@ -103,34 +87,20 @@ function HistoryPage() {
     return { level: 'Very Low', color: '#2196F3' };
   };
   
-  // Handle view assessment (placeholder for future implementation)
+  // Handle view assessment
   const handleViewAssessment = (assessment) => {
-    // For now just show the assessment details in an alert
     const title = getAssessmentTitle(assessment);
-    const type = assessment.type === 'roadRisk' ? 'Road Risk Assessment' : 'Culvert Sizing';
     const date = formatDate(assessment.dateCreated || assessment.completedAt);
+    const riskLevel = getRiskLevel(assessment);
+    const riskScore = assessment.data.riskScore || 'Not calculated';
     
-    // Format some assessment details based on type
-    let details = '';
+    let details = `Risk Score: ${riskScore}\nRisk Level: ${riskLevel ? riskLevel.level : 'Not calculated'}\n`;
     
-    if (assessment.type === 'roadRisk') {
-      const riskLevel = getRiskLevel(assessment);
-      const riskScore = assessment.data.riskScore || 'Not calculated';
-      details = `Risk Score: ${riskScore}\nRisk Level: ${riskLevel ? riskLevel.level : 'Not calculated'}\n`;
-      
-      if (assessment.data.recommendation) {
-        details += `\nRecommendation: ${assessment.data.recommendation}`;
-      }
-    } else if (assessment.type === 'culvertSizing') {
-      if (assessment.data.results) {
-        details = `Recommended Culvert Size: ${assessment.data.results.recommendedSize || 'Not calculated'}\n`;
-        details += `Flow Rate: ${assessment.data.results.flowRate || 'Not calculated'}`;
-      }
+    if (assessment.data.recommendation) {
+      details += `\nRecommendation: ${assessment.data.recommendation}`;
     }
     
-    alert(`Assessment Details\n\nTitle: ${title}\nType: ${type}\nDate: ${date}\n\n${details}`);
-    
-    // Future implementation would navigate to a detailed view page
+    alert(`Assessment Details\n\nTitle: ${title}\nType: Road Risk Assessment\nDate: ${date}\n\n${details}`);
   };
   
   // Delete an assessment
@@ -142,15 +112,10 @@ function HistoryPage() {
     }
   };
   
-  // Filter assessments by type
-  const filteredAssessments = selectedType === 'all' 
-    ? assessmentHistory 
-    : assessmentHistory.filter(assessment => assessment.type === selectedType);
-  
   return (
     <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <h1 style={{color: '#1976D2'}}>Assessment History</h1>
+        <h1 style={{color: '#2e7d32'}}>Road Risk Assessment History</h1>
         <Link to="/" style={{
           display: 'inline-block',
           padding: '8px 16px',
@@ -160,78 +125,37 @@ function HistoryPage() {
           borderRadius: '4px',
           fontWeight: 'bold'
         }}>
-          Back to Dashboard
+          ← Back to Home
         </Link>
       </div>
       
-      {/* Filter buttons */}
-      <div style={{marginBottom: '20px'}}>
-        <div style={{display: 'flex', gap: '10px'}}>
-          <button 
-            onClick={() => setSelectedType('all')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: selectedType === 'all' ? '#1976D2' : '#f5f5f5',
-              color: selectedType === 'all' ? 'white' : '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: selectedType === 'all' ? 'bold' : 'normal'
-            }}
-          >
-            All
-          </button>
-          <button 
-            onClick={() => setSelectedType('roadRisk')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: selectedType === 'roadRisk' ? '#1976D2' : '#f5f5f5',
-              color: selectedType === 'roadRisk' ? 'white' : '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: selectedType === 'roadRisk' ? 'bold' : 'normal'
-            }}
-          >
-            Road Risk
-          </button>
-          <button 
-            onClick={() => setSelectedType('culvertSizing')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: selectedType === 'culvertSizing' ? '#1976D2' : '#f5f5f5',
-              color: selectedType === 'culvertSizing' ? 'white' : '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: selectedType === 'culvertSizing' ? 'bold' : 'normal'
-            }}
-          >
-            Culvert Sizing
-          </button>
-        </div>
-      </div>
-      
-      {filteredAssessments.length === 0 ? (
+      {assessmentHistory.length === 0 ? (
         <div style={{
-          padding: '30px', 
+          padding: '40px', 
           textAlign: 'center', 
           backgroundColor: '#f9f9f9',
           borderRadius: '8px',
           color: '#666'
         }}>
-          <p style={{fontSize: '1.1rem', marginBottom: '15px'}}>No assessments found</p>
-          <p>
-            {selectedType === 'all' 
-              ? 'Complete an assessment using one of the tools to see it here.' 
-              : `No ${selectedType === 'roadRisk' ? 'Road Risk' : 'Culvert Sizing'} assessments found.`}
-          </p>
+          <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>📋 No assessments found</p>
+          <p>Complete a Road Risk Assessment to see it here.</p>
+          <Link to="/road-risk" style={{
+            display: 'inline-block',
+            marginTop: '20px',
+            padding: '12px 24px',
+            background: '#2e7d32',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '6px',
+            fontWeight: 'bold'
+          }}>
+            Create New Assessment
+          </Link>
         </div>
       ) : (
         <div>
-          {filteredAssessments.map((assessment) => {
-            const badgeColor = getBadgeColor(assessment.type);
-            const riskLevel = assessment.type === 'roadRisk' ? getRiskLevel(assessment) : null;
+          {assessmentHistory.map((assessment) => {
+            const riskLevel = getRiskLevel(assessment);
             
             return (
               <div key={assessment.id} style={{
@@ -249,24 +173,25 @@ function HistoryPage() {
                     </h3>
                     <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
                       <span style={{
-                        fontSize: '0.8rem',
-                        backgroundColor: badgeColor.bg,
-                        color: badgeColor.text,
-                        padding: '2px 8px',
+                        fontSize: '0.85rem',
+                        backgroundColor: '#e6f7ff',
+                        color: '#0066cc',
+                        padding: '3px 10px',
                         borderRadius: '4px',
                         display: 'inline-block'
                       }}>
-                        {assessment.type === 'roadRisk' ? 'Road Risk' : 'Culvert Sizing'}
+                        🛣️ Road Risk
                       </span>
                       
                       {riskLevel && (
                         <span style={{
-                          fontSize: '0.8rem',
+                          fontSize: '0.85rem',
                           backgroundColor: `${riskLevel.color}22`,
                           color: riskLevel.color,
-                          padding: '2px 8px',
+                          padding: '3px 10px',
                           borderRadius: '4px',
-                          display: 'inline-block'
+                          display: 'inline-block',
+                          fontWeight: 'bold'
                         }}>
                           {riskLevel.level} Risk
                         </span>
@@ -277,11 +202,11 @@ function HistoryPage() {
                     <div style={{fontSize: '0.9rem', color: '#666', marginBottom: '4px'}}>
                       {formatDate(assessment.dateCreated || assessment.completedAt)}
                     </div>
-                    <div style={{fontSize: '0.9rem', color: '#666'}}>
-                      {assessment.data?.assessor 
-                        ? `Assessor: ${assessment.data.assessor}` 
-                        : assessment.inspector ? `Inspector: ${assessment.inspector}` : ''}
-                    </div>
+                    {assessment.data?.assessor && (
+                      <div style={{fontSize: '0.9rem', color: '#666'}}>
+                        {assessment.data.assessor}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -295,15 +220,15 @@ function HistoryPage() {
                   color: '#666',
                   fontSize: '0.9rem'
                 }}>
-                  <span>{getLocationInfo(assessment)}</span>
-                  <span>{assessment.photoCount ? `${assessment.photoCount} photos` : 'No photos'}</span>
+                  <span>📍 {getLocationInfo(assessment)}</span>
+                  <span>{assessment.photoCount ? `📷 ${assessment.photoCount} photos` : ''}</span>
                 </div>
                 
                 <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px'}}>
                   <button 
                     onClick={() => handleDeleteAssessment(assessment.id)}
                     style={{
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: '#fff',
                       color: '#dc3545',
                       border: '1px solid #dc3545',
                       borderRadius: '4px',
@@ -311,12 +236,12 @@ function HistoryPage() {
                       cursor: 'pointer'
                     }}
                   >
-                    Delete
+                    🗑️ Delete
                   </button>
                   <button 
                     onClick={() => handleViewAssessment(assessment)}
                     style={{
-                      backgroundColor: '#1976D2',
+                      backgroundColor: '#2e7d32',
                       color: 'white',
                       border: 'none',
                       borderRadius: '4px',
@@ -325,7 +250,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    View Details
+                    📄 View Details
                   </button>
                 </div>
               </div>
