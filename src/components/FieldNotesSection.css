@@ -1,0 +1,88 @@
+/* FieldNotesSection.css */
+
+.field-notes-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #2e7d32;
+}
+
+.field-notes-section h2 {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.section-description {
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.notes-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.note-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-field label {
+  font-size: 15px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.note-field textarea:focus {
+  outline: none;
+  border-color: #2e7d32;
+  background: #fafafa;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.note-field textarea::placeholder {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.notes-saved-indicator {
+  margin-top: 16px;
+  padding: 10px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-size: 13px;
+  text-align: center;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .field-notes-section {
+    padding: 16px;
+  }
+  
+  .note-field textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+}
