@@ -75,7 +75,7 @@ const RoadRiskForm = () => {
 
   // Results and Override State
 // Field Notes State
-  const [fieldNotes, setFieldNotes] = useState({
+  const [fieldNotes] = useState({
     hazardObservations: '',
     consequenceObservations: '',
     generalComments: '',
