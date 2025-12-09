@@ -1,5 +1,5 @@
 // Road Risk Assessment Form - Updated with Complete Optional Assessments
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/enhanced-form.css';
@@ -140,8 +140,8 @@ const RoadRiskForm = () => {
     );
   };
 
-  // Calculate Risk Assessment using updated methodology
-  const calculateRiskAssessment = () => {
+  // Calculate Risk Assessment using updated methodology - wrapped in useCallback
+  const calculateRiskAssessment = useCallback(() => {
     const hazardComplete = Object.values(hazardFactors).filter(val => val !== null).length === 5;
     const consequenceComplete = Object.values(consequenceFactors).filter(val => val !== null).length === 4;
 
@@ -160,7 +160,7 @@ const RoadRiskForm = () => {
       ...assessment,
       detailedReasoning: detailedReasoning
     });
-  };
+  }, [hazardFactors, consequenceFactors, riskCalculator]);
 
   // Apply Professional Override
   const applyOverride = () => {
@@ -191,9 +191,10 @@ const RoadRiskForm = () => {
     setShowOverride(true);
   };
 
+  // Fixed useEffect with proper dependency
   useEffect(() => {
     calculateRiskAssessment();
-  }, [hazardFactors, consequenceFactors]);
+  }, [calculateRiskAssessment]);
 
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
@@ -434,7 +435,7 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Road/Slope Failure History - Clean title without any extra elements */}
+              {/* Road/Slope Failure History */}
               <div className="factor-group">
                 <h3>5. Road/Slope Failure History</h3>
                 <p>Consider historical performance and failure record</p>
