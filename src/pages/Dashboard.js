@@ -1,224 +1,302 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  exportToJSON, 
+  exportToCSV, 
+  exportToGeoJSON,
+  downloadJSON,
+  downloadCSV,
+  downloadGeoJSON
+} from '../utils/dataExport';
+import { getDatabaseStats } from '../utils/db';
 
 function Dashboard() {
-  const [savedForms, setSavedForms] = useState({
-    roadRisk: null,
-    culvertSizing: null
-  });
+  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState(null);
   
   useEffect(() => {
-    // Load saved forms from localStorage
-    const roadRiskData = localStorage.getItem('roadRiskForm');
-    const culvertData = localStorage.getItem('culvertSizingForm');
-    
-    setSavedForms({
-      roadRisk: roadRiskData ? JSON.parse(roadRiskData) : null,
-      culvertSizing: culvertData ? JSON.parse(culvertData) : null
-    });
+    loadStats();
   }, []);
-  
-  // Format date for display
-  const formatDate = (isoDate) => {
-    if (!isoDate) return '';
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  const loadStats = async () => {
+    const dbStats = await getDatabaseStats();
+    setStats(dbStats);
   };
-  
-  // Get road name or default title for display
-  const getRoadTitle = (formData) => {
-    if (!formData || !formData.basicInfo) return 'Untitled Road Risk Assessment';
+
+  const handleExport = async (format) => {
+    setIsExporting(true);
+    setExportStatus(null);
     
-    if (formData.basicInfo.roadName) {
-      return formData.basicInfo.roadName;
+    try {
+      const timestamp = new Date().toISOString().split('T')[0];
+      
+      switch(format) {
+        case 'json':
+          const jsonData = await exportToJSON({ includeAll: true });
+          downloadJSON(jsonData, `road-risk-export-${timestamp}.json`);
+          setExportStatus({ type: 'success', message: `✅ Exported ${jsonData.inspections?.length || 0} inspections to JSON` });
+          break;
+          
+        case 'csv':
+          const csvContent = await exportToCSV();
+          downloadCSV(csvContent, `road-risk-export-${timestamp}.csv`);
+          setExportStatus({ type: 'success', message: '✅ Exported to CSV successfully' });
+          break;
+          
+        case 'geojson':
+          const geoJSON = await exportToGeoJSON();
+          downloadGeoJSON(geoJSON, `road-risk-export-${timestamp}.geojson`);
+          setExportStatus({ type: 'success', message: `✅ Exported ${geoJSON.features?.length || 0} inspections to GeoJSON` });
+          break;
+          
+        default:
+          throw new Error('Unknown export format');
+      }
+    } catch (error) {
+      setExportStatus({ type: 'error', message: '❌ Export failed: ' + error.message });
+    } finally {
+      setIsExporting(false);
     }
-    
-    return 'Untitled Road Risk Assessment';
-  };
-  
-  // Get location info
-  const getLocationInfo = (formData) => {
-    if (!formData || !formData.basicInfo) return 'No location';
-    
-    if (formData.basicInfo.startKm && formData.basicInfo.endKm) {
-      return `KM ${formData.basicInfo.startKm} - ${formData.basicInfo.endKm}`;
-    }
-    
-    if (formData.basicInfo.startKm) {
-      return `KM ${formData.basicInfo.startKm}`;
-    }
-    
-    return 'No location';
-  };
-  
-  // Get culvert title
-  const getCulvertTitle = (formData) => {
-    if (!formData) return 'Untitled Culvert Sizing';
-    
-    if (formData.title) {
-      return formData.title;
-    }
-    
-    return 'Untitled Culvert Sizing';
   };
   
   return (
-    <div style={{padding: '20px', maxWidth: '600px', margin: '0 auto'}}>
-      <h1 style={{color: '#1976D2'}}>Digital Forester App</h1>
-      <p style={{marginBottom: '20px'}}>Select a tool to begin:</p>
-      
-      <div style={{marginBottom: '10px'}}>
-        <Link to="/road-risk" style={{
-          display: 'block',
-          background: '#1976D2',
-          color: 'white',
-          padding: '15px',
-          borderRadius: '5px',
-          textDecoration: 'none',
-          textAlign: 'center',
-          marginBottom: '10px',
-          fontWeight: 'bold'
-        }}>
-          Road Risk Assessment
-        </Link>
-      </div>
-      
-      <div style={{marginBottom: '10px'}}>
-        <Link to="/culvert-sizing" style={{
-          display: 'block',
-          background: '#2E7D32',
-          color: 'white',
-          padding: '15px',
-          borderRadius: '5px',
-          textDecoration: 'none',
-          textAlign: 'center',
-          fontWeight: 'bold'
-        }}>
-          Culvert Sizing Tool
-        </Link>
-      </div>
-      
+    <div style={{padding: '20px', maxWidth: '1000px', margin: '0 auto'}}>
       <div style={{marginBottom: '30px'}}>
-        <Link to="/history" style={{
-          display: 'block',
-          background: '#5E35B1',
-          color: 'white',
-          padding: '15px',
-          borderRadius: '5px',
-          textDecoration: 'none',
-          textAlign: 'center',
-          fontWeight: 'bold'
+        <h1 style={{color: '#2e7d32', marginBottom: '8px'}}>Road Risk Assessment Dashboard</h1>
+        <p style={{color: '#666'}}>Overview of your assessment data and quick actions</p>
+      </div>
+
+      {/* Statistics Section */}
+      {stats && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          marginBottom: '30px'
         }}>
-          Assessment History
-        </Link>
-      </div>
-      
-      <div style={{marginTop: '30px'}}>
-        <h2 style={{fontSize: '1.2rem', borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '15px'}}>
-          Recent Drafts
-        </h2>
-        
-        {(!savedForms.roadRisk && !savedForms.culvertSizing) ? (
-          <p style={{color: '#666', fontStyle: 'italic'}}>No saved drafts found.</p>
-        ) : (
-          <div>
-            {savedForms.roadRisk && (
-              <div style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                padding: '12px',
-                marginBottom: '10px'
-              }}>
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                  <span style={{fontWeight: 'bold'}}>
-                    {getRoadTitle(savedForms.roadRisk)}
-                  </span>
-                  <span style={{
-                    fontSize: '0.8rem',
-                    backgroundColor: '#e6f7ff',
-                    color: '#0066cc',
-                    padding: '2px 6px',
-                    borderRadius: '4px'
-                  }}>
-                    Road Risk
-                  </span>
-                </div>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '0.9rem'}}>
-                  <span style={{color: '#666'}}>
-                    {getLocationInfo(savedForms.roadRisk)}
-                  </span>
-                  <span style={{color: '#666'}}>
-                    {formatDate(savedForms.roadRisk.basicInfo?.date || savedForms.roadRisk.timestamp)}
-                  </span>
-                </div>
-                <div style={{marginTop: '8px'}}>
-                  <Link to="/road-risk" style={{
-                    display: 'inline-block',
-                    fontSize: '0.9rem',
-                    color: '#1976D2',
-                    textDecoration: 'none'
-                  }}>
-                    Continue editing →
-                  </Link>
-                </div>
-              </div>
-            )}
-            
-            {savedForms.culvertSizing && (
-              <div style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                padding: '12px'
-              }}>
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                  <span style={{fontWeight: 'bold'}}>
-                    {getCulvertTitle(savedForms.culvertSizing)}
-                  </span>
-                  <span style={{
-                    fontSize: '0.8rem',
-                    backgroundColor: '#e6ffed',
-                    color: '#006633',
-                    padding: '2px 6px',
-                    borderRadius: '4px'
-                  }}>
-                    Culvert Sizing
-                  </span>
-                </div>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '0.9rem'}}>
-                  <span style={{color: '#666'}}>
-                    {savedForms.culvertSizing.location || 'No location'}
-                  </span>
-                  <span style={{color: '#666'}}>
-                    {formatDate(savedForms.culvertSizing.date || savedForms.culvertSizing.timestamp)}
-                  </span>
-                </div>
-                <div style={{marginTop: '8px'}}>
-                  <Link to="/culvert-sizing" style={{
-                    display: 'inline-block',
-                    fontSize: '0.9rem',
-                    color: '#2E7D32',
-                    textDecoration: 'none'
-                  }}>
-                    Continue editing →
-                  </Link>
-                </div>
-              </div>
-            )}
+          <div style={{
+            background: 'linear-gradient(135deg, #2196f3 0%, #64b5f6 100%)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>Total Inspections</div>
+            <div style={{fontSize: '32px', fontWeight: 'bold'}}>{stats.inspections || 0}</div>
           </div>
-        )}
-      </div>
-      
-      <footer style={{
-        marginTop: '40px',
-        padding: '20px 0',
-        borderTop: '1px solid #eee',
-        textAlign: 'center',
-        color: '#666',
-        fontSize: '0.9rem'
+          
+          <div style={{
+            background: 'linear-gradient(135deg, #4caf50 0%, #81c784 100%)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>Risk Assessments</div>
+            <div style={{fontSize: '32px', fontWeight: 'bold'}}>{stats.riskAssessments || 0}</div>
+          </div>
+          
+          <div style={{
+            background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>Issues Noted</div>
+            <div style={{fontSize: '32px', fontWeight: 'bold'}}>{stats.issues || 0}</div>
+          </div>
+          
+          <div style={{
+            background: 'linear-gradient(135deg, #f44336 0%, #ef5350 100%)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>Pending Sync</div>
+            <div style={{fontSize: '32px', fontWeight: 'bold'}}>{stats.pendingSync || 0}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Status */}
+      {exportStatus && (
+        <div style={{
+          padding: '16px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          background: exportStatus.type === 'success' ? '#e8f5e9' : '#ffebee',
+          color: exportStatus.type === 'success' ? '#2e7d32' : '#c62828',
+          borderLeft: exportStatus.type === 'success' ? '4px solid #4caf50' : '4px solid #f44336'
+        }}>
+          {exportStatus.message}
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        marginBottom: '30px'
       }}>
-        <p>Digital Forester App v0.2.0</p>
-        <p style={{marginTop: '5px'}}>© 2025 Forest Management Technologies</p>
-      </footer>
+        <h2 style={{marginTop: 0, marginBottom: '20px', fontSize: '20px'}}>Quick Actions</h2>
+        
+        <div style={{display: 'grid', gap: '12px'}}>
+          <button
+            onClick={() => navigate('/road-risk')}
+            style={{
+              background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '15px 20px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            <span>🛣️</span>
+            <span>New Road Risk Assessment</span>
+          </button>
+          
+          <button
+            onClick={() => navigate('/history')}
+            style={{
+              background: 'linear-gradient(135deg, #2196f3 0%, #64b5f6 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '15px 20px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            <span>📋</span>
+            <span>View Assessment History</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Data Export Section */}
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{marginTop: 0, marginBottom: '12px', fontSize: '20px'}}>📊 Export Data</h2>
+        <p style={{color: '#666', marginBottom: '20px', fontSize: '14px'}}>
+          Download your assessment data for backup or integration with other systems
+        </p>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px'
+        }}>
+          <button
+            onClick={() => handleExport('json')}
+            disabled={isExporting}
+            style={{
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: isExporting ? 'not-allowed' : 'pointer',
+              opacity: isExporting ? 0.6 : 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span style={{fontSize: '24px'}}>📄</span>
+            <span>{isExporting ? 'Exporting...' : 'JSON'}</span>
+            <span style={{fontSize: '11px', opacity: 0.9}}>Complete backup</span>
+          </button>
+          
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={isExporting}
+            style={{
+              background: '#4caf50',
+              color: 'white',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: isExporting ? 'not-allowed' : 'pointer',
+              opacity: isExporting ? 0.6 : 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span style={{fontSize: '24px'}}>📊</span>
+            <span>{isExporting ? 'Exporting...' : 'CSV'}</span>
+            <span style={{fontSize: '11px', opacity: 0.9}}>Excel format</span>
+          </button>
+          
+          <button
+            onClick={() => handleExport('geojson')}
+            disabled={isExporting}
+            style={{
+              background: '#ff9800',
+              color: 'white',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: isExporting ? 'not-allowed' : 'pointer',
+              opacity: isExporting ? 0.6 : 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span style={{fontSize: '24px'}}>🗺️</span>
+            <span>{isExporting ? 'Exporting...' : 'GeoJSON'}</span>
+            <span style={{fontSize: '11px', opacity: 0.9}}>For ArcGIS</span>
+          </button>
+        </div>
+        
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          background: '#f5f5f5',
+          borderRadius: '8px',
+          fontSize: '13px',
+          color: '#666'
+        }}>
+          <strong style={{color: '#333'}}>ℹ️ Export Notes:</strong>
+          <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
+            <li><strong>JSON:</strong> Complete data including all assessments and configurations</li>
+            <li><strong>CSV:</strong> Simplified format - opens in Excel for quick analysis</li>
+            <li><strong>GeoJSON:</strong> Geographic format - import directly to ArcGIS or QGIS</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
