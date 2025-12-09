@@ -11,7 +11,6 @@ export function SaveAssessmentButton({
   hazardFactors, 
   consequenceFactors, 
   optionalAssessments,
-  fieldNotes,
   riskAssessment,
   disabled 
 }) {
@@ -24,6 +23,15 @@ export function SaveAssessmentButton({
     setSaveStatus(null);
     
     try {
+      // Get field notes from localStorage
+      const savedNotes = localStorage.getItem('currentFieldNotes');
+      const fieldNotes = savedNotes ? JSON.parse(savedNotes) : {
+        hazardObservations: '',
+        consequenceObservations: '',
+        generalComments: '',
+        recommendations: ''
+      };
+
       // Prepare assessment data
       const assessmentData = {
         basicInfo,
@@ -37,11 +45,16 @@ export function SaveAssessmentButton({
         recommendation: riskAssessment?.priority
       };
       
+      console.log('Saving assessment:', assessmentData);
+      
       // Save it
       const result = saveAssessment(assessmentData);
       
       if (result.success) {
         setSaveStatus({ type: 'success', message: '✅ Assessment saved successfully!' });
+        
+        // Clear current field notes after save
+        localStorage.removeItem('currentFieldNotes');
         
         // Redirect to history after 1.5 seconds
         setTimeout(() => {
@@ -52,7 +65,8 @@ export function SaveAssessmentButton({
       }
       
     } catch (error) {
-      setSaveStatus({ type: 'error', message: '❌ Error saving assessment' });
+      console.error('Save error:', error);
+      setSaveStatus({ type: 'error', message: '❌ Error saving assessment: ' + error.message });
     } finally {
       setIsSaving(false);
     }
