@@ -73,14 +73,15 @@ const RoadRiskForm = () => {
     }
   });
 
-  // Results and Override State
-// Field Notes State
-  const [fieldNotes] = useState({
+  // Field Notes State
+  const [fieldNotes, setFieldNotes] = useState({
     hazardObservations: '',
     consequenceObservations: '',
     generalComments: '',
     recommendations: ''
-  });  
+  });
+
+  // Results and Override State
   const [riskAssessment, setRiskAssessment] = useState(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideRiskLevel, setOverrideRiskLevel] = useState('');
@@ -874,8 +875,7 @@ const RoadRiskForm = () => {
           </div>
         )}
 
-        
-{/* Field Notes Section */}
+        {/* Field Notes Section */}
         {activeSection === 'notes' && (
           <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
             <h2 className="section-header" style={{ color: '#2e7d32' }}>
@@ -885,6 +885,7 @@ const RoadRiskForm = () => {
             <FieldNotesSection onSave={setFieldNotes} />
           </div>
         )}
+
         {/* Results Section */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
