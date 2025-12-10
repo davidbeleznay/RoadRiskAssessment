@@ -19,6 +19,7 @@ const HomeScreen = () => {
       setStats({ inspections: count });
     } catch (error) {
       console.error('Error loading stats:', error);
+      setStats({ inspections: 0 });
     }
   };
   
@@ -43,16 +44,16 @@ const HomeScreen = () => {
     
     try {
       if (format === 'json') {
-        const data = exportToJSON({ includeAll: true });
+        const data = exportToJSON();
         downloadJSON(data);
-        alert(`✅ Exported to JSON`);
+        alert('✅ Exported to JSON');
       } else if (format === 'csv') {
         const csvContent = exportToCSV();
         downloadCSV(csvContent);
         alert('✅ Exported to CSV!');
       }
       
-      loadStats();
+      await loadStats();
     } catch (error) {
       alert('❌ Export failed: ' + error.message);
     } finally {
