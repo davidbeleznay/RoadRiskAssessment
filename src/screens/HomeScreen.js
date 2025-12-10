@@ -119,8 +119,8 @@ const HomeScreen = () => {
             background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
           }}>
             <div className="field-card-content">
-              <div className="field-card-title">⚖️ LMH Method</div>
-              <div className="field-card-description">
+              <div className="field-card-title" style={{color: 'white'}}>⚖️ LMH Method</div>
+              <div className="field-card-description" style={{color: 'rgba(255, 255, 255, 0.95)'}}>
                 Simplified qualitative approach with photos (Likelihood × Consequence)
               </div>
             </div>
