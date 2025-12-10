@@ -1,164 +1,156 @@
 // src/utils/db.js
-// IndexedDB configuration using Dexie for offline road risk assessments
+// IndexedDB configuration using Dexie - simplified for assessments with photos
 
 import Dexie from 'dexie';
 
-// Create database instance
 export const db = new Dexie('RoadRiskDB');
 
-// Define database schema - aligned with multi-method architecture
-db.version(1).stores({
-  // Road segments being assessed
-  roadSegments: '++id, name, identifier, location, roadClass',
+// Simplified schema for road risk assessments
+db.version(2).stores({
+  // Main assessments table
+  assessments: '++id, type, dateCreated, roadName, riskMethod',
   
-  // Road risk assessments (main inspection records)
-  inspections: '++id, timestamp, roadSegmentId, riskMethodId, assessmentDate, inspector, syncStatus, latitude, longitude',
-  
-  // Risk assessment results (supports multiple methods per inspection)
-  riskAssessments: '++id, inspectionId, riskMethodId, hazardTotal, consequenceTotal, riskScore, riskCategory, syncStatus',
-  
-  // Individual factor values for each assessment
-  riskFactorValues: '++id, riskAssessmentId, factorId, selectedOptionId, score',
-  
-  // Issues/observations noted during inspection
-  issues: '++id, inspectionId, description, issueType, locationReference, photoUrl, timestamp',
-  
-  // Action items from inspections
-  actionItems: '++id, inspectionId, description, priority, dueDate, assignedTo, status',
-  
-  // Risk method definitions (Mosaic, LMH, future methods)
-  riskMethods: '++id, name, description, version, status, createdDate',
-  
-  // Factor groups (Hazard, Consequence)
-  factorGroups: '++id, riskMethodId, name, displayOrder',
-  
-  // Individual factors within each method
-  factors: '++id, factorGroupId, name, description, displayOrder',
-  
-  // Options for each factor (with scores)
-  factorOptions: '++id, factorId, label, scoreValue, displayOrder',
-  
-  // Risk categories for each method
-  riskCategories: '++id, riskMethodId, categoryName, minScore, maxScore, description',
-  
-  // Sync queue for offline data
-  syncQueue: '++id, type, dataId, attempts, lastAttempt, created'
+  // Photos table (separate for better performance)
+  photos: '++id, assessmentId, timestamp'
 });
 
-// Sync status enumeration
-export const SyncStatus = {
-  PENDING: 'pending',
-  SYNCING: 'syncing',
-  SYNCED: 'synced',
-  FAILED: 'failed'
-};
-
-// Risk method status
-export const MethodStatus = {
-  ACTIVE: 'active',
-  RETIRED: 'retired',
-  DRAFT: 'draft'
-};
-
-// Open database connection
 db.open()
   .then(() => {
-    console.log('✅ RoadRiskDB opened successfully');
+    console.log('✅ RoadRiskDB v2 opened successfully');
   })
   .catch((err) => {
     console.error('❌ Failed to open RoadRiskDB:', err);
   });
 
 /**
- * Get database statistics
+ * Save assessment to IndexedDB
  */
-export async function getDatabaseStats() {
+export async function saveAssessmentDB(assessmentData) {
   try {
-    const inspectionCount = await db.inspections.count();
-    const assessmentCount = await db.riskAssessments.count();
-    const pendingSync = await db.syncQueue.count();
-    const issuesCount = await db.issues.count();
+    // Get photos from localStorage temporarily
+    const savedPhotos = localStorage.getItem('currentPhotos');
+    const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
     
-    return {
-      inspections: inspectionCount,
-      riskAssessments: assessmentCount,
-      pendingSync,
-      issues: issuesCount
+    // Create assessment record
+    const assessment = {
+      type: 'roadRisk',
+      dateCreated: new Date().toISOString(),
+      roadName: assessmentData.basicInfo?.roadName || 'Untitled',
+      riskMethod: assessmentData.riskMethod || 'Scorecard',
+      data: assessmentData,
+      photoCount: photos.length
     };
-  } catch (error) {
-    console.error('Error getting database stats:', error);
-    return null;
-  }
-}
-
-/**
- * Export all data to JSON for backup or transfer
- */
-export async function exportAllData() {
-  try {
-    const data = {
-      inspections: await db.inspections.toArray(),
-      riskAssessments: await db.riskAssessments.toArray(),
-      riskFactorValues: await db.riskFactorValues.toArray(),
-      issues: await db.issues.toArray(),
-      actionItems: await db.actionItems.toArray(),
-      roadSegments: await db.roadSegments.toArray(),
-      riskMethods: await db.riskMethods.toArray(),
-      factorGroups: await db.factorGroups.toArray(),
-      factors: await db.factors.toArray(),
-      factorOptions: await db.factorOptions.toArray(),
-      riskCategories: await db.riskCategories.toArray(),
-      exportDate: new Date().toISOString(),
-      appVersion: '2.0.0'
-    };
-    return data;
-  } catch (error) {
-    console.error('Error exporting database:', error);
-    return null;
-  }
-}
-
-/**
- * Import database from JSON (for restore)
- */
-export async function importDatabase(data) {
-  try {
-    if (data.inspections) await db.inspections.bulkAdd(data.inspections);
-    if (data.riskAssessments) await db.riskAssessments.bulkAdd(data.riskAssessments);
-    if (data.riskFactorValues) await db.riskFactorValues.bulkAdd(data.riskFactorValues);
-    if (data.issues) await db.issues.bulkAdd(data.issues);
-    if (data.actionItems) await db.actionItems.bulkAdd(data.actionItems);
-    if (data.roadSegments) await db.roadSegments.bulkAdd(data.roadSegments);
-    if (data.riskMethods) await db.riskMethods.bulkAdd(data.riskMethods);
-    if (data.factorGroups) await db.factorGroups.bulkAdd(data.factorGroups);
-    if (data.factors) await db.factors.bulkAdd(data.factors);
-    if (data.factorOptions) await db.factorOptions.bulkAdd(data.factorOptions);
-    if (data.riskCategories) await db.riskCategories.bulkAdd(data.riskCategories);
     
-    console.log('✅ Database imported successfully');
-    return true;
+    // Save assessment
+    const assessmentId = await db.assessments.add(assessment);
+    console.log('✅ Assessment saved to IndexedDB:', assessmentId);
+    
+    // Save photos separately
+    if (photos.length > 0) {
+      const photoRecords = photos.map(photo => ({
+        assessmentId: assessmentId,
+        ...photo
+      }));
+      await db.photos.bulkAdd(photoRecords);
+      console.log('✅ Saved', photos.length, 'photos to IndexedDB');
+    }
+    
+    // Clear temporary storage
+    localStorage.removeItem('currentPhotos');
+    localStorage.removeItem('currentFieldNotes');
+    
+    return { success: true, id: assessmentId };
   } catch (error) {
-    console.error('Error importing database:', error);
-    return false;
+    console.error('❌ Error saving to IndexedDB:', error);
+    return { success: false, error: error.message };
   }
 }
 
 /**
- * Clear all data (for testing/reset)
+ * Load all assessments from IndexedDB
  */
-export async function clearAllData() {
+export async function loadAssessmentsDB() {
   try {
-    await db.inspections.clear();
-    await db.riskAssessments.clear();
-    await db.riskFactorValues.clear();
-    await db.issues.clear();
-    await db.actionItems.clear();
-    await db.syncQueue.clear();
-    console.log('✅ All data cleared');
-    return true;
+    const assessments = await db.assessments.toArray();
+    
+    // Load photos for each assessment
+    for (const assessment of assessments) {
+      const photos = await db.photos.where('assessmentId').equals(assessment.id).toArray();
+      assessment.data.photos = photos;
+    }
+    
+    return assessments;
   } catch (error) {
-    console.error('Error clearing data:', error);
-    return false;
+    console.error('❌ Error loading from IndexedDB:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete assessment from IndexedDB
+ */
+export async function deleteAssessmentDB(id) {
+  try {
+    // Delete photos first
+    await db.photos.where('assessmentId').equals(id).delete();
+    // Delete assessment
+    await db.assessments.delete(id);
+    console.log('✅ Assessment deleted:', id);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error deleting:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get assessment count
+ */
+export async function getAssessmentCountDB() {
+  try {
+    return await db.assessments.count();
+  } catch (error) {
+    return 0;
+  }
+}
+
+/**
+ * Migrate data from localStorage to IndexedDB
+ */
+export async function migrateFromLocalStorage() {
+  try {
+    const historyData = localStorage.getItem('assessmentHistory');
+    if (!historyData) {
+      console.log('No localStorage data to migrate');
+      return { success: true, migrated: 0 };
+    }
+    
+    const history = JSON.parse(historyData);
+    const roadRisk = history.filter(a => a.type === 'roadRisk');
+    
+    console.log('Migrating', roadRisk.length, 'assessments to IndexedDB...');
+    
+    for (const item of roadRisk) {
+      await db.assessments.add({
+        type: item.type,
+        dateCreated: item.dateCreated,
+        roadName: item.data?.basicInfo?.roadName || item.title,
+        riskMethod: item.data?.riskMethod || 'Scorecard',
+        data: item.data,
+        photoCount: item.photoCount || 0
+      });
+    }
+    
+    console.log('✅ Migration complete!');
+    
+    // Backup then clear localStorage
+    localStorage.setItem('assessmentHistory_backup', historyData);
+    localStorage.removeItem('assessmentHistory');
+    
+    return { success: true, migrated: roadRisk.length };
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    return { success: false, error: error.message };
   }
 }
 
