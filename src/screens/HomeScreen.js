@@ -69,7 +69,23 @@ const HomeScreen = () => {
   return (
     <div className="home-container">
       <div className="app-header">
-        <h1 className="app-title">Road Risk Assessment</h1>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px'}}>
+          <div style={{
+            fontSize: '48px',
+            background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 'bold'
+          }}>
+            🛣️
+          </div>
+          <div style={{textAlign: 'left'}}>
+            <h1 className="app-title" style={{margin: 0, fontSize: '32px'}}>Road Risk Assessment</h1>
+            <p style={{margin: '4px 0 0 0', fontSize: '13px', color: '#666', fontWeight: '500'}}>
+              MOSAIC FOREST MANAGEMENT
+            </p>
+          </div>
+        </div>
         <p className="app-subtitle">Professional risk evaluation for forest roads</p>
         <div style={{
           background: '#2e7d32',
@@ -81,7 +97,7 @@ const HomeScreen = () => {
           fontWeight: 'bold',
           fontSize: '15px'
         }}>
-          ✅ v2.4.0 - Dashboard + View/Edit + Search/Filter
+          ✅ v2.4.1 - Gamification + Pro PDFs
         </div>
       </div>
 
@@ -151,7 +167,6 @@ const HomeScreen = () => {
             </div>
           </div>
 
-          {/* Dashboard moved to bottom */}
           <div className="field-card" onClick={navigateToDashboard} style={{
             background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
             cursor: 'pointer'
@@ -159,7 +174,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
               <div className="field-card-description" style={{color: 'rgba(255,255,255,0.9)'}}>
-                KPIs, charts, search & filter
+                KPIs, charts, streaks & badges
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📈</div>
@@ -219,8 +234,8 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.4.0 - Dashboard + View/Edit + Filters</div>
-        <div className="app-copyright">© 2025 Mosaic</div>
+        <div className="app-version">v2.4.1 - Gamification + Professional PDFs</div>
+        <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
   );
