@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { exportToPDF } from '../utils/pdfExport';
+import { exportToProfessionalPDF } from '../utils/professionalPDF';
 import { loadAssessmentsDB, migrateFromLocalStorage } from '../utils/db';
 
 function HistoryPage() {
@@ -13,13 +13,11 @@ function HistoryPage() {
 
   const loadHistory = async () => {
     try {
-      // Try to migrate from localStorage first
       const migrationResult = await migrateFromLocalStorage();
       if (migrationResult.migrated > 0) {
-        console.log('✅ Migrated', migrationResult.migrated, 'assessments from localStorage');
+        console.log('✅ Migrated', migrationResult.migrated, 'assessments');
       }
       
-      // Load from IndexedDB
       const assessments = await loadAssessmentsDB();
       console.log('✅ Loaded', assessments.length, 'assessments from IndexedDB');
       setAssessmentHistory(assessments);
@@ -88,10 +86,18 @@ function HistoryPage() {
   };
   
   const handleDeleteAssessment = async (id) => {
-    if (window.confirm('Delete this assessment?')) {
+    if (window.confirm('Delete this assessment? This cannot be undone.')) {
       const { deleteAssessmentDB } = await import('../utils/db');
       await deleteAssessmentDB(id);
       loadHistory();
+    }
+  };
+  
+  const handleExportPDF = async (assessment) => {
+    try {
+      await exportToProfessionalPDF(assessment);
+    } catch (error) {
+      console.error('PDF export failed:', error);
     }
   };
   
@@ -216,7 +222,7 @@ function HistoryPage() {
                 
                 <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px'}}>
                   <button 
-                    onClick={() => exportToPDF(assessment)}
+                    onClick={() => handleExportPDF(assessment)}
                     style={{
                       backgroundColor: '#f44336',
                       color: 'white',
@@ -227,7 +233,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    📑 PDF
+                    📄 Download PDF
                   </button>
                   <button 
                     onClick={() => handleViewAssessment(assessment)}
@@ -241,7 +247,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    📄 View
+                    👁️ View
                   </button>
                   <button 
                     onClick={() => handleDeleteAssessment(assessment.id)}
