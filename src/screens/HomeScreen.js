@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exportToJSON, exportToCSV, downloadJSON, downloadCSV } from '../utils/dataExport';
+import { getAssessmentCountDB } from '../utils/db';
 
 const HomeScreen = () => {
   const navigate = useNavigate();
@@ -12,15 +13,10 @@ const HomeScreen = () => {
     loadStats();
   }, []);
 
-  const loadStats = () => {
+  const loadStats = async () => {
     try {
-      const historyData = localStorage.getItem('assessmentHistory');
-      const history = historyData ? JSON.parse(historyData) : [];
-      const roadRiskAssessments = history.filter(a => a.type === 'roadRisk');
-      
-      setStats({
-        inspections: roadRiskAssessments.length
-      });
+      const count = await getAssessmentCountDB();
+      setStats({ inspections: count });
     } catch (error) {
       console.error('Error loading stats:', error);
     }
@@ -49,11 +45,11 @@ const HomeScreen = () => {
       if (format === 'json') {
         const data = exportToJSON({ includeAll: true });
         downloadJSON(data);
-        alert(`✅ Exported ${data.inspections?.length || 0} assessments to JSON`);
+        alert(`✅ Exported to JSON`);
       } else if (format === 'csv') {
         const csvContent = exportToCSV();
         downloadCSV(csvContent);
-        alert('✅ Exported to CSV - open in Excel!');
+        alert('✅ Exported to CSV!');
       }
       
       loadStats();
@@ -71,15 +67,16 @@ const HomeScreen = () => {
         <h1 className="app-title">Road Risk Assessment</h1>
         <p className="app-subtitle">Professional risk evaluation for forest roads</p>
         <div style={{
-          background: '#f44336',
+          background: '#2e7d32',
           color: 'white',
-          padding: '10px',
+          padding: '12px',
           borderRadius: '6px',
           marginTop: '10px',
           textAlign: 'center',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          fontSize: '15px'
         }}>
-          🔧 v2.3.0-PHOTO-FIX - SimplePhotoCapture - Dec 10, 2024
+          ✅ v2.3.0 - IndexedDB Storage (Unlimited Photos!)
         </div>
       </div>
 
@@ -109,7 +106,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">🔬 Scorecard Method</div>
               <div className="field-card-description">
-                Detailed 9-factor quantitative assessment (5 hazard + 4 consequence factors)
+                Detailed 9-factor quantitative assessment
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
@@ -119,13 +116,12 @@ const HomeScreen = () => {
             background: 'white',
             borderTop: '4px solid #f44336',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s'
+            cursor: 'pointer'
           }}>
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>⚖️ LMH Method</div>
               <div className="field-card-description" style={{color: '#666'}}>
-                Simplified qualitative approach with photos (Likelihood × Consequence)
+                Simplified approach with photos
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
@@ -135,7 +131,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">Assessment History</div>
               <div className="field-card-description">
-                View and export all saved assessments (both methods)
+                View and export saved assessments
               </div>
             </div>
             <div className="field-card-icon">📋</div>
@@ -145,7 +141,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">📤 Export Data</div>
               <div className="field-card-description">
-                Download as JSON, CSV, or PDF with photos
+                JSON, CSV, or PDF with photos
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>
@@ -164,9 +160,7 @@ const HomeScreen = () => {
           boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
           border: '3px solid #4caf50'
         }}>
-          <h3 style={{marginTop: 0, color: '#2e7d32', fontSize: '24px'}}>
-            📊 Export Your Assessment Data
-          </h3>
+          <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Data</h3>
 
           <div style={{
             display: 'grid',
@@ -177,54 +171,40 @@ const HomeScreen = () => {
               onClick={() => handleExport('json')}
               disabled={isExporting}
               style={{
-                background: 'linear-gradient(135deg, #2196f3 0%, #64b5f6 100%)',
+                background: '#2196f3',
                 color: 'white',
                 border: 'none',
                 padding: '20px',
-                borderRadius: '12px',
-                cursor: isExporting ? 'not-allowed' : 'pointer',
-                fontSize: '16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
                 fontWeight: 'bold'
               }}
             >
-              <div style={{fontSize: '40px'}}>📄</div>
-              <div>JSON Export</div>
+              📄 JSON
             </button>
 
             <button
               onClick={() => handleExport('csv')}
               disabled={isExporting}
               style={{
-                background: 'linear-gradient(135deg, #4caf50 0%, #81c784 100%)',
+                background: '#4caf50',
                 color: 'white',
                 border: 'none',
                 padding: '20px',
-                borderRadius: '12px',
-                cursor: isExporting ? 'not-allowed' : 'pointer',
-                fontSize: '16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
                 fontWeight: 'bold'
               }}
             >
-              <div style={{fontSize: '40px'}}>📊</div>
-              <div>CSV Export</div>
+              📊 CSV
             </button>
-          </div>
-          <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            background: 'white',
-            borderRadius: '8px',
-            fontSize: '13px',
-            color: '#666'
-          }}>
-            <strong style={{color: '#2e7d32'}}>💡 Tip:</strong> View individual assessments in History to export as PDF with photos!
           </div>
         </div>
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.3.0-PHOTO-FIX - SimplePhotoCapture Deployed</div>
-        <div className="app-copyright">© 2025 Mosaic Forest Management</div>
+        <div className="app-version">v2.3.0 - IndexedDB + Unlimited Photos</div>
+        <div className="app-copyright">© 2025 Mosaic</div>
       </div>
     </div>
   );
