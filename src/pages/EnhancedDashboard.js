@@ -1,7 +1,7 @@
 // src/pages/EnhancedDashboard.js
 // Comprehensive dashboard with charts, filters, and KPI tracking
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadAssessmentsDB } from '../utils/db';
 import { exportToProfessionalPDF } from '../utils/professionalPDF';
@@ -18,11 +18,7 @@ function EnhancedDashboard() {
     searchTerm: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const data = await loadAssessmentsDB();
       setAssessments(data);
@@ -32,7 +28,11 @@ function EnhancedDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const calculateStats = (data) => {
     const riskDistribution = {
@@ -45,7 +45,6 @@ function EnhancedDashboard() {
 
     const methodCount = { Scorecard: 0, LMH: 0 };
     let totalPhotos = 0;
-    const assessorCounts = {};
     
     data.forEach(a => {
       const riskLevel = a.data?.riskAssessment?.finalRisk || a.data?.riskAssessment?.riskLevel || a.data?.riskCategory;
@@ -57,9 +56,6 @@ function EnhancedDashboard() {
       methodCount[method] = (methodCount[method] || 0) + 1;
       
       totalPhotos += (a.data?.photos?.length || 0);
-      
-      const assessor = a.data?.basicInfo?.assessor || 'Unknown';
-      assessorCounts[assessor] = (assessorCounts[assessor] || 0) + 1;
     });
 
     setStats({
@@ -68,14 +64,12 @@ function EnhancedDashboard() {
       methodCount,
       totalPhotos,
       avgPhotosPerAssessment: data.length ? (totalPhotos / data.length).toFixed(1) : 0,
-      assessorCounts,
       highRiskCount: riskDistribution['Very High'] + riskDistribution['High']
     });
   };
 
   const getFilteredAssessments = () => {
     return assessments.filter(a => {
-      // Risk level filter
       if (filters.riskLevel !== 'all') {
         const riskLevel = a.data?.riskAssessment?.finalRisk || a.data?.riskAssessment?.riskLevel || a.data?.riskCategory;
         if (filters.riskLevel === 'high-only') {
@@ -85,12 +79,10 @@ function EnhancedDashboard() {
         }
       }
 
-      // Method filter
       if (filters.method !== 'all' && a.riskMethod !== filters.method) {
         return false;
       }
 
-      // Search filter
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         const roadName = (a.roadName || a.data?.basicInfo?.roadName || '').toLowerCase();
@@ -100,7 +92,6 @@ function EnhancedDashboard() {
         }
       }
 
-      // Date range filter
       if (filters.dateRange !== 'all') {
         const assessmentDate = new Date(a.dateCreated);
         const now = new Date();
@@ -138,7 +129,6 @@ function EnhancedDashboard() {
     }
     
     alert(`Exporting ${filteredAssessments.length} filtered assessments...`);
-    // Export logic here
   };
 
   if (isLoading) {
@@ -156,7 +146,7 @@ function EnhancedDashboard() {
       <div style={{marginBottom: '24px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
           <div>
-            <h1 style={{color: '#2e7d32', margin: 0}}>📊 Road Risk Dashboard</h1>
+            <h1 style={{margin: 0, color: '#2e7d32'}}>📊 Road Risk Dashboard</h1>
             <p style={{color: '#666', margin: '4px 0 0 0'}}>Framework implementation tracking & KPI monitoring</p>
           </div>
           <button onClick={() => navigate('/')} style={{
