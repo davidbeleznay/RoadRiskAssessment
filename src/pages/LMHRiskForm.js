@@ -4,8 +4,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveAssessment } from '../utils/assessmentStorage';
-import { PhotoCapture } from '../components/PhotoCapture';
-import { FieldNotesSection } from '../components/FieldNotesSection';
+import PhotoCapture from '../components/PhotoCapture';
+import FieldNotesSection from '../components/FieldNotesSection';
 import '../styles/enhanced-form.css';
 
 const LMHRiskForm = () => {
@@ -25,8 +25,8 @@ const LMHRiskForm = () => {
   });
 
   // LMH Simple Ratings
-  const [likelihood, setLikelihood] = useState(null); // Low, Moderate, High
-  const [consequence, setConsequence] = useState(null); // Low, Moderate, High
+  const [likelihood, setLikelihood] = useState(null);
+  const [consequence, setConsequence] = useState(null);
   const [riskResult, setRiskResult] = useState(null);
 
   // Calculate risk based on LMH matrix
@@ -69,7 +69,6 @@ const LMHRiskForm = () => {
     setIsSaving(true);
 
     try {
-      // Get field notes and photos from localStorage
       const savedNotes = localStorage.getItem('currentFieldNotes');
       const fieldNotes = savedNotes ? JSON.parse(savedNotes) : {};
       
@@ -83,7 +82,7 @@ const LMHRiskForm = () => {
         consequence,
         riskAssessment: {
           ...riskResult,
-          method: 'Land Management Hazard (LMH)',
+          method: 'LMH',
           riskLevel: riskResult?.level
         },
         fieldNotes,
@@ -120,7 +119,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Simplified Land Management Hazard (LMH) methodology</p>
+        <p>Simplified Land Management Hazard methodology</p>
         <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
@@ -194,7 +193,6 @@ const LMHRiskForm = () => {
               Simplified assessment using Likelihood and Consequence ratings
             </p>
 
-            {/* Likelihood */}
             <div className="factor-group">
               <h3>1. Likelihood of Failure</h3>
               <p>Assess the probability that a failure or adverse event could occur</p>
@@ -223,7 +221,6 @@ const LMHRiskForm = () => {
               </div>
             </div>
 
-            {/* Consequence */}
             <div className="factor-group">
               <h3>2. Consequence of Failure</h3>
               <p>Assess the potential impact if a failure were to occur</p>
@@ -342,7 +339,6 @@ const LMHRiskForm = () => {
                   <p style={{ margin: 0, fontSize: '16px' }}>{riskResult.priority}</p>
                 </div>
 
-                {/* Save Button */}
                 <div style={{ textAlign: 'center', marginTop: '30px' }}>
                   <button
                     onClick={handleSave}
