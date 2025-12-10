@@ -104,20 +104,6 @@ const HomeScreen = () => {
         <h2 style={{color: '#2e7d32', marginBottom: '16px'}}>📋 Assessment Tools</h2>
         
         <div className="field-card-grid">
-          {/* Dashboard - NEW! */}
-          <div className="field-card" onClick={navigateToDashboard} style={{
-            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-            cursor: 'pointer'
-          }}>
-            <div className="field-card-content">
-              <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
-              <div className="field-card-description" style={{color: 'rgba(255,255,255,0.9)'}}>
-                KPIs, charts, search & filter
-              </div>
-            </div>
-            <div className="field-card-icon" style={{fontSize: '48px'}}>📈</div>
-          </div>
-
           <div className="field-card primary" onClick={navigateToRoadRisk}>
             <div className="field-card-content">
               <div className="field-card-title">🔬 Scorecard Method</div>
@@ -163,6 +149,20 @@ const HomeScreen = () => {
             <div className="field-card-icon" style={{fontSize: '48px'}}>
               {showExport ? '▼' : '📤'}
             </div>
+          </div>
+
+          {/* Dashboard moved to bottom */}
+          <div className="field-card" onClick={navigateToDashboard} style={{
+            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+            cursor: 'pointer'
+          }}>
+            <div className="field-card-content">
+              <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
+              <div className="field-card-description" style={{color: 'rgba(255,255,255,0.9)'}}>
+                KPIs, charts, search & filter
+              </div>
+            </div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>📈</div>
           </div>
         </div>
       </div>
