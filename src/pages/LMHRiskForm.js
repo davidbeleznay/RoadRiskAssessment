@@ -13,7 +13,6 @@ const LMHRiskForm = () => {
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Basic Information
   const [basicInfo, setBasicInfo] = useState({
     assessmentDate: new Date().toISOString().split('T')[0],
     roadName: '',
@@ -24,12 +23,10 @@ const LMHRiskForm = () => {
     notes: ''
   });
 
-  // LMH Simple Ratings
   const [likelihood, setLikelihood] = useState(null);
   const [consequence, setConsequence] = useState(null);
   const [riskResult, setRiskResult] = useState(null);
 
-  // Calculate risk based on LMH matrix
   const calculateLMHRisk = (l, c) => {
     if (!l || !c) return null;
 
@@ -119,7 +116,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Simplified Land Management Hazard methodology</p>
+        <p>Simplified Land Management Hazard methodology with photo documentation</p>
         <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
@@ -184,23 +181,40 @@ const LMHRiskForm = () => {
 
         {/* LMH Assessment */}
         {activeSection === 'assessment' && (
-          <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
-            <h2 className="section-header" style={{ color: '#9c27b0' }}>
-              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
+          <div className="form-section" style={{ borderTop: '4px solid #1976d2' }}>
+            <h2 className="section-header" style={{ color: '#1976d2' }}>
+              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #1976d2, #42a5f5)' }}></span>
               LMH Risk Assessment
             </h2>
             <p className="scoring-explanation">
-              Simplified assessment using Likelihood and Consequence ratings
+              Simplified qualitative assessment - consider overall site conditions for each rating
             </p>
 
             <div className="factor-group">
               <h3>1. Likelihood of Failure</h3>
-              <p>Assess the probability that a failure or adverse event could occur</p>
+              <p style={{marginBottom: '16px'}}>Consider: terrain stability, slope grade, soil type, drainage, historical performance</p>
+              
+              <div style={{
+                background: '#e3f2fd',
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                fontSize: '14px'
+              }}>
+                <strong style={{color: '#1976d2'}}>Assessment Factors:</strong>
+                <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
+                  <li><strong>Terrain:</strong> Slope steepness, stability class</li>
+                  <li><strong>Soils:</strong> Erosion potential, stability</li>
+                  <li><strong>Drainage:</strong> Water management effectiveness</li>
+                  <li><strong>History:</strong> Previous failures or issues</li>
+                </ul>
+              </div>
+
               <div className="rating-options">
                 {[
-                  { value: 'Low', label: 'Low Likelihood', description: 'Stable conditions, good drainage, no history of failures' },
-                  { value: 'Moderate', label: 'Moderate Likelihood', description: 'Some stability concerns, moderate drainage issues, minor historical problems' },
-                  { value: 'High', label: 'High Likelihood', description: 'Unstable terrain, poor drainage, history of failures' }
+                  { value: 'Low', label: 'Low Likelihood', description: 'Stable terrain (<40% slope), good drainage, cohesive soils, no failure history' },
+                  { value: 'Moderate', label: 'Moderate Likelihood', description: 'Moderate slopes (40-60%), some drainage issues, moderately stable soils, minor historical issues' },
+                  { value: 'High', label: 'High Likelihood', description: 'Steep/unstable terrain (>60%), poor drainage, erodible soils, history of failures' }
                 ].map((option) => (
                   <label key={option.value} className="rating-option">
                     <input
@@ -223,12 +237,29 @@ const LMHRiskForm = () => {
 
             <div className="factor-group">
               <h3>2. Consequence of Failure</h3>
-              <p>Assess the potential impact if a failure were to occur</p>
+              <p style={{marginBottom: '16px'}}>Consider: water resources, infrastructure capacity, road use, environmental/cultural values</p>
+              
+              <div style={{
+                background: '#fff3e0',
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                fontSize: '14px'
+              }}>
+                <strong style={{color: '#f57c00'}}>Assessment Factors:</strong>
+                <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
+                  <li><strong>Water:</strong> Proximity to streams, fish presence</li>
+                  <li><strong>Infrastructure:</strong> Culvert capacity, drainage adequacy</li>
+                  <li><strong>Use:</strong> Traffic volume, access importance</li>
+                  <li><strong>Values:</strong> Habitat, cultural significance</li>
+                </ul>
+              </div>
+
               <div className="rating-options">
                 {[
-                  { value: 'Low', label: 'Low Consequence', description: 'No water resources nearby, minimal road use, no significant values' },
-                  { value: 'Moderate', label: 'Moderate Consequence', description: 'Non-fish streams nearby, moderate road use, some environmental values' },
-                  { value: 'High', label: 'High Consequence', description: 'Fish streams, high road use, critical habitat or cultural areas' }
+                  { value: 'Low', label: 'Low Consequence', description: 'No water resources nearby (>100m), adequate infrastructure, minimal use, no special values' },
+                  { value: 'Moderate', label: 'Moderate Consequence', description: 'Non-fish streams (30-100m), moderate infrastructure, regular use, some environmental values' },
+                  { value: 'High', label: 'High Consequence', description: 'Fish streams (<30m), undersized infrastructure, high use, critical habitat/cultural areas' }
                 ].map((option) => (
                   <label key={option.value} className="rating-option">
                     <input
@@ -259,6 +290,7 @@ const LMHRiskForm = () => {
               Field Notes & Photos
             </h2>
             <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
+            <div style={{height: '20px'}}></div>
             <PhotoCapture onPhotoSaved={(photos) => console.log('Photos saved:', photos.length)} />
           </div>
         )}
@@ -276,7 +308,7 @@ const LMHRiskForm = () => {
                 <div className="methodology-display">
                   <h3>📋 LMH Methodology</h3>
                   <p><strong>Simplified Land Management Hazard Assessment</strong></p>
-                  <p>Risk determined by Likelihood × Consequence matrix</p>
+                  <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
                 </div>
 
                 <div style={{
