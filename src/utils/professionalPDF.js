@@ -29,21 +29,20 @@ export async function generateProfessionalPDF(assessment) {
 
     let yPos = 20;
 
-    // Header with Mosaic branding
+    // Simplified header with Mosaic branding
     doc.setFillColor(...mosaicGreen);
-    doc.rect(0, 0, 220, 35, 'F');
+    doc.rect(0, 0, 220, 30, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    doc.setFontSize(22);
     doc.setFont(undefined, 'bold');
-    doc.text('Road Risk Assessment Report', 105, 15, { align: 'center' });
+    doc.text('Road Risk Assessment', 105, 12, { align: 'center' });
     
     doc.setFontSize(11);
     doc.setFont(undefined, 'normal');
     doc.text('Mosaic Forest Management', 105, 22, { align: 'center' });
-    doc.text('Professional Risk Evaluation System', 105, 28, { align: 'center' });
 
-    yPos = 45;
+    yPos = 40;
 
     // Method badge
     doc.setFillColor(method === 'LMH' ? 225 : 230, method === 'LMH' ? 190 : 247, method === 'LMH' ? 231 : 255);
@@ -177,7 +176,7 @@ export async function generateProfessionalPDF(assessment) {
       addNote('✅ Recommendations:', fieldNotes.recommendations);
     }
 
-    // Photos
+    // Photos - smaller size, no rotation
     if (photos.length > 0) {
       if (yPos > 240) {
         doc.addPage();
@@ -201,29 +200,34 @@ export async function generateProfessionalPDF(assessment) {
         }
 
         try {
-          // Add photo
-          doc.addImage(photo.data, 'JPEG', 15, yPos, 85, 64);
+          // Smaller photos - 70mm wide instead of 85mm
+          // No rotation - keep original orientation
+          const imgWidth = 70;
+          const imgHeight = 52; // 4:3 aspect ratio
           
-          // Photo info
+          doc.addImage(photo.data, 'JPEG', 15, yPos, imgWidth, imgHeight, undefined, 'FAST');
+          
+          // Photo info on the right
+          const textX = 90;
           doc.setFontSize(9);
           doc.setTextColor(...darkGray);
           doc.setFont(undefined, 'bold');
-          doc.text(`Photo ${i + 1}`, 105, yPos + 5);
+          doc.text(`Photo ${i + 1}`, textX, yPos + 5);
           
           doc.setFont(undefined, 'normal');
           doc.setFontSize(8);
-          doc.text(new Date(photo.timestamp).toLocaleString(), 105, yPos + 10);
+          doc.text(new Date(photo.timestamp).toLocaleString(), textX, yPos + 10);
           
           if (photo.gps.latitude) {
-            doc.text(`GPS: ${photo.gps.latitude}, ${photo.gps.longitude}`, 105, yPos + 15);
+            doc.text(`GPS: ${photo.gps.latitude}, ${photo.gps.longitude}`, textX, yPos + 15);
           }
           
           if (photo.comment) {
-            const commentLines = doc.splitTextToSize(photo.comment, 85);
-            doc.text(commentLines, 105, yPos + 22);
+            const commentLines = doc.splitTextToSize(photo.comment, 100);
+            doc.text(commentLines, textX, yPos + 22);
           }
           
-          yPos += 70;
+          yPos += imgHeight + 8;
         } catch (error) {
           console.error('Error adding photo to PDF:', error);
           doc.setFontSize(9);
