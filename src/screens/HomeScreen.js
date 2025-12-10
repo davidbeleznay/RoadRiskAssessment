@@ -39,6 +39,10 @@ const HomeScreen = () => {
     navigate('/history');
   };
 
+  const navigateToDashboard = () => {
+    navigate('/dashboard');
+  };
+
   const handleExport = async (format) => {
     setIsExporting(true);
     
@@ -77,7 +81,7 @@ const HomeScreen = () => {
           fontWeight: 'bold',
           fontSize: '15px'
         }}>
-          ✅ v2.3.0 - IndexedDB Storage (Unlimited Photos!)
+          ✅ v2.4.0 - Dashboard + View/Edit + Search/Filter
         </div>
       </div>
 
@@ -97,17 +101,28 @@ const HomeScreen = () => {
       )}
       
       <div className="tool-section">
-        <h2 style={{color: '#2e7d32', marginBottom: '16px'}}>📋 Choose Assessment Method</h2>
-        <p style={{color: '#666', marginBottom: '20px', fontSize: '14px'}}>
-          Two defensible pathways for professional forest road risk assessment
-        </p>
-
+        <h2 style={{color: '#2e7d32', marginBottom: '16px'}}>📋 Assessment Tools</h2>
+        
         <div className="field-card-grid">
+          {/* Dashboard - NEW! */}
+          <div className="field-card" onClick={navigateToDashboard} style={{
+            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+            cursor: 'pointer'
+          }}>
+            <div className="field-card-content">
+              <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
+              <div className="field-card-description" style={{color: 'rgba(255,255,255,0.9)'}}>
+                KPIs, charts, search & filter
+              </div>
+            </div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>📈</div>
+          </div>
+
           <div className="field-card primary" onClick={navigateToRoadRisk}>
             <div className="field-card-content">
               <div className="field-card-title">🔬 Scorecard Method</div>
               <div className="field-card-description">
-                Detailed 9-factor quantitative assessment
+                Detailed 9-factor assessment
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
@@ -132,7 +147,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">Assessment History</div>
               <div className="field-card-description">
-                View and export saved assessments
+                View all saved assessments
               </div>
             </div>
             <div className="field-card-icon">📋</div>
@@ -142,7 +157,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">📤 Export Data</div>
               <div className="field-card-description">
-                JSON, CSV, or PDF with photos
+                JSON, CSV, or PDF
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>
@@ -204,7 +219,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.3.0 - IndexedDB + Unlimited Photos</div>
+        <div className="app-version">v2.4.0 - Dashboard + View/Edit + Filters</div>
         <div className="app-copyright">© 2025 Mosaic</div>
       </div>
     </div>
