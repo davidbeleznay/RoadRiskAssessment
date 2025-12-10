@@ -1,11 +1,10 @@
 // src/pages/AssessmentDetailPage.js
 // View and edit saved assessments
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { loadAssessmentsDB, deleteAssessmentDB } from '../utils/db';
 import { exportToProfessionalPDF } from '../utils/professionalPDF';
-import SimplePhotoCapture from '../components/SimplePhotoCapture';
 
 function AssessmentDetailPage() {
   const { id } = useParams();
@@ -15,11 +14,7 @@ function AssessmentDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedNotes, setEditedNotes] = useState({});
 
-  useEffect(() => {
-    loadAssessment();
-  }, [id]);
-
-  const loadAssessment = async () => {
+  const loadAssessment = useCallback(async () => {
     try {
       const assessments = await loadAssessmentsDB();
       const found = assessments.find(a => a.id === parseInt(id));
@@ -35,7 +30,11 @@ function AssessmentDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    loadAssessment();
+  }, [loadAssessment]);
 
   const handleDelete = async () => {
     if (window.confirm('Delete this assessment permanently? This cannot be undone.')) {
@@ -285,7 +284,7 @@ function AssessmentDetailPage() {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           marginBottom: '20px'
         }}>
-          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes</h2>
+          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes & Photos</h2>
           
           {isEditing ? (
             <div style={{display: 'grid', gap: '16px'}}>
