@@ -1,5 +1,5 @@
 // src/components/PhotoCapture.jsx
-// Photo capture component with GPS tagging and comments
+// Photo capture component with GPS tagging and comments - optimized for mobile
 
 import React, { useState, useRef, useEffect } from 'react';
 import './PhotoCapture.css';
@@ -18,6 +18,7 @@ function PhotoCapture({ onPhotoSaved }) {
       try {
         const parsed = JSON.parse(savedPhotos);
         setPhotos(parsed);
+        console.log('📸 Loaded', parsed.length, 'existing photos');
       } catch (error) {
         console.error('Error loading photos:', error);
       }
@@ -25,28 +26,34 @@ function PhotoCapture({ onPhotoSaved }) {
   }, []);
 
   const capturePhoto = async (file) => {
+    console.log('📸 Starting photo capture for:', file.name);
     setIsCapturing(true);
     
     try {
       // Get GPS coordinates
       const gpsData = await new Promise((resolve) => {
         if (!navigator.geolocation) {
+          console.log('⚠️ GPS not available');
           resolve({ latitude: null, longitude: null, accuracy: null });
           return;
         }
 
+        console.log('📍 Getting GPS location...');
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            resolve({
+            const gps = {
               latitude: position.coords.latitude.toFixed(6),
               longitude: position.coords.longitude.toFixed(6),
               accuracy: Math.round(position.coords.accuracy)
-            });
+            };
+            console.log('✅ GPS captured:', gps);
+            resolve(gps);
           },
-          () => {
+          (error) => {
+            console.log('⚠️ GPS error:', error.message);
             resolve({ latitude: null, longitude: null, accuracy: null });
           },
-          { enableHighAccuracy: true, timeout: 5000 }
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       });
 
@@ -59,17 +66,25 @@ function PhotoCapture({ onPhotoSaved }) {
           timestamp: new Date().toISOString(),
           gps: gpsData,
           comment: '',
-          filename: file.name
+          filename: file.name,
+          size: file.size
         };
 
+        console.log('✅ Photo loaded, size:', Math.round(file.size / 1024), 'KB');
         setPreviewPhoto(photoData);
         setCurrentComment('');
       };
+      
+      reader.onerror = (error) => {
+        console.error('❌ File read error:', error);
+        alert('Failed to read photo file');
+      };
+      
       reader.readAsDataURL(file);
 
     } catch (error) {
-      console.error('Error capturing photo:', error);
-      alert('❌ Failed to capture photo');
+      console.error('❌ Error capturing photo:', error);
+      alert('❌ Failed to capture photo: ' + error.message);
     } finally {
       setIsCapturing(false);
     }
@@ -77,9 +92,25 @@ function PhotoCapture({ onPhotoSaved }) {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      capturePhoto(file);
+    console.log('📁 File selected:', file);
+    
+    if (!file) {
+      console.log('⚠️ No file selected');
+      return;
     }
+    
+    if (!file.type.startsWith('image/')) {
+      alert('❌ Please select an image file');
+      return;
+    }
+    
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Photo too large. Please use a photo under 10MB.');
+      return;
+    }
+    
+    capturePhoto(file);
   };
 
   const savePhoto = () => {
@@ -92,22 +123,30 @@ function PhotoCapture({ onPhotoSaved }) {
 
     const updatedPhotos = [...photos, photoWithComment];
     setPhotos(updatedPhotos);
-    localStorage.setItem('currentPhotos', JSON.stringify(updatedPhotos));
-
-    if (onPhotoSaved) {
-      onPhotoSaved(updatedPhotos);
-    }
-
-    setPreviewPhoto(null);
-    setCurrentComment('');
     
-    alert('✅ Photo saved with GPS and comment!');
+    try {
+      localStorage.setItem('currentPhotos', JSON.stringify(updatedPhotos));
+      console.log('✅ Photo saved to localStorage. Total photos:', updatedPhotos.length);
+      
+      if (onPhotoSaved) {
+        onPhotoSaved(updatedPhotos);
+      }
+
+      setPreviewPhoto(null);
+      setCurrentComment('');
+      
+      alert('✅ Photo saved with GPS!');
+    } catch (error) {
+      console.error('❌ Error saving photo:', error);
+      alert('❌ Failed to save photo. It may be too large.');
+    }
   };
 
   const deletePhoto = (photoId) => {
     const updatedPhotos = photos.filter(p => p.id !== photoId);
     setPhotos(updatedPhotos);
     localStorage.setItem('currentPhotos', JSON.stringify(updatedPhotos));
+    console.log('🗑️ Photo deleted. Remaining:', updatedPhotos.length);
     
     if (onPhotoSaved) {
       onPhotoSaved(updatedPhotos);
@@ -123,7 +162,7 @@ function PhotoCapture({ onPhotoSaved }) {
     <div className="photo-capture-container">
       <h3>📸 Photo Documentation</h3>
       <p className="photo-description">
-        Take photos of site conditions. GPS coordinates are automatically captured with each photo.
+        Tap to take photos on your phone. GPS coordinates are automatically captured.
       </p>
 
       <div className="camera-controls">
@@ -136,11 +175,14 @@ function PhotoCapture({ onPhotoSaved }) {
           style={{ display: 'none' }}
         />
         <button
-          onClick={() => fileInputRef.current.click()}
+          onClick={() => {
+            console.log('📷 Camera button clicked');
+            fileInputRef.current.click();
+          }}
           disabled={isCapturing}
           className="camera-button"
         >
-          📷 {isCapturing ? 'Capturing...' : 'Take Photo'}
+          📷 {isCapturing ? 'Loading...' : 'Take Photo'}
         </button>
         <div className="photo-count">
           {photos.length} photo{photos.length !== 1 ? 's' : ''} captured
@@ -171,17 +213,20 @@ function PhotoCapture({ onPhotoSaved }) {
                   <strong>⚠️ No GPS:</strong> Location services unavailable
                 </div>
               )}
+              <div className="metadata-item">
+                <strong>📦 Size:</strong> {Math.round(previewPhoto.size / 1024)} KB
+              </div>
             </div>
 
             <div className="comment-section">
               <label htmlFor="photo-comment">
-                <strong>💬 Photo Description/Comment:</strong>
+                <strong>💬 Photo Description (Optional):</strong>
               </label>
               <textarea
                 id="photo-comment"
                 value={currentComment}
                 onChange={(e) => setCurrentComment(e.target.value)}
-                placeholder="Describe what this photo shows: terrain conditions, hazards, infrastructure details, etc..."
+                placeholder="Describe what this photo shows: terrain, hazards, infrastructure, etc..."
                 rows={3}
                 className="photo-comment-input"
               />
@@ -201,16 +246,16 @@ function PhotoCapture({ onPhotoSaved }) {
 
       {photos.length > 0 && (
         <div className="photo-gallery">
-          <h4>Captured Photos:</h4>
+          <h4>Captured Photos ({photos.length}):</h4>
           <div className="photo-grid">
-            {photos.map((photo) => (
+            {photos.map((photo, index) => (
               <div key={photo.id} className="photo-card">
                 <div className="photo-thumbnail-container">
-                  <img src={photo.data} alt="Site" className="photo-thumbnail" />
+                  <img src={photo.data} alt={`Site photo ${index + 1}`} className="photo-thumbnail" />
                 </div>
                 <div className="photo-info">
                   <div className="photo-time">
-                    {new Date(photo.timestamp).toLocaleTimeString()}
+                    Photo {index + 1} - {new Date(photo.timestamp).toLocaleTimeString()}
                   </div>
                   {photo.gps.latitude && (
                     <div className="photo-gps">
