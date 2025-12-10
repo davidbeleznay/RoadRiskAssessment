@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveAssessment } from '../utils/assessmentStorage';
-import PhotoCapture from '../components/PhotoCapture';
+import SimplePhotoCapture from '../components/SimplePhotoCapture';
 import FieldNotesSection from '../components/FieldNotesSection';
 import '../styles/enhanced-form.css';
 
@@ -72,6 +72,8 @@ const LMHRiskForm = () => {
       const savedPhotos = localStorage.getItem('currentPhotos');
       const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
 
+      console.log('Saving with', photos.length, 'photos');
+
       const assessmentData = {
         basicInfo,
         riskMethod: 'LMH',
@@ -91,7 +93,7 @@ const LMHRiskForm = () => {
       const result = saveAssessment(assessmentData);
 
       if (result.success) {
-        alert('✅ LMH Assessment saved!');
+        alert(`✅ LMH Assessment saved with ${photos.length} photos!`);
         localStorage.removeItem('currentFieldNotes');
         localStorage.removeItem('currentPhotos');
         setTimeout(() => navigate('/history'), 1000);
@@ -139,7 +141,7 @@ const LMHRiskForm = () => {
         {/* Basic Information */}
         {activeSection === 'basic' && (
           <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
-            <h2 className="section-header" style={{ color: '#2196f3' }}>
+            <h2 className="section-header" style={{ color: '#2196f3', paddingLeft: '40px' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2196f3, #64b5f6)' }}></span>
               Basic Information
             </h2>
@@ -187,7 +189,7 @@ const LMHRiskForm = () => {
               LMH Risk Assessment
             </h2>
             <p className="scoring-explanation">
-              Simplified qualitative assessment - consider overall site conditions for each rating
+              Simplified qualitative assessment - consider overall site conditions
             </p>
 
             <div className="factor-group">
@@ -289,9 +291,10 @@ const LMHRiskForm = () => {
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
               Field Notes & Photos
             </h2>
+            
             <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
-            <div style={{height: '30px', borderTop: '2px dashed #ccc', margin: '30px 0'}}></div>
-            <PhotoCapture onPhotoSaved={(photos) => console.log('Photos saved:', photos.length)} />
+            
+            <SimplePhotoCapture />
           </div>
         )}
 
@@ -305,8 +308,8 @@ const LMHRiskForm = () => {
 
             {riskResult ? (
               <div className="risk-results-container">
-                <div className="methodology-display" style={{paddingLeft: '20px'}}>
-                  <h3 style={{marginLeft: '20px'}}>📋 LMH Methodology</h3>
+                <div className="methodology-display" style={{marginLeft: '20px'}}>
+                  <h3>📋 LMH Methodology</h3>
                   <p><strong>Simplified Land Management Hazard Assessment</strong></p>
                   <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
                 </div>
