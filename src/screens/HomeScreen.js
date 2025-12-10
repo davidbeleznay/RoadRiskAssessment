@@ -115,12 +115,16 @@ const HomeScreen = () => {
             <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
           </div>
 
-          <div className="field-card primary" onClick={navigateToLMH} style={{
-            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
+          <div className="field-card" onClick={navigateToLMH} style={{
+            background: 'white',
+            borderTop: '4px solid #f44336',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s, box-shadow 0.2s'
           }}>
             <div className="field-card-content">
-              <div className="field-card-title" style={{color: 'white'}}>⚖️ LMH Method</div>
-              <div className="field-card-description" style={{color: 'rgba(255, 255, 255, 0.95)'}}>
+              <div className="field-card-title" style={{color: '#333'}}>⚖️ LMH Method</div>
+              <div className="field-card-description" style={{color: '#666'}}>
                 Simplified qualitative approach with photos (Likelihood × Consequence)
               </div>
             </div>
