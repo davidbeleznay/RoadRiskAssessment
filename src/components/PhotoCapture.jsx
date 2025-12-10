@@ -1,15 +1,28 @@
 // src/components/PhotoCapture.jsx
 // Photo capture component with GPS tagging and comments
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './PhotoCapture.css';
 
-export function PhotoCapture({ onPhotoSaved }) {
+function PhotoCapture({ onPhotoSaved }) {
   const [photos, setPhotos] = useState([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [currentComment, setCurrentComment] = useState('');
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Load existing photos on mount
+  useEffect(() => {
+    const savedPhotos = localStorage.getItem('currentPhotos');
+    if (savedPhotos) {
+      try {
+        const parsed = JSON.parse(savedPhotos);
+        setPhotos(parsed);
+      } catch (error) {
+        console.error('Error loading photos:', error);
+      }
+    }
+  }, []);
 
   const capturePhoto = async (file) => {
     setIsCapturing(true);
@@ -42,7 +55,7 @@ export function PhotoCapture({ onPhotoSaved }) {
       reader.onload = (e) => {
         const photoData = {
           id: Date.now().toString(),
-          data: e.target.result, // base64 string
+          data: e.target.result,
           timestamp: new Date().toISOString(),
           gps: gpsData,
           comment: '',
@@ -79,16 +92,12 @@ export function PhotoCapture({ onPhotoSaved }) {
 
     const updatedPhotos = [...photos, photoWithComment];
     setPhotos(updatedPhotos);
-
-    // Save to localStorage
     localStorage.setItem('currentPhotos', JSON.stringify(updatedPhotos));
 
-    // Call parent callback
     if (onPhotoSaved) {
       onPhotoSaved(updatedPhotos);
     }
 
-    // Clear preview
     setPreviewPhoto(null);
     setCurrentComment('');
     
@@ -117,7 +126,6 @@ export function PhotoCapture({ onPhotoSaved }) {
         Take photos of site conditions. GPS coordinates are automatically captured with each photo.
       </p>
 
-      {/* Camera Button */}
       <div className="camera-controls">
         <input
           ref={fileInputRef}
@@ -139,7 +147,6 @@ export function PhotoCapture({ onPhotoSaved }) {
         </div>
       </div>
 
-      {/* Photo Preview & Comment */}
       {previewPhoto && (
         <div className="photo-preview-modal">
           <div className="photo-preview-content">
@@ -192,7 +199,6 @@ export function PhotoCapture({ onPhotoSaved }) {
         </div>
       )}
 
-      {/* Photo Gallery */}
       {photos.length > 0 && (
         <div className="photo-gallery">
           <h4>Captured Photos:</h4>
