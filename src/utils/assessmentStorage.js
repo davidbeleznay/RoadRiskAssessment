@@ -2,12 +2,16 @@
 // Functions for saving and loading road risk assessments
 
 /**
- * Save a road risk assessment to localStorage and IndexedDB
+ * Save a road risk assessment to localStorage
  */
 export function saveAssessment(assessmentData) {
   try {
     // Generate unique ID
     const id = Date.now().toString();
+    
+    // Get photos from localStorage
+    const savedPhotos = localStorage.getItem('currentPhotos');
+    const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
     
     // Create assessment record
     const assessment = {
@@ -18,9 +22,10 @@ export function saveAssessment(assessmentData) {
       completedAt: new Date().toISOString(),
       data: {
         ...assessmentData,
-        assessor: assessmentData.basicInfo?.assessor
+        assessor: assessmentData.basicInfo?.assessor,
+        photos: photos
       },
-      photoCount: 0
+      photoCount: photos.length
     };
     
     // Load existing history
@@ -33,7 +38,10 @@ export function saveAssessment(assessmentData) {
     // Save back to localStorage
     localStorage.setItem('assessmentHistory', JSON.stringify(history));
     
-    console.log('✅ Assessment saved:', id);
+    // Clear current photos after save
+    localStorage.removeItem('currentPhotos');
+    
+    console.log('✅ Assessment saved with', photos.length, 'photos. ID:', id);
     return { success: true, id };
     
   } catch (error) {
