@@ -182,7 +182,7 @@ const LMHRiskForm = () => {
         {/* LMH Assessment */}
         {activeSection === 'assessment' && (
           <div className="form-section" style={{ borderTop: '4px solid #1976d2' }}>
-            <h2 className="section-header" style={{ color: '#1976d2' }}>
+            <h2 className="section-header" style={{ color: '#1976d2', paddingLeft: '40px' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #1976d2, #42a5f5)' }}></span>
               LMH Risk Assessment
             </h2>
@@ -285,12 +285,12 @@ const LMHRiskForm = () => {
         {/* Field Notes & Photos */}
         {activeSection === 'notes' && (
           <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
-            <h2 className="section-header" style={{ color: '#2e7d32' }}>
+            <h2 className="section-header" style={{ color: '#2e7d32', paddingLeft: '40px' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
               Field Notes & Photos
             </h2>
             <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
-            <div style={{height: '20px'}}></div>
+            <div style={{height: '30px', borderTop: '2px dashed #ccc', margin: '30px 0'}}></div>
             <PhotoCapture onPhotoSaved={(photos) => console.log('Photos saved:', photos.length)} />
           </div>
         )}
@@ -298,15 +298,15 @@ const LMHRiskForm = () => {
         {/* Results */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
-            <h2 className="section-header" style={{ color: '#4caf50' }}>
+            <h2 className="section-header" style={{ color: '#4caf50', paddingLeft: '40px' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
               LMH Risk Results
             </h2>
 
             {riskResult ? (
               <div className="risk-results-container">
-                <div className="methodology-display">
-                  <h3>📋 LMH Methodology</h3>
+                <div className="methodology-display" style={{paddingLeft: '20px'}}>
+                  <h3 style={{marginLeft: '20px'}}>📋 LMH Methodology</h3>
                   <p><strong>Simplified Land Management Hazard Assessment</strong></p>
                   <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
                 </div>
