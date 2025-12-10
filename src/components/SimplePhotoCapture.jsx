@@ -230,13 +230,13 @@ function SimplePhotoCapture() {
                 overflow: 'hidden',
                 position: 'relative'
               }}>
-                <img src={photo.data} alt={`Photo ${i+1}`} style={{
+                <img src={photo.data} alt={`Site ${i+1}`} style={{
                   width: '100%',
                   height: '150px',
                   objectFit: 'cover'
                 }} />
                 <div style={{padding: '8px', fontSize: '12px'}}>
-                  <div style={{fontWeight: 'bold'}}>Photo {i+1}</div>
+                  <div style={{fontWeight: 'bold'}}>Image {i+1}</div>
                   {photo.gps.latitude && (
                     <div style={{color: '#2196f3', fontSize: '11px'}}>
                       📍 {photo.gps.latitude}, {photo.gps.longitude}
@@ -266,6 +266,24 @@ function SimplePhotoCapture() {
           </div>
         </div>
       )}
+
+      <div style={{
+        marginTop: '20px',
+        padding: '16px',
+        background: '#e8f5e9',
+        borderRadius: '8px',
+        fontSize: '14px'
+      }}>
+        <strong style={{color: '#2e7d32'}}>📱 How to use:</strong>
+        <ol style={{margin: '8px 0 0 20px', paddingLeft: 0}}>
+          <li>Click "Select Photo" button above</li>
+          <li>Choose an image from your device</li>
+          <li>GPS location is automatically captured</li>
+          <li>Add optional comment</li>
+          <li>Click "Save Photo" to add to gallery</li>
+          <li>Photos are included when you save assessment</li>
+        </ol>
+      </div>
     </div>
   );
 }
