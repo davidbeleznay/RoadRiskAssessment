@@ -69,7 +69,7 @@ function HistoryPage() {
     const title = getAssessmentTitle(assessment);
     const date = formatDate(assessment.dateCreated);
     const riskLevel = getRiskLevel(assessment);
-    const method = assessment.data?.riskMethod || 'Mosaic';
+    const method = assessment.data?.riskMethod || 'Scorecard';
     
     alert(`Assessment Details\n\nTitle: ${title}\nMethod: ${method}\nDate: ${date}\nRisk Level: ${riskLevel?.level || 'Not calculated'}\nPhotos: ${assessment.photoCount || 0}`);
   };
@@ -123,7 +123,7 @@ function HistoryPage() {
         <div>
           {assessmentHistory.map((assessment) => {
             const riskLevel = getRiskLevel(assessment);
-            const method = assessment.data?.riskMethod || 'Mosaic';
+            const method = assessment.data?.riskMethod || 'Scorecard';
             
             return (
               <div key={assessment.id} style={{
@@ -147,7 +147,7 @@ function HistoryPage() {
                         padding: '3px 10px',
                         borderRadius: '4px'
                       }}>
-                        {method === 'LMH' ? '⚖️ LMH Method' : '🛣️ Mosaic Method'}
+                        {method === 'LMH' ? '⚖️ LMH Method' : '🔬 Scorecard Method'}
                       </span>
                       
                       {riskLevel && (
