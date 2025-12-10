@@ -1,9 +1,9 @@
 // src/pages/LMHRiskForm.js
-// Simplified Land Management Hazard (LMH) Risk Assessment Form
+// LMH Risk Assessment with IndexedDB storage
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { saveAssessment } from '../utils/assessmentStorage';
+import { saveAssessmentDB } from '../utils/db';
 import SimplePhotoCapture from '../components/SimplePhotoCapture';
 import FieldNotesSection from '../components/FieldNotesSection';
 import '../styles/enhanced-form.css';
@@ -62,18 +62,13 @@ const LMHRiskForm = () => {
     setBasicInfo(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
 
     try {
       const savedNotes = localStorage.getItem('currentFieldNotes');
       const fieldNotes = savedNotes ? JSON.parse(savedNotes) : {};
       
-      const savedPhotos = localStorage.getItem('currentPhotos');
-      const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
-
-      console.log('Saving with', photos.length, 'photos');
-
       const assessmentData = {
         basicInfo,
         riskMethod: 'LMH',
@@ -85,22 +80,21 @@ const LMHRiskForm = () => {
           riskLevel: riskResult?.level
         },
         fieldNotes,
-        photos,
         riskScore: `${likelihood}/${consequence}`,
         riskCategory: riskResult?.level
       };
 
-      const result = saveAssessment(assessmentData);
+      console.log('Saving to IndexedDB...');
+      const result = await saveAssessmentDB(assessmentData);
 
       if (result.success) {
-        alert(`✅ LMH Assessment saved with ${photos.length} photos!`);
-        localStorage.removeItem('currentFieldNotes');
-        localStorage.removeItem('currentPhotos');
+        alert('✅ Assessment saved to unlimited storage!');
         setTimeout(() => navigate('/history'), 1000);
       } else {
         alert('❌ Save failed: ' + result.error);
       }
     } catch (error) {
+      console.error('Save error:', error);
       alert('❌ Error: ' + error.message);
     } finally {
       setIsSaving(false);
@@ -138,7 +132,6 @@ const LMHRiskForm = () => {
       </div>
 
       <div className="form-content">
-        {/* Basic Information */}
         {activeSection === 'basic' && (
           <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
             <h2 className="section-header" style={{ color: '#2196f3', paddingLeft: '40px' }}>
@@ -181,7 +174,6 @@ const LMHRiskForm = () => {
           </div>
         )}
 
-        {/* LMH Assessment */}
         {activeSection === 'assessment' && (
           <div className="form-section" style={{ borderTop: '4px solid #1976d2' }}>
             <h2 className="section-header" style={{ color: '#1976d2', paddingLeft: '40px' }}>
@@ -284,7 +276,6 @@ const LMHRiskForm = () => {
           </div>
         )}
 
-        {/* Field Notes & Photos */}
         {activeSection === 'notes' && (
           <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
             <h2 className="section-header" style={{ color: '#2e7d32', paddingLeft: '40px' }}>
@@ -298,7 +289,6 @@ const LMHRiskForm = () => {
           </div>
         )}
 
-        {/* Results */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
             <h2 className="section-header" style={{ color: '#4caf50', paddingLeft: '40px' }}>
@@ -309,7 +299,7 @@ const LMHRiskForm = () => {
             {riskResult ? (
               <div className="risk-results-container">
                 <div className="methodology-display" style={{marginLeft: '20px'}}>
-                  <h3>📋 LMH Methodology</h3>
+                  <h3 style={{marginLeft: '20px'}}>📋 LMH Methodology</h3>
                   <p><strong>Simplified Land Management Hazard Assessment</strong></p>
                   <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
                 </div>
@@ -391,8 +381,15 @@ const LMHRiskForm = () => {
                       boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
                     }}
                   >
-                    {isSaving ? '💾 Saving...' : '💾 Save LMH Assessment'}
+                    {isSaving ? '💾 Saving to IndexedDB...' : '💾 Save LMH Assessment'}
                   </button>
+                  <div style={{
+                    marginTop: '12px',
+                    fontSize: '13px',
+                    color: '#666'
+                  }}>
+                    💡 Saves to unlimited IndexedDB storage
+                  </div>
                 </div>
 
               </div>
@@ -405,7 +402,7 @@ const LMHRiskForm = () => {
               }}>
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
                 <h3>Assessment Incomplete</h3>
-                <p>Complete both <strong>Likelihood</strong> and <strong>Consequence</strong> ratings to see your risk result.</p>
+                <p>Complete both <strong>Likelihood</strong> and <strong>Consequence</strong> ratings.</p>
                 <div style={{ marginTop: '20px' }}>
                   <div style={{ marginBottom: '8px' }}>
                     {likelihood ? '✅' : '⏹️'} Likelihood: {likelihood || 'Not selected'}
