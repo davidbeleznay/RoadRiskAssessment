@@ -5,17 +5,20 @@ import RoadRiskForm from '../pages/RoadRiskForm';
 import LMHRiskForm from '../pages/LMHRiskForm';
 import HistoryPage from '../pages/HistoryPage';
 import Dashboard from '../pages/Dashboard';
+import EnhancedDashboard from '../pages/EnhancedDashboard';
+import AssessmentDetailPage from '../pages/AssessmentDetailPage';
 
 const AppRouter = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<HomeScreen />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<EnhancedDashboard />} />
+        <Route path="/dashboard-old" element={<Dashboard />} />
         <Route path="/road-risk" element={<RoadRiskForm />} />
         <Route path="/lmh-risk" element={<LMHRiskForm />} />
-        <Route path="/road-risk/edit/:id" element={<RoadRiskForm />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/assessment/:id" element={<AssessmentDetailPage />} />
       </Routes>
     </Router>
   );
