@@ -1,16 +1,18 @@
 // src/pages/EnhancedDashboard.js
-// Comprehensive dashboard with charts, filters, and KPI tracking
+// Comprehensive dashboard with charts, filters, KPI tracking, and gamification
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadAssessmentsDB } from '../utils/db';
 import { exportToProfessionalPDF } from '../utils/professionalPDF';
+import { calculateUserStats, getMotivationalMessage } from '../utils/gamification';
 
 function EnhancedDashboard() {
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [userStats, setUserStats] = useState(null);
   const [filters, setFilters] = useState({
     riskLevel: 'all',
     method: 'all',
@@ -23,6 +25,10 @@ function EnhancedDashboard() {
       const data = await loadAssessmentsDB();
       setAssessments(data);
       calculateStats(data);
+      
+      // Load gamification stats
+      const gStats = await calculateUserStats();
+      setUserStats(gStats);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -161,6 +167,100 @@ function EnhancedDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Gamification Stats - Streaks & Badges */}
+      {userStats && (
+        <div style={{
+          background: 'linear-gradient(135deg, #6a1b9a 0%, #9c27b0 100%)',
+          color: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(156, 39, 176, 0.3)',
+          marginBottom: '24px'
+        }}>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px'}}>
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '48px', marginBottom: '8px'}}>
+                {userStats.currentStreak > 0 ? '🔥' : '⭐'}
+              </div>
+              <div style={{fontSize: '32px', fontWeight: 'bold'}}>
+                {userStats.currentStreak}
+              </div>
+              <div style={{fontSize: '13px', opacity: 0.9}}>Day Streak</div>
+            </div>
+
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '48px', marginBottom: '8px'}}>📅</div>
+              <div style={{fontSize: '32px', fontWeight: 'bold'}}>
+                {userStats.thisWeek}
+              </div>
+              <div style={{fontSize: '13px', opacity: 0.9}}>This Week</div>
+            </div>
+
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '48px', marginBottom: '8px'}}>📆</div>
+              <div style={{fontSize: '32px', fontWeight: 'bold'}}>
+                {userStats.thisMonth}
+              </div>
+              <div style={{fontSize: '13px', opacity: 0.9}}>This Month</div>
+            </div>
+
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '48px', marginBottom: '8px'}}>🏆</div>
+              <div style={{fontSize: '32px', fontWeight: 'bold'}}>
+                {userStats.longestStreak}
+              </div>
+              <div style={{fontSize: '13px', opacity: 0.9}}>Best Streak</div>
+            </div>
+          </div>
+
+          {(() => {
+            const message = getMotivationalMessage(userStats);
+            return message ? (
+              <div style={{
+                marginTop: '16px',
+                padding: '12px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '8px',
+                textAlign: 'center',
+                fontSize: '15px',
+                fontWeight: '500'
+              }}>
+                {message.emoji} {message.text}
+              </div>
+            ) : null;
+          })()}
+
+          {userStats.badges && userStats.badges.length > 0 && (
+            <div style={{marginTop: '16px'}}>
+              <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px', textAlign: 'center'}}>
+                🏅 Badges Earned ({userStats.badges.length})
+              </div>
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+                justifyContent: 'center'
+              }}>
+                {userStats.badges.map(badge => (
+                  <div key={badge.id} style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }} title={badge.description}>
+                    <span style={{fontSize: '20px'}}>{badge.icon}</span>
+                    <span>{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* KPI Cards */}
       {stats && (
