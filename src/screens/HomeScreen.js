@@ -79,7 +79,7 @@ const HomeScreen = () => {
           textAlign: 'center',
           fontWeight: 'bold'
         }}>
-          ✅ v2.2.0 - DUAL METHODS + PHOTOS - Dec 9, 2024
+          ✅ v2.2.0 - DUAL METHODS + PHOTOS + PDF - Dec 9, 2024
         </div>
       </div>
 
@@ -101,18 +101,18 @@ const HomeScreen = () => {
       <div className="tool-section">
         <h2 style={{color: '#2e7d32', marginBottom: '16px'}}>📋 Choose Assessment Method</h2>
         <p style={{color: '#666', marginBottom: '20px', fontSize: '14px'}}>
-          Two professional methodologies for forest road risk assessment
+          Two defensible pathways for professional forest road risk assessment
         </p>
 
         <div className="field-card-grid">
           <div className="field-card primary" onClick={navigateToRoadRisk}>
             <div className="field-card-content">
-              <div className="field-card-title">🛣️ Mosaic Method</div>
+              <div className="field-card-title">🔬 Scorecard Method</div>
               <div className="field-card-description">
-                Detailed 9-factor assessment using EGBC/FPBC methodology (Hazard × Consequence)
+                Detailed 9-factor quantitative assessment (5 hazard + 4 consequence factors)
               </div>
             </div>
-            <div className="field-card-icon">🔬</div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
           </div>
 
           <div className="field-card primary" onClick={navigateToLMH} style={{
@@ -121,17 +121,17 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">⚖️ LMH Method</div>
               <div className="field-card-description">
-                Simplified Land Management Hazard approach (Likelihood × Consequence matrix)
+                Simplified qualitative approach (Likelihood × Consequence matrix)
               </div>
             </div>
-            <div className="field-card-icon">⚡</div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
           </div>
           
           <div className="field-card secondary" onClick={navigateToHistory}>
             <div className="field-card-content">
               <div className="field-card-title">Assessment History</div>
               <div className="field-card-description">
-                View, edit, and manage all your saved assessments (both methods)
+                View and export all saved assessments (both methods)
               </div>
             </div>
             <div className="field-card-icon">📋</div>
@@ -141,7 +141,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">📤 Export Data</div>
               <div className="field-card-description">
-                Download assessments as JSON, CSV, or PDF files
+                Download as JSON, CSV, or PDF with photos
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>
@@ -205,11 +205,21 @@ const HomeScreen = () => {
               <div>CSV Export</div>
             </button>
           </div>
+          <div style={{
+            marginTop: '16px',
+            padding: '12px',
+            background: 'white',
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: '#666'
+          }}>
+            <strong style={{color: '#2e7d32'}}>💡 Tip:</strong> View individual assessments in History to export as PDF with photos!
+          </div>
         </div>
       )}
       
       <div className="app-footer">
-        <div className="app-version">Road Risk Assessment v2.2.0 - Dual Methods</div>
+        <div className="app-version">Road Risk Assessment v2.2.0 - Dual Methods + Photos + PDF</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
