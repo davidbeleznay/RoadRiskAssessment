@@ -1,20 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { exportToPDF } from '../utils/pdfExport';
+import { loadAssessmentsDB, migrateFromLocalStorage } from '../utils/db';
 
 function HistoryPage() {
   const [assessmentHistory, setAssessmentHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     loadHistory();
   }, []);
 
-  const loadHistory = () => {
-    const historyData = localStorage.getItem('assessmentHistory');
-    if (historyData) {
-      const allHistory = JSON.parse(historyData);
-      const roadRiskOnly = allHistory.filter(assessment => assessment.type === 'roadRisk');
-      setAssessmentHistory(roadRiskOnly);
+  const loadHistory = async () => {
+    try {
+      // Try to migrate from localStorage first
+      const migrationResult = await migrateFromLocalStorage();
+      if (migrationResult.migrated > 0) {
+        console.log('✅ Migrated', migrationResult.migrated, 'assessments from localStorage');
+      }
+      
+      // Load from IndexedDB
+      const assessments = await loadAssessmentsDB();
+      console.log('✅ Loaded', assessments.length, 'assessments from IndexedDB');
+      setAssessmentHistory(assessments);
+    } catch (error) {
+      console.error('Error loading history:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -31,7 +43,7 @@ function HistoryPage() {
   };
   
   const getAssessmentTitle = (assessment) => {
-    return assessment.title || assessment.data?.basicInfo?.roadName || 'Untitled Assessment';
+    return assessment.roadName || assessment.data?.basicInfo?.roadName || 'Untitled Assessment';
   };
   
   const getLocationInfo = (assessment) => {
@@ -69,18 +81,28 @@ function HistoryPage() {
     const title = getAssessmentTitle(assessment);
     const date = formatDate(assessment.dateCreated);
     const riskLevel = getRiskLevel(assessment);
-    const method = assessment.data?.riskMethod || 'Scorecard';
+    const method = assessment.riskMethod || 'Scorecard';
+    const photoCount = assessment.data?.photos?.length || 0;
     
-    alert(`Assessment Details\n\nTitle: ${title}\nMethod: ${method}\nDate: ${date}\nRisk Level: ${riskLevel?.level || 'Not calculated'}\nPhotos: ${assessment.photoCount || 0}`);
+    alert(`Assessment Details\n\nTitle: ${title}\nMethod: ${method}\nDate: ${date}\nRisk: ${riskLevel?.level || 'N/A'}\nPhotos: ${photoCount}`);
   };
   
-  const handleDeleteAssessment = (id) => {
-    if (window.confirm('Are you sure you want to delete this assessment?')) {
-      const updatedHistory = assessmentHistory.filter(assessment => assessment.id !== id);
-      localStorage.setItem('assessmentHistory', JSON.stringify(updatedHistory));
-      setAssessmentHistory(updatedHistory);
+  const handleDeleteAssessment = async (id) => {
+    if (window.confirm('Delete this assessment?')) {
+      const { deleteAssessmentDB } = await import('../utils/db');
+      await deleteAssessmentDB(id);
+      loadHistory();
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div style={{padding: '40px', textAlign: 'center'}}>
+        <div style={{fontSize: '48px'}}>⏳</div>
+        <div>Loading assessments...</div>
+      </div>
+    );
+  }
   
   return (
     <div style={{padding: '20px', maxWidth: '900px', margin: '0 auto'}}>
@@ -94,7 +116,7 @@ function HistoryPage() {
           borderRadius: '4px',
           fontWeight: 'bold'
         }}>
-          ← Back to Home
+          ← Back
         </Link>
       </div>
       
@@ -105,7 +127,7 @@ function HistoryPage() {
           backgroundColor: '#f9f9f9',
           borderRadius: '8px'
         }}>
-          <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>📋 No assessments found</p>
+          <p style={{fontSize: '1.2rem'}}>📋 No assessments found</p>
           <Link to="/" style={{
             display: 'inline-block',
             marginTop: '20px',
@@ -116,14 +138,15 @@ function HistoryPage() {
             borderRadius: '6px',
             fontWeight: 'bold'
           }}>
-            Create New Assessment
+            Create Assessment
           </Link>
         </div>
       ) : (
         <div>
           {assessmentHistory.map((assessment) => {
             const riskLevel = getRiskLevel(assessment);
-            const method = assessment.data?.riskMethod || 'Scorecard';
+            const method = assessment.riskMethod || 'Scorecard';
+            const photoCount = assessment.data?.photos?.length || 0;
             
             return (
               <div key={assessment.id} style={{
@@ -147,7 +170,7 @@ function HistoryPage() {
                         padding: '3px 10px',
                         borderRadius: '4px'
                       }}>
-                        {method === 'LMH' ? '⚖️ LMH Method' : '🔬 Scorecard Method'}
+                        {method === 'LMH' ? '⚖️ LMH' : '🔬 Scorecard'}
                       </span>
                       
                       {riskLevel && (
@@ -163,7 +186,7 @@ function HistoryPage() {
                         </span>
                       )}
 
-                      {assessment.photoCount > 0 && (
+                      {photoCount > 0 && (
                         <span style={{
                           fontSize: '0.85rem',
                           backgroundColor: '#e8f5e9',
@@ -171,27 +194,19 @@ function HistoryPage() {
                           padding: '3px 10px',
                           borderRadius: '4px'
                         }}>
-                          📷 {assessment.photoCount} photos
+                          📷 {photoCount}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div style={{textAlign: 'right'}}>
-                    <div style={{fontSize: '0.9rem', color: '#666'}}>
-                      {formatDate(assessment.dateCreated)}
-                    </div>
-                    {assessment.data?.assessor && (
-                      <div style={{fontSize: '0.9rem', color: '#666'}}>
-                        {assessment.data.assessor}
-                      </div>
-                    )}
+                  <div style={{textAlign: 'right', fontSize: '0.9rem', color: '#666'}}>
+                    {formatDate(assessment.dateCreated)}
                   </div>
                 </div>
                 
                 <div style={{
                   padding: '8px 0',
                   borderTop: '1px solid #eee',
-                  borderBottom: '1px solid #eee',
                   marginBottom: '12px',
                   color: '#666',
                   fontSize: '0.9rem'
@@ -212,7 +227,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    📑 Export PDF
+                    📑 PDF
                   </button>
                   <button 
                     onClick={() => handleViewAssessment(assessment)}
@@ -226,7 +241,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    📄 View Details
+                    📄 View
                   </button>
                   <button 
                     onClick={() => handleDeleteAssessment(assessment.id)}
@@ -239,7 +254,7 @@ function HistoryPage() {
                       cursor: 'pointer'
                     }}
                   >
-                    🗑️ Delete
+                    🗑️
                   </button>
                 </div>
               </div>
