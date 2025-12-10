@@ -116,12 +116,12 @@ const HomeScreen = () => {
           </div>
 
           <div className="field-card primary" onClick={navigateToLMH} style={{
-            background: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)'
+            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
           }}>
             <div className="field-card-content">
               <div className="field-card-title">⚖️ LMH Method</div>
               <div className="field-card-description">
-                Simplified qualitative approach (Likelihood × Consequence matrix)
+                Simplified qualitative approach with photos (Likelihood × Consequence)
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
