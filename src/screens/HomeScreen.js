@@ -71,7 +71,7 @@ const HomeScreen = () => {
         <h1 className="app-title">Road Risk Assessment</h1>
         <p className="app-subtitle">Professional risk evaluation for forest roads</p>
         <div style={{
-          background: '#4caf50',
+          background: '#f44336',
           color: 'white',
           padding: '10px',
           borderRadius: '6px',
@@ -79,7 +79,7 @@ const HomeScreen = () => {
           textAlign: 'center',
           fontWeight: 'bold'
         }}>
-          ✅ v2.2.0 - DUAL METHODS + PHOTOS + PDF - Dec 9, 2024
+          🔧 v2.3.0-PHOTO-FIX - SimplePhotoCapture - Dec 10, 2024
         </div>
       </div>
 
@@ -223,7 +223,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">Road Risk Assessment v2.2.0 - Dual Methods + Photos + PDF</div>
+        <div className="app-version">v2.3.0-PHOTO-FIX - SimplePhotoCapture Deployed</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
