@@ -6,6 +6,7 @@ import '../styles/enhanced-form.css';
 import '../styles/optional-assessments.css';
 import { FieldNotesSection } from '../components/FieldNotesSection';
 import { SaveAssessmentButton } from '../components/SaveAssessmentButton';
+import SimplePhotoCapture from '../components/SimplePhotoCapture';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
@@ -885,6 +886,7 @@ const RoadRiskForm = () => {
               Field Notes & Observations
             </h2>
             <FieldNotesSection onSave={setFieldNotes} />
+                <SimplePhotoCapture />
           </div>
         )}
 
