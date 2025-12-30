@@ -1,5 +1,5 @@
 // src/pages/LMHRiskForm.js
-// LMH Risk Assessment with detailed field indicators
+// LMH Risk Assessment with professional override and detailed guidance
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,14 @@ const LMHRiskForm = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
+  const [showOverride, setShowOverride] = useState(false);
+  const [overrideData, setOverrideData] = useState({
+    enabled: false,
+    finalRisk: '',
+    professionalName: '',
+    designation: '',
+    justification: ''
+  });
   const [showGuidance, setShowGuidance] = useState({
     terrain: false,
     soils: false,
@@ -68,12 +76,42 @@ const LMHRiskForm = () => {
     setBasicInfo(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleOverrideChange = (field, value) => {
+    setOverrideData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const getFinalRisk = () => {
+    if (overrideData.enabled && overrideData.finalRisk) {
+      const overrideColors = {
+        'Very High': '#f44336',
+        'High': '#ff9800',
+        'Moderate': '#ffc107',
+        'Low': '#4caf50',
+        'Very Low': '#2196f3'
+      };
+      return {
+        ...riskResult,
+        level: overrideData.finalRisk,
+        color: overrideColors[overrideData.finalRisk],
+        isOverridden: true
+      };
+    }
+    return riskResult;
+  };
+
   const handleSave = async () => {
+    if (overrideData.enabled && (!overrideData.professionalName || !overrideData.designation || !overrideData.justification)) {
+      alert('❌ Professional override requires: Name, Designation, and Justification');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       const savedNotes = localStorage.getItem('currentFieldNotes');
       const fieldNotes = savedNotes ? JSON.parse(savedNotes) : {};
+      
+      const finalRisk = getFinalRisk();
       
       const assessmentData = {
         basicInfo,
@@ -81,13 +119,22 @@ const LMHRiskForm = () => {
         likelihood,
         consequence,
         riskAssessment: {
-          ...riskResult,
+          ...finalRisk,
           method: 'LMH',
-          riskLevel: riskResult?.level
+          riskLevel: finalRisk?.level,
+          calculatedRisk: riskResult?.level,
+          professionalOverride: overrideData.enabled ? {
+            originalRisk: riskResult?.level,
+            overriddenRisk: overrideData.finalRisk,
+            professionalName: overrideData.professionalName,
+            designation: overrideData.designation,
+            justification: overrideData.justification,
+            date: new Date().toISOString()
+          } : null
         },
         fieldNotes,
         riskScore: `${likelihood}/${consequence}`,
-        riskCategory: riskResult?.level
+        riskCategory: finalRisk?.level
       };
 
       console.log('Saving assessment...');
@@ -122,7 +169,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Land Management Hazard methodology with detailed field guidance</p>
+        <p>Land Management Hazard methodology with professional guidance</p>
         <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
@@ -219,7 +266,7 @@ const LMHRiskForm = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <span>🏔️ Terrain Stability - What to Look For</span>
+                  <span>Terrain Stability - What to Look For</span>
                   <span>{showGuidance.terrain ? '▼' : '▶'}</span>
                 </button>
                 
@@ -233,7 +280,7 @@ const LMHRiskForm = () => {
                     lineHeight: '1.6'
                   }}>
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>✅ Stable Terrain Signs:</strong>
+                      <strong style={{color: '#4caf50'}}>Stable Terrain Signs:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Slopes less than 40%</li>
                         <li>No recent slides or slumps visible</li>
@@ -245,7 +292,7 @@ const LMHRiskForm = () => {
                     </div>
                     
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>⚠️ Unstable Terrain Signs:</strong>
+                      <strong style={{color: '#ff9800'}}>Unstable Terrain Signs:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Slopes greater than 60%</li>
                         <li>Recent slide scars or debris</li>
@@ -259,7 +306,7 @@ const LMHRiskForm = () => {
                     </div>
 
                     <div>
-                      <strong style={{color: '#2196f3'}}>📏 Slope Estimation:</strong>
+                      <strong style={{color: '#2196f3'}}>Slope Estimation:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>40% = 22° angle (moderate slope)</li>
                         <li>60% = 31° angle (steep slope)</li>
@@ -290,7 +337,7 @@ const LMHRiskForm = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <span>🪨 Soil Types - Field Identification</span>
+                  <span>Soil Types - Field Identification</span>
                   <span>{showGuidance.soils ? '▼' : '▶'}</span>
                 </button>
                 
@@ -304,7 +351,7 @@ const LMHRiskForm = () => {
                     lineHeight: '1.6'
                   }}>
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>✅ Cohesive Soils (Low Risk):</strong>
+                      <strong style={{color: '#4caf50'}}>Cohesive Soils (Low Risk):</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li><strong>Clay:</strong> Sticky when wet, holds shape, smooth texture</li>
                         <li><strong>Clay-Loam:</strong> Moldable, holds together in hand</li>
@@ -315,7 +362,7 @@ const LMHRiskForm = () => {
                     </div>
                     
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>⚠️ Erodible Soils (High Risk):</strong>
+                      <strong style={{color: '#ff9800'}}>Erodible Soils (High Risk):</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li><strong>Silt:</strong> Smooth/floury texture, easily eroded by water</li>
                         <li><strong>Fine Sand:</strong> Feels gritty, won't hold shape</li>
@@ -327,7 +374,7 @@ const LMHRiskForm = () => {
                     </div>
 
                     <div>
-                      <strong style={{color: '#2196f3'}}>🔍 Quick Field Test:</strong>
+                      <strong style={{color: '#2196f3'}}>Quick Field Test:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Grab handful of soil, squeeze into ball</li>
                         <li>Cohesive: Ball holds shape when opened hand</li>
@@ -359,7 +406,7 @@ const LMHRiskForm = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <span>💧 Drainage Assessment Guide</span>
+                  <span>Drainage Assessment Guide</span>
                   <span>{showGuidance.drainage ? '▼' : '▶'}</span>
                 </button>
                 
@@ -373,7 +420,7 @@ const LMHRiskForm = () => {
                     lineHeight: '1.6'
                   }}>
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>✅ Good Drainage:</strong>
+                      <strong style={{color: '#4caf50'}}>Good Drainage:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Ditches clear, free-flowing, proper grade</li>
                         <li>Culverts clear, adequate capacity, no plugging</li>
@@ -385,7 +432,7 @@ const LMHRiskForm = () => {
                     </div>
                     
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>⚠️ Poor Drainage:</strong>
+                      <strong style={{color: '#ff9800'}}>Poor Drainage:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Ditches full of debris, overgrown, silted in</li>
                         <li>Culverts plugged, undersized, or rusted out</li>
@@ -398,7 +445,7 @@ const LMHRiskForm = () => {
                     </div>
 
                     <div>
-                      <strong style={{color: '#f44336'}}>🚨 Critical Drainage Issues:</strong>
+                      <strong style={{color: '#f44336'}}>Critical Drainage Issues:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Water undermining road structure</li>
                         <li>Culvert outlet causing fillslope erosion</li>
@@ -461,7 +508,7 @@ const LMHRiskForm = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <span>🐟 Water Resources Assessment</span>
+                  <span>Water Resources Assessment</span>
                   <span>{showGuidance.water ? '▼' : '▶'}</span>
                 </button>
                 
@@ -475,7 +522,7 @@ const LMHRiskForm = () => {
                     lineHeight: '1.6'
                   }}>
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>✅ Low Consequence (&gt;100m from water):</strong>
+                      <strong style={{color: '#4caf50'}}>Low Consequence (&gt;100m from water):</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>No streams, wetlands, or lakes nearby</li>
                         <li>If failure occurred, sediment would not reach water</li>
@@ -485,7 +532,7 @@ const LMHRiskForm = () => {
                     </div>
                     
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>⚠️ Moderate Consequence (30-100m from water):</strong>
+                      <strong style={{color: '#ff9800'}}>Moderate Consequence (30-100m from water):</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Non-fish bearing stream nearby</li>
                         <li>Seasonal drainage channel present</li>
@@ -495,7 +542,7 @@ const LMHRiskForm = () => {
                     </div>
 
                     <div>
-                      <strong style={{color: '#f44336'}}>🚨 High Consequence (&lt;30m from fish-bearing water):</strong>
+                      <strong style={{color: '#f44336'}}>High Consequence (&lt;30m from fish-bearing water):</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Fish-bearing stream within 30m</li>
                         <li>Road crosses stream (culvert present)</li>
@@ -507,7 +554,7 @@ const LMHRiskForm = () => {
                     </div>
 
                     <div style={{marginTop: '12px', padding: '10px', background: '#e3f2fd', borderRadius: '4px'}}>
-                      <strong style={{color: '#1976d2'}}>💡 How to Assess:</strong>
+                      <strong style={{color: '#1976d2'}}>How to Assess:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Use map to identify streams (blue lines)</li>
                         <li>Measure distance from road to water</li>
@@ -520,7 +567,7 @@ const LMHRiskForm = () => {
                 )}
               </div>
 
-              {/* Infrastructure Guidance */}
+              {/* Infrastructure Guidance - Updated */}
               <div style={{marginBottom: '16px'}}>
                 <button
                   onClick={() => toggleGuidance('infrastructure')}
@@ -539,7 +586,7 @@ const LMHRiskForm = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <span>🏗️ Infrastructure Capacity Guide</span>
+                  <span>Infrastructure Capacity Guide</span>
                   <span>{showGuidance.infrastructure ? '▼' : '▶'}</span>
                 </button>
                 
@@ -553,9 +600,9 @@ const LMHRiskForm = () => {
                     lineHeight: '1.6'
                   }}>
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>✅ Adequate Infrastructure:</strong>
+                      <strong style={{color: '#4caf50'}}>Adequate Infrastructure:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Culvert size matches watershed area</li>
+                        <li>Culvert meets Q200 flow requirement (use Mosaic culvert sizing tool)</li>
                         <li>Recent installation/maintenance records</li>
                         <li>No signs of overtopping during storms</li>
                         <li>Inlet/outlet in good condition</li>
@@ -565,9 +612,9 @@ const LMHRiskForm = () => {
                     </div>
                     
                     <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>⚠️ Moderate Concerns:</strong>
+                      <strong style={{color: '#ff9800'}}>Moderate Concerns:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Culvert at or near capacity for design storm</li>
+                        <li>Culvert at or near Q200 capacity</li>
                         <li>Minor debris accumulation</li>
                         <li>Some rust but structurally sound</li>
                         <li>Watershed showing some development/harvesting</li>
@@ -575,11 +622,11 @@ const LMHRiskForm = () => {
                       </ul>
                     </div>
 
-                    <div>
-                      <strong style={{color: '#f44336'}}>🚨 Undersized/Failing Infrastructure:</strong>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#f44336'}}>Undersized/Failing Infrastructure:</strong>
                       <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
                         <li>Evidence of overtopping (debris on road)</li>
-                        <li>Culvert clearly too small for watershed</li>
+                        <li>Culvert does not meet Q200 requirement</li>
                         <li>Heavy rust, holes, structural failure</li>
                         <li>Significant debris plugging</li>
                         <li>Beaver activity creating backwater</li>
@@ -588,15 +635,13 @@ const LMHRiskForm = () => {
                       </ul>
                     </div>
 
-                    <div style={{marginTop: '12px', padding: '10px', background: '#fff3e0', borderRadius: '4px'}}>
-                      <strong style={{color: '#f57c00'}}>📐 Culvert Sizing Rules of Thumb:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Small watershed (&lt;5 ha): 300-400mm min</li>
-                        <li>Medium watershed (5-20 ha): 450-600mm</li>
-                        <li>Large watershed (&gt;20 ha): 600mm+ or bridge</li>
-                        <li>Fish stream: Add 20% to account for debris</li>
-                        <li>Climate change: Add 20% for increased flows</li>
-                      </ul>
+                    <div style={{marginTop: '12px', padding: '10px', background: '#e8f5e9', borderRadius: '4px', border: '2px solid #4caf50'}}>
+                      <strong style={{color: '#2e7d32'}}>Use Mosaic Culvert Sizing Tool:</strong>
+                      <div style={{marginTop: '6px'}}>
+                        Mosaic's hydrological tool assesses culvert adequacy for Q200 (200-year) 
+                        daily flow with climate change factors integrated. Use this tool for accurate 
+                        capacity assessment rather than simple rules of thumb.
+                      </div>
                     </div>
                   </div>
                 )}
@@ -644,7 +689,7 @@ const LMHRiskForm = () => {
               fontSize: '13px',
               border: '2px solid #ff9800'
             }}>
-              <strong style={{color: '#f57c00'}}>💡 Tip:</strong> Record detailed observations here, 
+              <strong style={{color: '#f57c00'}}>Tip:</strong> Record detailed observations here, 
               then use <strong>QuickCapture</strong> in the field to capture GPS, photos, and upload to LRM.
             </div>
             
@@ -662,7 +707,7 @@ const LMHRiskForm = () => {
             {riskResult ? (
               <div className="risk-results-container">
                 <div className="methodology-display" style={{marginLeft: '20px'}}>
-                  <h3 style={{marginLeft: '20px'}}>📋 LMH Methodology</h3>
+                  <h3 style={{marginLeft: '20px'}}>LMH Methodology</h3>
                   <p><strong>Simplified Land Management Hazard Assessment</strong></p>
                   <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
                 </div>
@@ -703,7 +748,7 @@ const LMHRiskForm = () => {
                   <div style={{ fontSize: '32px', color: '#666' }}>=</div>
 
                   <div style={{
-                    background: riskResult.color,
+                    background: getFinalRisk()?.color || riskResult.color,
                     color: 'white',
                     padding: '30px',
                     borderRadius: '8px',
@@ -712,9 +757,157 @@ const LMHRiskForm = () => {
                   }}>
                     <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>Risk Level</div>
                     <div style={{ fontSize: '36px', fontWeight: 'bold' }}>
-                      {riskResult.level}
+                      {getFinalRisk()?.level || riskResult.level}
                     </div>
+                    {overrideData.enabled && (
+                      <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '6px' }}>
+                        (Professional Override)
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Professional Override */}
+                <div style={{marginBottom: '24px'}}>
+                  <button
+                    onClick={() => setShowOverride(!showOverride)}
+                    style={{
+                      background: overrideData.enabled ? '#ff9800' : '#f5f5f5',
+                      color: overrideData.enabled ? 'white' : '#666',
+                      border: overrideData.enabled ? '2px solid #f57c00' : '2px solid #ddd',
+                      padding: '12px 24px',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
+                  >
+                    {overrideData.enabled ? '⚠️ Professional Override Active' : '🔧 Professional Override (Optional)'}
+                  </button>
+
+                  {showOverride && (
+                    <div style={{
+                      background: '#fff3e0',
+                      padding: '20px',
+                      borderRadius: '0 0 8px 8px',
+                      border: '2px solid #ff9800',
+                      borderTop: 'none',
+                      marginTop: '-2px'
+                    }}>
+                      <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                          <input
+                            type="checkbox"
+                            checked={overrideData.enabled}
+                            onChange={(e) => handleOverrideChange('enabled', e.target.checked)}
+                            style={{width: '18px', height: '18px'}}
+                          />
+                          <span style={{fontWeight: 'bold', color: '#f57c00'}}>
+                            Enable Professional Override
+                          </span>
+                        </label>
+                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px', marginLeft: '26px'}}>
+                          Override calculated risk with professional judgment (requires justification)
+                        </div>
+                      </div>
+
+                      {overrideData.enabled && (
+                        <div style={{display: 'grid', gap: '12px'}}>
+                          <div>
+                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
+                              Override Risk Level *
+                            </label>
+                            <select
+                              value={overrideData.finalRisk}
+                              onChange={(e) => handleOverrideChange('finalRisk', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                fontSize: '14px'
+                              }}
+                            >
+                              <option value="">Select override risk...</option>
+                              <option value="Very High">Very High</option>
+                              <option value="High">High</option>
+                              <option value="Moderate">Moderate</option>
+                              <option value="Low">Low</option>
+                              <option value="Very Low">Very Low</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
+                              Professional Name *
+                            </label>
+                            <input
+                              type="text"
+                              value={overrideData.professionalName}
+                              onChange={(e) => handleOverrideChange('professionalName', e.target.value)}
+                              placeholder="Your full name"
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                fontSize: '14px'
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
+                              Professional Designation *
+                            </label>
+                            <input
+                              type="text"
+                              value={overrideData.designation}
+                              onChange={(e) => handleOverrideChange('designation', e.target.value)}
+                              placeholder="e.g., RPF, P.Eng, P.Geo"
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                fontSize: '14px'
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
+                              Justification for Override *
+                            </label>
+                            <textarea
+                              value={overrideData.justification}
+                              onChange={(e) => handleOverrideChange('justification', e.target.value)}
+                              placeholder="Explain professional rationale for overriding calculated risk (site-specific factors, additional information, engineering judgment...)"
+                              rows={4}
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                fontSize: '14px'
+                              }}
+                            />
+                          </div>
+
+                          <div style={{
+                            background: '#e3f2fd',
+                            padding: '10px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            color: '#1976d2'
+                          }}>
+                            <strong>Note:</strong> Professional override will be documented in the PDF report including 
+                            original calculated risk, overridden risk, professional details, and justification per EGBC/FPBC requirements.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{
@@ -723,8 +916,8 @@ const LMHRiskForm = () => {
                   borderRadius: '8px',
                   marginBottom: '20px'
                 }}>
-                  <h4 style={{ marginTop: 0, color: '#333' }}>📋 Recommended Action:</h4>
-                  <p style={{ margin: 0, fontSize: '16px' }}>{riskResult.priority}</p>
+                  <h4 style={{ marginTop: 0, color: '#333' }}>Recommended Action:</h4>
+                  <p style={{ margin: 0, fontSize: '16px' }}>{getFinalRisk()?.priority || riskResult.priority}</p>
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: '30px' }}>
@@ -744,14 +937,14 @@ const LMHRiskForm = () => {
                       boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
                     }}
                   >
-                    {isSaving ? '💾 Saving...' : '💾 Save Assessment'}
+                    {isSaving ? 'Saving...' : 'Save Assessment'}
                   </button>
                   <div style={{
                     marginTop: '12px',
                     fontSize: '13px',
                     color: '#666'
                   }}>
-                    💡 Export as PDF report or use QuickCapture for field data
+                    Export as PDF report or use QuickCapture for field data
                   </div>
                 </div>
 
