@@ -7,6 +7,7 @@ import HistoryPage from '../pages/HistoryPage';
 import Dashboard from '../pages/Dashboard';
 import EnhancedDashboard from '../pages/EnhancedDashboard';
 import AssessmentDetailPage from '../pages/AssessmentDetailPage';
+import ProfessionalReferences from '../components/ProfessionalReferences';
 
 const AppRouter = () => {
   return (
@@ -19,6 +20,7 @@ const AppRouter = () => {
         <Route path="/lmh-risk" element={<LMHRiskForm />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/assessment/:id" element={<AssessmentDetailPage />} />
+        <Route path="/references" element={<ProfessionalReferences />} />
       </Routes>
     </Router>
   );
