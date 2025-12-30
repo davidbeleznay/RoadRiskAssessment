@@ -1,5 +1,5 @@
 // src/pages/LMHRiskForm.js
-// LMH Risk Assessment - Reference Tool (No Photos)
+// LMH Risk Assessment with detailed field indicators
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,13 @@ const LMHRiskForm = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
+  const [showGuidance, setShowGuidance] = useState({
+    terrain: false,
+    soils: false,
+    drainage: false,
+    water: false,
+    infrastructure: false
+  });
 
   const [basicInfo, setBasicInfo] = useState({
     assessmentDate: new Date().toISOString().split('T')[0],
@@ -83,11 +90,11 @@ const LMHRiskForm = () => {
         riskCategory: riskResult?.level
       };
 
-      console.log('Saving practice assessment...');
+      console.log('Saving assessment...');
       const result = await saveAssessmentDB(assessmentData);
 
       if (result.success) {
-        alert('✅ Practice assessment saved!');
+        alert('✅ Assessment saved!');
         setTimeout(() => navigate('/history'), 1000);
       } else {
         alert('❌ Save failed: ' + result.error);
@@ -98,6 +105,10 @@ const LMHRiskForm = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const toggleGuidance = (key) => {
+    setShowGuidance(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const sections = [
@@ -111,7 +122,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Simplified Land Management Hazard methodology - Reference tool</p>
+        <p>Land Management Hazard methodology with detailed field guidance</p>
         <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
@@ -180,27 +191,224 @@ const LMHRiskForm = () => {
               LMH Risk Assessment
             </h2>
             <p className="scoring-explanation">
-              Simplified qualitative assessment - consider overall site conditions
+              Qualitative assessment based on observable field conditions
             </p>
 
             <div className="factor-group">
               <h3>1. Likelihood of Failure</h3>
-              <p style={{marginBottom: '16px'}}>Consider: terrain stability, slope grade, soil type, drainage, historical performance</p>
-              
-              <div style={{
-                background: '#e3f2fd',
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                fontSize: '14px'
-              }}>
-                <strong style={{color: '#1976d2'}}>Assessment Factors:</strong>
-                <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
-                  <li><strong>Terrain:</strong> Slope steepness, stability class</li>
-                  <li><strong>Soils:</strong> Erosion potential, stability</li>
-                  <li><strong>Drainage:</strong> Water management effectiveness</li>
-                  <li><strong>History:</strong> Previous failures or issues</li>
-                </ul>
+              <p style={{marginBottom: '16px', color: '#555'}}>
+                How likely is this road section to fail (slide, erode, washout)?
+              </p>
+
+              {/* Terrain Guidance */}
+              <div style={{marginBottom: '16px'}}>
+                <button
+                  onClick={() => toggleGuidance('terrain')}
+                  style={{
+                    background: '#e3f2fd',
+                    border: '2px solid #2196f3',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    width: '100%',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    color: '#1976d2',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <span>🏔️ Terrain Stability - What to Look For</span>
+                  <span>{showGuidance.terrain ? '▼' : '▶'}</span>
+                </button>
+                
+                {showGuidance.terrain && (
+                  <div style={{
+                    background: '#f5f5f5',
+                    padding: '16px',
+                    borderRadius: '0 0 6px 6px',
+                    borderLeft: '3px solid #2196f3',
+                    fontSize: '13px',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#4caf50'}}>✅ Stable Terrain Signs:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Slopes less than 40%</li>
+                        <li>No recent slides or slumps visible</li>
+                        <li>Solid bedrock exposure</li>
+                        <li>Dense, established vegetation</li>
+                        <li>No tension cracks in road surface or cutbanks</li>
+                        <li>Old, weathered cutbanks (stable over time)</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#ff9800'}}>⚠️ Unstable Terrain Signs:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Slopes greater than 60%</li>
+                        <li>Recent slide scars or debris</li>
+                        <li>Tension cracks parallel to road</li>
+                        <li>Leaning trees ("pistol-butted" trees)</li>
+                        <li>Fresh slumping in cutbanks</li>
+                        <li>Hummocky terrain (old slide deposits)</li>
+                        <li>Springs or seeps on slope</li>
+                        <li>Road surface showing settlement or bulging</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{color: '#2196f3'}}>📏 Slope Estimation:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>40% = 22° angle (moderate slope)</li>
+                        <li>60% = 31° angle (steep slope)</li>
+                        <li>100% = 45° angle (very steep)</li>
+                        <li>Use clinometer or smartphone inclinometer app</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Soils Guidance */}
+              <div style={{marginBottom: '16px'}}>
+                <button
+                  onClick={() => toggleGuidance('soils')}
+                  style={{
+                    background: '#e3f2fd',
+                    border: '2px solid #2196f3',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    width: '100%',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    color: '#1976d2',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <span>🪨 Soil Types - Field Identification</span>
+                  <span>{showGuidance.soils ? '▼' : '▶'}</span>
+                </button>
+                
+                {showGuidance.soils && (
+                  <div style={{
+                    background: '#f5f5f5',
+                    padding: '16px',
+                    borderRadius: '0 0 6px 6px',
+                    borderLeft: '3px solid #2196f3',
+                    fontSize: '13px',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#4caf50'}}>✅ Cohesive Soils (Low Risk):</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li><strong>Clay:</strong> Sticky when wet, holds shape, smooth texture</li>
+                        <li><strong>Clay-Loam:</strong> Moldable, holds together in hand</li>
+                        <li><strong>Compacted Till:</strong> Dense, hard to dig, mixed particle sizes</li>
+                        <li><strong>Test:</strong> Can form a ball that holds shape</li>
+                        <li><strong>Cutbanks:</strong> Stand vertically without sloughing</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#ff9800'}}>⚠️ Erodible Soils (High Risk):</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li><strong>Silt:</strong> Smooth/floury texture, easily eroded by water</li>
+                        <li><strong>Fine Sand:</strong> Feels gritty, won't hold shape</li>
+                        <li><strong>Loose Fill:</strong> Unconsolidated material, easily disturbed</li>
+                        <li><strong>Decomposed Granite:</strong> Crumbly, granular texture</li>
+                        <li><strong>Test:</strong> Falls apart immediately when squeezed</li>
+                        <li><strong>Cutbanks:</strong> Slough readily, rill erosion visible</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{color: '#2196f3'}}>🔍 Quick Field Test:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Grab handful of soil, squeeze into ball</li>
+                        <li>Cohesive: Ball holds shape when opened hand</li>
+                        <li>Erodible: Falls apart immediately</li>
+                        <li>Check cutbank: Does it stand or slough?</li>
+                        <li>Look for rills and gullies (erosion indicators)</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Drainage Guidance */}
+              <div style={{marginBottom: '16px'}}>
+                <button
+                  onClick={() => toggleGuidance('drainage')}
+                  style={{
+                    background: '#e3f2fd',
+                    border: '2px solid #2196f3',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    width: '100%',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    color: '#1976d2',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <span>💧 Drainage Assessment Guide</span>
+                  <span>{showGuidance.drainage ? '▼' : '▶'}</span>
+                </button>
+                
+                {showGuidance.drainage && (
+                  <div style={{
+                    background: '#f5f5f5',
+                    padding: '16px',
+                    borderRadius: '0 0 6px 6px',
+                    borderLeft: '3px solid #2196f3',
+                    fontSize: '13px',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#4caf50'}}>✅ Good Drainage:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Ditches clear, free-flowing, proper grade</li>
+                        <li>Culverts clear, adequate capacity, no plugging</li>
+                        <li>Water bars functional, draining to stable areas</li>
+                        <li>No ponding on road surface</li>
+                        <li>Outslope functioning properly</li>
+                        <li>Cross-drains spaced appropriately for gradient</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#ff9800'}}>⚠️ Poor Drainage:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Ditches full of debris, overgrown, silted in</li>
+                        <li>Culverts plugged, undersized, or rusted out</li>
+                        <li>Water bars breached, eroded, or absent</li>
+                        <li>Standing water on road surface</li>
+                        <li>Water flowing down road (not off to sides)</li>
+                        <li>Erosion gullies developing in road surface</li>
+                        <li>Saturated fillslope or cutbank</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{color: '#f44336'}}>🚨 Critical Drainage Issues:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Water undermining road structure</li>
+                        <li>Culvert outlet causing fillslope erosion</li>
+                        <li>Springs emerging in cutbank or road surface</li>
+                        <li>Perched water table above road</li>
+                        <li>Concentrated flow patterns developing</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="rating-options">
@@ -228,24 +436,170 @@ const LMHRiskForm = () => {
               </div>
             </div>
 
-            <div className="factor-group">
+            <div className="factor-group" style={{marginTop: '32px'}}>
               <h3>2. Consequence of Failure</h3>
-              <p style={{marginBottom: '16px'}}>Consider: water resources, infrastructure capacity, road use, environmental/cultural values</p>
-              
-              <div style={{
-                background: '#fff3e0',
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                fontSize: '14px'
-              }}>
-                <strong style={{color: '#f57c00'}}>Assessment Factors:</strong>
-                <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
-                  <li><strong>Water:</strong> Proximity to streams, fish presence</li>
-                  <li><strong>Infrastructure:</strong> Culvert capacity, drainage adequacy</li>
-                  <li><strong>Use:</strong> Traffic volume, access importance</li>
-                  <li><strong>Values:</strong> Habitat, cultural significance</li>
-                </ul>
+              <p style={{marginBottom: '16px', color: '#555'}}>
+                What would happen if this road section failed?
+              </p>
+
+              {/* Water Resources Guidance */}
+              <div style={{marginBottom: '16px'}}>
+                <button
+                  onClick={() => toggleGuidance('water')}
+                  style={{
+                    background: '#fff3e0',
+                    border: '2px solid #ff9800',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    width: '100%',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    color: '#f57c00',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <span>🐟 Water Resources Assessment</span>
+                  <span>{showGuidance.water ? '▼' : '▶'}</span>
+                </button>
+                
+                {showGuidance.water && (
+                  <div style={{
+                    background: '#f5f5f5',
+                    padding: '16px',
+                    borderRadius: '0 0 6px 6px',
+                    borderLeft: '3px solid #ff9800',
+                    fontSize: '13px',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#4caf50'}}>✅ Low Consequence (&gt;100m from water):</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>No streams, wetlands, or lakes nearby</li>
+                        <li>If failure occurred, sediment would not reach water</li>
+                        <li>Adequate vegetated buffer between road and any water</li>
+                        <li>Topography prevents sediment delivery</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#ff9800'}}>⚠️ Moderate Consequence (30-100m from water):</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Non-fish bearing stream nearby</li>
+                        <li>Seasonal drainage channel present</li>
+                        <li>Wetland within sediment delivery distance</li>
+                        <li>Some vegetated buffer but failure could deliver sediment</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{color: '#f44336'}}>🚨 High Consequence (&lt;30m from fish-bearing water):</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Fish-bearing stream within 30m</li>
+                        <li>Road crosses stream (culvert present)</li>
+                        <li>Direct sediment delivery pathway visible</li>
+                        <li>Spawning habitat present downstream</li>
+                        <li>Community water source</li>
+                        <li>Known critical habitat area</li>
+                      </ul>
+                    </div>
+
+                    <div style={{marginTop: '12px', padding: '10px', background: '#e3f2fd', borderRadius: '4px'}}>
+                      <strong style={{color: '#1976d2'}}>💡 How to Assess:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Use map to identify streams (blue lines)</li>
+                        <li>Measure distance from road to water</li>
+                        <li>Look for fish presence (check fisheries maps)</li>
+                        <li>Trace potential sediment flow path</li>
+                        <li>Consider gradient toward water body</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Infrastructure Guidance */}
+              <div style={{marginBottom: '16px'}}>
+                <button
+                  onClick={() => toggleGuidance('infrastructure')}
+                  style={{
+                    background: '#fff3e0',
+                    border: '2px solid #ff9800',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    width: '100%',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    color: '#f57c00',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <span>🏗️ Infrastructure Capacity Guide</span>
+                  <span>{showGuidance.infrastructure ? '▼' : '▶'}</span>
+                </button>
+                
+                {showGuidance.infrastructure && (
+                  <div style={{
+                    background: '#f5f5f5',
+                    padding: '16px',
+                    borderRadius: '0 0 6px 6px',
+                    borderLeft: '3px solid #ff9800',
+                    fontSize: '13px',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#4caf50'}}>✅ Adequate Infrastructure:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Culvert size matches watershed area</li>
+                        <li>Recent installation/maintenance records</li>
+                        <li>No signs of overtopping during storms</li>
+                        <li>Inlet/outlet in good condition</li>
+                        <li>Proper gradient (min 2% slope)</li>
+                        <li>Headwalls and wingwalls intact</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '12px'}}>
+                      <strong style={{color: '#ff9800'}}>⚠️ Moderate Concerns:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Culvert at or near capacity for design storm</li>
+                        <li>Minor debris accumulation</li>
+                        <li>Some rust but structurally sound</li>
+                        <li>Watershed showing some development/harvesting</li>
+                        <li>Age: 15-25 years old</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{color: '#f44336'}}>🚨 Undersized/Failing Infrastructure:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Evidence of overtopping (debris on road)</li>
+                        <li>Culvert clearly too small for watershed</li>
+                        <li>Heavy rust, holes, structural failure</li>
+                        <li>Significant debris plugging</li>
+                        <li>Beaver activity creating backwater</li>
+                        <li>Inlet/outlet erosion undermining road</li>
+                        <li>Age: &gt;30 years without assessment</li>
+                      </ul>
+                    </div>
+
+                    <div style={{marginTop: '12px', padding: '10px', background: '#fff3e0', borderRadius: '4px'}}>
+                      <strong style={{color: '#f57c00'}}>📐 Culvert Sizing Rules of Thumb:</strong>
+                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
+                        <li>Small watershed (&lt;5 ha): 300-400mm min</li>
+                        <li>Medium watershed (5-20 ha): 450-600mm</li>
+                        <li>Large watershed (&gt;20 ha): 600mm+ or bridge</li>
+                        <li>Fish stream: Add 20% to account for debris</li>
+                        <li>Climate change: Add 20% for increased flows</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="rating-options">
@@ -281,6 +635,18 @@ const LMHRiskForm = () => {
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
               Field Notes
             </h2>
+            
+            <div style={{
+              background: '#fff3e0',
+              padding: '14px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              fontSize: '13px',
+              border: '2px solid #ff9800'
+            }}>
+              <strong style={{color: '#f57c00'}}>💡 Tip:</strong> Record detailed observations here, 
+              then use <strong>QuickCapture</strong> in the field to capture GPS, photos, and upload to LRM.
+            </div>
             
             <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
           </div>
@@ -378,14 +744,14 @@ const LMHRiskForm = () => {
                       boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
                     }}
                   >
-                    {isSaving ? '💾 Saving...' : '💾 Save Practice Assessment'}
+                    {isSaving ? '💾 Saving...' : '💾 Save Assessment'}
                   </button>
                   <div style={{
                     marginTop: '12px',
                     fontSize: '13px',
                     color: '#666'
                   }}>
-                    💡 For field data collection, use QuickCapture
+                    💡 Export as PDF report or use QuickCapture for field data
                   </div>
                 </div>
 
