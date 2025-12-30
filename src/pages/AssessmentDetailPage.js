@@ -1,9 +1,9 @@
 // src/pages/AssessmentDetailPage.js
-// View and edit saved assessments
+// Comprehensive assessment view with edit and QuickCapture integration
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { loadAssessmentsDB, deleteAssessmentDB } from '../utils/db';
+import { loadAssessmentsDB, deleteAssessmentDB, updateAssessmentDB } from '../utils/db';
 import { exportToProfessionalPDF } from '../utils/professionalPDF';
 
 function AssessmentDetailPage() {
@@ -12,7 +12,7 @@ function AssessmentDetailPage() {
   const [assessment, setAssessment] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedNotes, setEditedNotes] = useState({});
+  const [editedData, setEditedData] = useState({});
 
   const loadAssessment = useCallback(async () => {
     try {
@@ -20,7 +20,11 @@ function AssessmentDetailPage() {
       const found = assessments.find(a => a.id === parseInt(id));
       if (found) {
         setAssessment(found);
-        setEditedNotes(found.data?.fieldNotes || {});
+        setEditedData({
+          basicInfo: found.data?.basicInfo || {},
+          fieldNotes: found.data?.fieldNotes || {},
+          quickCaptureRef: found.data?.quickCaptureRef || ''
+        });
       } else {
         alert('Assessment not found');
         navigate('/dashboard');
@@ -45,9 +49,26 @@ function AssessmentDetailPage() {
   };
 
   const handleSaveEdits = async () => {
-    // TODO: Update assessment in IndexedDB
-    alert('Edit feature coming soon!');
-    setIsEditing(false);
+    try {
+      // Update assessment in IndexedDB
+      const updatedAssessment = {
+        ...assessment,
+        data: {
+          ...assessment.data,
+          basicInfo: editedData.basicInfo,
+          fieldNotes: editedData.fieldNotes,
+          quickCaptureRef: editedData.quickCaptureRef
+        }
+      };
+      
+      await updateAssessmentDB(updatedAssessment);
+      setAssessment(updatedAssessment);
+      setIsEditing(false);
+      alert('✅ Assessment updated!');
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('❌ Failed to save: ' + error.message);
+    }
   };
 
   if (isLoading) {
@@ -72,8 +93,8 @@ function AssessmentDetailPage() {
   const basicInfo = data.basicInfo || {};
   const riskAssessment = data.riskAssessment || {};
   const fieldNotes = data.fieldNotes || {};
-  const photos = data.photos || [];
   const method = data.riskMethod || 'Scorecard';
+  const quickCaptureRef = data.quickCaptureRef || '';
 
   const riskLevel = riskAssessment.finalRisk || riskAssessment.riskLevel || data.riskCategory;
   const riskColors = {
@@ -173,8 +194,24 @@ function AssessmentDetailPage() {
             cursor: 'pointer'
           }}
         >
-          {isEditing ? '❌ Cancel Edit' : '✏️ Edit Notes'}
+          {isEditing ? '❌ Cancel Edit' : '✏️ Edit Assessment'}
         </button>
+        {isEditing && (
+          <button
+            onClick={handleSaveEdits}
+            style={{
+              background: '#4caf50',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            💾 Save Changes
+          </button>
+        )}
         <button
           onClick={handleDelete}
           style={{
@@ -200,30 +237,149 @@ function AssessmentDetailPage() {
         marginBottom: '20px'
       }}>
         <h2 style={{color: '#2e7d32', marginTop: 0}}>📋 Basic Information</h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px'
-        }}>
-          <div>
-            <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Assessment Date</div>
-            <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.assessmentDate || 'N/A'}</div>
-          </div>
-          <div>
-            <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Assessor</div>
-            <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.assessor || 'N/A'}</div>
-          </div>
-          <div>
-            <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Road Section</div>
-            <div style={{fontSize: '15px', color: '#333'}}>
-              KM {basicInfo.startKm || '?'} - {basicInfo.endKm || '?'}
+        {isEditing ? (
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px'}}>
+            <div>
+              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>Road Name/ID</label>
+              <input
+                type="text"
+                value={editedData.basicInfo.roadName || ''}
+                onChange={(e) => setEditedData(d => ({
+                  ...d,
+                  basicInfo: {...d.basicInfo, roadName: e.target.value}
+                }))}
+                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>Assessor</label>
+              <input
+                type="text"
+                value={editedData.basicInfo.assessor || ''}
+                onChange={(e) => setEditedData(d => ({
+                  ...d,
+                  basicInfo: {...d.basicInfo, assessor: e.target.value}
+                }))}
+                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>Start KM</label>
+              <input
+                type="text"
+                value={editedData.basicInfo.startKm || ''}
+                onChange={(e) => setEditedData(d => ({
+                  ...d,
+                  basicInfo: {...d.basicInfo, startKm: e.target.value}
+                }))}
+                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>End KM</label>
+              <input
+                type="text"
+                value={editedData.basicInfo.endKm || ''}
+                onChange={(e) => setEditedData(d => ({
+                  ...d,
+                  basicInfo: {...d.basicInfo, endKm: e.target.value}
+                }))}
+                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+              />
             </div>
           </div>
-          <div>
-            <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Weather</div>
-            <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.weatherConditions || 'N/A'}</div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px'
+          }}>
+            <div>
+              <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Assessment Date</div>
+              <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.assessmentDate || 'N/A'}</div>
+            </div>
+            <div>
+              <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Assessor</div>
+              <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.assessor || 'N/A'}</div>
+            </div>
+            <div>
+              <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Road Section</div>
+              <div style={{fontSize: '15px', color: '#333'}}>
+                KM {basicInfo.startKm || '?'} - {basicInfo.endKm || '?'}
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize: '12px', color: '#999', fontWeight: 'bold'}}>Weather</div>
+              <div style={{fontSize: '15px', color: '#333'}}>{basicInfo.weatherConditions || 'N/A'}</div>
+            </div>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* QuickCapture Reference */}
+      <div style={{
+        background: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{color: '#2e7d32', marginTop: 0}}>📍 QuickCapture Data Reference</h2>
+        <p style={{fontSize: '13px', color: '#666', marginBottom: '12px'}}>
+          Link this assessment to QuickCapture points/lines for GPS and photos
+        </p>
+        
+        {isEditing ? (
+          <div>
+            <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>
+              QuickCapture Feature IDs or Line Segments
+            </label>
+            <textarea
+              value={editedData.quickCaptureRef || ''}
+              onChange={(e) => setEditedData(d => ({...d, quickCaptureRef: e.target.value}))}
+              rows={3}
+              placeholder="e.g., Points: QC_001, QC_002, QC_005 | Line: Segment 5.2-7.8km"
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '4px',
+                border: '1px solid #ddd',
+                fontSize: '14px',
+                fontFamily: 'monospace'
+              }}
+            />
+            <div style={{fontSize: '12px', color: '#666', marginTop: '6px'}}>
+              Reference the QuickCapture point IDs or line segments where GPS and photos are stored in LRM
+            </div>
+          </div>
+        ) : (
+          <div>
+            {quickCaptureRef ? (
+              <div style={{
+                background: '#e8f5e9',
+                padding: '12px',
+                borderRadius: '6px',
+                border: '2px solid #4caf50',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                whiteSpace: 'pre-wrap'
+              }}>
+                {quickCaptureRef}
+              </div>
+            ) : (
+              <div style={{
+                background: '#fff3e0',
+                padding: '12px',
+                borderRadius: '6px',
+                border: '2px solid #ff9800',
+                fontSize: '13px',
+                color: '#f57c00'
+              }}>
+                ⚠️ No QuickCapture reference added yet. Click Edit to add QuickCapture feature IDs.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Risk Assessment */}
@@ -274,263 +430,231 @@ function AssessmentDetailPage() {
         </div>
       </div>
 
-      {/* Field Notes */}
-      {(fieldNotes.hazardObservations || fieldNotes.consequenceObservations || 
-        fieldNotes.generalComments || fieldNotes.recommendations) && (
-        <div style={{
-          background: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '20px'
-        }}>
-          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes & Photos</h2>
-          
-          {isEditing ? (
-            <div style={{display: 'grid', gap: '16px'}}>
-              {fieldNotes.hazardObservations !== undefined && (
-                <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
-                    ⚠️ Hazard Observations
-                  </label>
-                  <textarea
-                    value={editedNotes.hazardObservations || ''}
-                    onChange={(e) => setEditedNotes(n => ({...n, hazardObservations: e.target.value}))}
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              )}
-              {fieldNotes.consequenceObservations !== undefined && (
-                <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
-                    🎯 Consequence Observations
-                  </label>
-                  <textarea
-                    value={editedNotes.consequenceObservations || ''}
-                    onChange={(e) => setEditedNotes(n => ({...n, consequenceObservations: e.target.value}))}
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              )}
-              {fieldNotes.generalComments !== undefined && (
-                <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
-                    💬 General Comments
-                  </label>
-                  <textarea
-                    value={editedNotes.generalComments || ''}
-                    onChange={(e) => setEditedNotes(n => ({...n, generalComments: e.target.value}))}
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              )}
-              {fieldNotes.recommendations !== undefined && (
-                <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
-                    ✅ Recommendations
-                  </label>
-                  <textarea
-                    value={editedNotes.recommendations || ''}
-                    onChange={(e) => setEditedNotes(n => ({...n, recommendations: e.target.value}))}
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              )}
-              <div style={{display: 'flex', gap: '12px'}}>
-                <button
-                  onClick={handleSaveEdits}
-                  style={{
-                    background: '#4caf50',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 24px',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
-                >
-                  💾 Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    setEditedNotes(fieldNotes);
-                    setIsEditing(false);
-                  }}
-                  style={{
-                    background: '#f5f5f5',
-                    color: '#666',
-                    border: 'none',
-                    padding: '10px 24px',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{display: 'grid', gap: '16px'}}>
-              {fieldNotes.hazardObservations && (
-                <div>
-                  <div style={{fontWeight: 'bold', marginBottom: '4px', color: '#f57c00'}}>
-                    ⚠️ Hazard Observations
-                  </div>
-                  <div style={{whiteSpace: 'pre-wrap', color: '#555'}}>{fieldNotes.hazardObservations}</div>
-                </div>
-              )}
-              {fieldNotes.consequenceObservations && (
-                <div>
-                  <div style={{fontWeight: 'bold', marginBottom: '4px', color: '#e91e63'}}>
-                    🎯 Consequence Observations
-                  </div>
-                  <div style={{whiteSpace: 'pre-wrap', color: '#555'}}>{fieldNotes.consequenceObservations}</div>
-                </div>
-              )}
-              {fieldNotes.generalComments && (
-                <div>
-                  <div style={{fontWeight: 'bold', marginBottom: '4px', color: '#2196f3'}}>
-                    💬 General Comments
-                  </div>
-                  <div style={{whiteSpace: 'pre-wrap', color: '#555'}}>{fieldNotes.generalComments}</div>
-                </div>
-              )}
-              {fieldNotes.recommendations && (
-                <div>
-                  <div style={{fontWeight: 'bold', marginBottom: '4px', color: '#4caf50'}}>
-                    ✅ Recommendations
-                  </div>
-                  <div style={{whiteSpace: 'pre-wrap', color: '#555'}}>{fieldNotes.recommendations}</div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Photos */}
-      {photos.length > 0 && (
-        <div style={{
-          background: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '20px'
-        }}>
-          <h2 style={{color: '#2e7d32', marginTop: 0}}>📸 Site Photos ({photos.length})</h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-            gap: '16px'
-          }}>
-            {photos.map((photo, i) => (
-              <div key={photo.id || i} style={{
-                border: '2px solid #e0e0e0',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                background: '#fafafa'
-              }}>
-                <img src={photo.data} alt={`Site ${i+1}`} style={{
-                  width: '100%',
-                  height: '200px',
-                  objectFit: 'cover'
-                }} />
-                <div style={{padding: '12px'}}>
-                  <div style={{fontWeight: 'bold', marginBottom: '4px'}}>Photo {i + 1}</div>
-                  <div style={{fontSize: '12px', color: '#999', marginBottom: '6px'}}>
-                    {new Date(photo.timestamp).toLocaleString()}
-                  </div>
-                  {photo.gps?.latitude && (
-                    <div style={{fontSize: '12px', color: '#2196f3', marginBottom: '6px'}}>
-                      📍 {photo.gps.latitude}, {photo.gps.longitude}
-                    </div>
-                  )}
-                  {photo.comment && (
-                    <div style={{fontSize: '13px', color: '#555', marginTop: '8px', fontStyle: 'italic'}}>
-                      "{photo.comment}"
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Detailed Risk Breakdown (Scorecard only) */}
+      {/* Detailed Factor Scores (Scorecard only) */}
       {method === 'Scorecard' && data.hazardFactors && (
         <div style={{
           background: 'white',
           padding: '20px',
           borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px'
         }}>
           <h2 style={{color: '#2e7d32', marginTop: 0}}>📊 Detailed Factor Scores</h2>
           
           <div style={{marginBottom: '24px'}}>
-            <h3 style={{color: '#ff9800', marginBottom: '12px'}}>Hazard Factors</h3>
+            <h3 style={{color: '#ff9800', marginBottom: '12px'}}>Hazard Factors ({Object.values(data.hazardFactors).reduce((sum, val) => sum + (val || 0), 0)}/50)</h3>
             <div style={{display: 'grid', gap: '8px'}}>
               {Object.entries(data.hazardFactors).map(([key, value]) => (
                 <div key={key} style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  background: '#f9f9f9',
-                  borderRadius: '4px'
+                  padding: '10px 14px',
+                  background: value >= 7 ? '#ffebee' : '#f9f9f9',
+                  borderRadius: '4px',
+                  borderLeft: value >= 7 ? '4px solid #f44336' : '4px solid #e0e0e0'
                 }}>
-                  <span>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  <span style={{fontWeight: 'bold', color: '#ff9800'}}>{value || 0} pts</span>
+                  <span style={{fontWeight: '500'}}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                  <span style={{fontWeight: 'bold', color: value >= 7 ? '#f44336' : '#ff9800', fontSize: '16px'}}>
+                    {value || 0}/10
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 style={{color: '#e91e63', marginBottom: '12px'}}>Consequence Factors</h3>
+            <h3 style={{color: '#e91e63', marginBottom: '12px'}}>Consequence Factors ({Object.values(data.consequenceFactors || {}).reduce((sum, val) => sum + (val || 0), 0)}/40)</h3>
             <div style={{display: 'grid', gap: '8px'}}>
               {Object.entries(data.consequenceFactors || {}).map(([key, value]) => (
                 <div key={key} style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  background: '#f9f9f9',
-                  borderRadius: '4px'
+                  padding: '10px 14px',
+                  background: value >= 7 ? '#ffebee' : '#f9f9f9',
+                  borderRadius: '4px',
+                  borderLeft: value >= 7 ? '4px solid #f44336' : '4px solid #e0e0e0'
                 }}>
-                  <span>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  <span style={{fontWeight: 'bold', color: '#e91e63'}}>{value || 0} pts</span>
+                  <span style={{fontWeight: '500'}}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                  <span style={{fontWeight: 'bold', color: value >= 7 ? '#f44336' : '#e91e63', fontSize: '16px'}}>
+                    {value || 0}/10
+                  </span>
                 </div>
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Field Notes */}
+      {(fieldNotes.hazardObservations || fieldNotes.consequenceObservations || 
+        fieldNotes.generalComments || fieldNotes.recommendations || isEditing) && (
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px'
+        }}>
+          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes & Documentation</h2>
+          
+          {/* Documentation Guidance */}
+          {isEditing && (
+            <div style={{
+              background: '#e3f2fd',
+              padding: '14px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              fontSize: '13px',
+              border: '2px solid #2196f3'
+            }}>
+              <div style={{fontWeight: 'bold', color: '#1976d2', marginBottom: '8px'}}>
+                📸 Documentation Requirements by Risk Level:
+              </div>
+              <div style={{lineHeight: '1.6', color: '#555'}}>
+                <strong>High/Very High Risk:</strong> Detailed observations, multiple QuickCapture points showing: 
+                drainage issues, soil conditions, proximity to water, infrastructure condition, visible hazards.
+                Minimum 5-7 photo points.<br/>
+                <strong>Moderate Risk:</strong> Key observations with QuickCapture points at: critical drainage features, 
+                soil exposures, stream crossings. Minimum 3-5 photo points.<br/>
+                <strong>Low Risk:</strong> General conditions documented. 1-3 QuickCapture points showing overall road condition.
+              </div>
+            </div>
+          )}
+          
+          {isEditing ? (
+            <div style={{display: 'grid', gap: '16px'}}>
+              <div>
+                <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
+                  ⚠️ Hazard Observations
+                </label>
+                <textarea
+                  value={editedData.fieldNotes.hazardObservations || ''}
+                  onChange={(e) => setEditedData(d => ({
+                    ...d,
+                    fieldNotes: {...d.fieldNotes, hazardObservations: e.target.value}
+                  }))}
+                  rows={4}
+                  placeholder="Describe terrain, slopes, soil types, drainage conditions observed..."
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
+                  🎯 Consequence Observations
+                </label>
+                <textarea
+                  value={editedData.fieldNotes.consequenceObservations || ''}
+                  onChange={(e) => setEditedData(d => ({
+                    ...d,
+                    fieldNotes: {...d.fieldNotes, consequenceObservations: e.target.value}
+                  }))}
+                  rows={4}
+                  placeholder="Describe proximity to water, infrastructure condition, road use, environmental values..."
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
+                  💬 General Comments
+                </label>
+                <textarea
+                  value={editedData.fieldNotes.generalComments || ''}
+                  onChange={(e) => setEditedData(d => ({
+                    ...d,
+                    fieldNotes: {...d.fieldNotes, generalComments: e.target.value}
+                  }))}
+                  rows={4}
+                  placeholder="Additional observations, context, site conditions..."
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>
+                  ✅ Recommendations
+                </label>
+                <textarea
+                  value={editedData.fieldNotes.recommendations || ''}
+                  onChange={(e) => setEditedData(d => ({
+                    ...d,
+                    fieldNotes: {...d.fieldNotes, recommendations: e.target.value}
+                  }))}
+                  rows={4}
+                  placeholder="Recommended actions, maintenance needs, follow-up required..."
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div style={{display: 'grid', gap: '16px'}}>
+              {fieldNotes.hazardObservations && (
+                <div>
+                  <div style={{fontWeight: 'bold', marginBottom: '6px', color: '#f57c00', fontSize: '15px'}}>
+                    ⚠️ Hazard Observations
+                  </div>
+                  <div style={{whiteSpace: 'pre-wrap', color: '#555', lineHeight: '1.6', padding: '10px', background: '#fafafa', borderRadius: '4px'}}>
+                    {fieldNotes.hazardObservations}
+                  </div>
+                </div>
+              )}
+              {fieldNotes.consequenceObservations && (
+                <div>
+                  <div style={{fontWeight: 'bold', marginBottom: '6px', color: '#e91e63', fontSize: '15px'}}>
+                    🎯 Consequence Observations
+                  </div>
+                  <div style={{whiteSpace: 'pre-wrap', color: '#555', lineHeight: '1.6', padding: '10px', background: '#fafafa', borderRadius: '4px'}}>
+                    {fieldNotes.consequenceObservations}
+                  </div>
+                </div>
+              )}
+              {fieldNotes.generalComments && (
+                <div>
+                  <div style={{fontWeight: 'bold', marginBottom: '6px', color: '#2196f3', fontSize: '15px'}}>
+                    💬 General Comments
+                  </div>
+                  <div style={{whiteSpace: 'pre-wrap', color: '#555', lineHeight: '1.6', padding: '10px', background: '#fafafa', borderRadius: '4px'}}>
+                    {fieldNotes.generalComments}
+                  </div>
+                </div>
+              )}
+              {fieldNotes.recommendations && (
+                <div>
+                  <div style={{fontWeight: 'bold', marginBottom: '6px', color: '#4caf50', fontSize: '15px'}}>
+                    ✅ Recommendations
+                  </div>
+                  <div style={{whiteSpace: 'pre-wrap', color: '#555', lineHeight: '1.6', padding: '10px', background: '#fafafa', borderRadius: '4px'}}>
+                    {fieldNotes.recommendations}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
