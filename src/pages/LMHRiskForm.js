@@ -1,10 +1,9 @@
 // src/pages/LMHRiskForm.js
-// LMH Risk Assessment with IndexedDB storage
+// LMH Risk Assessment - Reference Tool (No Photos)
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveAssessmentDB } from '../utils/db';
-import SimplePhotoCapture from '../components/SimplePhotoCapture';
 import FieldNotesSection from '../components/FieldNotesSection';
 import '../styles/enhanced-form.css';
 
@@ -84,11 +83,11 @@ const LMHRiskForm = () => {
         riskCategory: riskResult?.level
       };
 
-      console.log('Saving to IndexedDB...');
+      console.log('Saving practice assessment...');
       const result = await saveAssessmentDB(assessmentData);
 
       if (result.success) {
-        alert('✅ Assessment saved to unlimited storage!');
+        alert('✅ Practice assessment saved!');
         setTimeout(() => navigate('/history'), 1000);
       } else {
         alert('❌ Save failed: ' + result.error);
@@ -104,7 +103,7 @@ const LMHRiskForm = () => {
   const sections = [
     { id: 'basic', title: 'Basic Information', icon: '📝' },
     { id: 'assessment', title: 'LMH Assessment', icon: '⚖️' },
-    { id: 'notes', title: 'Field Notes & Photos', icon: '📋' },
+    { id: 'notes', title: 'Field Notes', icon: '📋' },
     { id: 'results', title: 'Results', icon: '📈' }
   ];
 
@@ -112,7 +111,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Simplified Land Management Hazard methodology with photo documentation</p>
+        <p>Simplified Land Management Hazard methodology - Reference tool</p>
         <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
@@ -280,12 +279,10 @@ const LMHRiskForm = () => {
           <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
             <h2 className="section-header" style={{ color: '#2e7d32', paddingLeft: '40px' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
-              Field Notes & Photos
+              Field Notes
             </h2>
             
             <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
-            
-            <SimplePhotoCapture />
           </div>
         )}
 
@@ -381,14 +378,14 @@ const LMHRiskForm = () => {
                       boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
                     }}
                   >
-                    {isSaving ? '💾 Saving to IndexedDB...' : '💾 Save LMH Assessment'}
+                    {isSaving ? '💾 Saving...' : '💾 Save Practice Assessment'}
                   </button>
                   <div style={{
                     marginTop: '12px',
                     fontSize: '13px',
                     color: '#666'
                   }}>
-                    💡 Saves to unlimited IndexedDB storage
+                    💡 For field data collection, use QuickCapture
                   </div>
                 </div>
 
