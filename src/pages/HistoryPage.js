@@ -19,7 +19,7 @@ function HistoryPage() {
       }
       
       const assessments = await loadAssessmentsDB();
-      console.log('✅ Loaded', assessments.length, 'assessments from IndexedDB');
+      console.log('✅ Loaded', assessments.length, 'practice assessments');
       setAssessmentHistory(assessments);
     } catch (error) {
       console.error('Error loading history:', error);
@@ -80,13 +80,12 @@ function HistoryPage() {
     const date = formatDate(assessment.dateCreated);
     const riskLevel = getRiskLevel(assessment);
     const method = assessment.riskMethod || 'Scorecard';
-    const photoCount = assessment.data?.photos?.length || 0;
     
-    alert(`Assessment Details\n\nTitle: ${title}\nMethod: ${method}\nDate: ${date}\nRisk: ${riskLevel?.level || 'N/A'}\nPhotos: ${photoCount}`);
+    alert(`Practice Assessment\n\nTitle: ${title}\nMethod: ${method}\nDate: ${date}\nRisk: ${riskLevel?.level || 'N/A'}`);
   };
   
   const handleDeleteAssessment = async (id) => {
-    if (window.confirm('Delete this assessment? This cannot be undone.')) {
+    if (window.confirm('Delete this practice assessment? This cannot be undone.')) {
       const { deleteAssessmentDB } = await import('../utils/db');
       await deleteAssessmentDB(id);
       loadHistory();
@@ -105,7 +104,7 @@ function HistoryPage() {
     return (
       <div style={{padding: '40px', textAlign: 'center'}}>
         <div style={{fontSize: '48px'}}>⏳</div>
-        <div>Loading assessments...</div>
+        <div>Loading practice assessments...</div>
       </div>
     );
   }
@@ -113,7 +112,12 @@ function HistoryPage() {
   return (
     <div style={{padding: '20px', maxWidth: '900px', margin: '0 auto'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <h1 style={{color: '#2e7d32'}}>Assessment History</h1>
+        <div>
+          <h1 style={{color: '#2e7d32', margin: '0 0 4px 0'}}>Practice Assessment History</h1>
+          <p style={{margin: 0, fontSize: '14px', color: '#666'}}>
+            Review your saved practice assessments
+          </p>
+        </div>
         <Link to="/" style={{
           padding: '8px 16px',
           backgroundColor: '#f5f5f5',
@@ -133,7 +137,7 @@ function HistoryPage() {
           backgroundColor: '#f9f9f9',
           borderRadius: '8px'
         }}>
-          <p style={{fontSize: '1.2rem'}}>📋 No assessments found</p>
+          <p style={{fontSize: '1.2rem'}}>📋 No practice assessments found</p>
           <Link to="/" style={{
             display: 'inline-block',
             marginTop: '20px',
@@ -144,7 +148,7 @@ function HistoryPage() {
             borderRadius: '6px',
             fontWeight: 'bold'
           }}>
-            Create Assessment
+            Create Practice Assessment
           </Link>
         </div>
       ) : (
@@ -152,7 +156,6 @@ function HistoryPage() {
           {assessmentHistory.map((assessment) => {
             const riskLevel = getRiskLevel(assessment);
             const method = assessment.riskMethod || 'Scorecard';
-            const photoCount = assessment.data?.photos?.length || 0;
             
             return (
               <div key={assessment.id} style={{
@@ -189,18 +192,6 @@ function HistoryPage() {
                           fontWeight: 'bold'
                         }}>
                           {riskLevel.level} Risk
-                        </span>
-                      )}
-
-                      {photoCount > 0 && (
-                        <span style={{
-                          fontSize: '0.85rem',
-                          backgroundColor: '#e8f5e9',
-                          color: '#2e7d32',
-                          padding: '3px 10px',
-                          borderRadius: '4px'
-                        }}>
-                          📷 {photoCount}
                         </span>
                       )}
                     </div>
