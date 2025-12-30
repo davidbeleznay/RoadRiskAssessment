@@ -1,5 +1,5 @@
 // src/utils/professionalPDF.js
-// Professional PDF generation with jsPDF and Mosaic branding
+// Professional PDF generation - Reference tool (no photos)
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -19,17 +19,15 @@ export async function generateProfessionalPDF(assessment) {
     const basicInfo = data.basicInfo || {};
     const riskAssessment = data.riskAssessment || {};
     const fieldNotes = data.fieldNotes || {};
-    const photos = data.photos || [];
     const method = data.riskMethod || 'Scorecard';
 
-    // Colors
     const mosaicGreen = [46, 125, 50];
     const darkGray = [51, 51, 51];
     const lightGray = [245, 245, 245];
 
     let yPos = 20;
 
-    // Simplified header with Mosaic branding
+    // Simplified header
     doc.setFillColor(...mosaicGreen);
     doc.rect(0, 0, 220, 30, 'F');
     
@@ -176,65 +174,19 @@ export async function generateProfessionalPDF(assessment) {
       addNote('✅ Recommendations:', fieldNotes.recommendations);
     }
 
-    // Photos - smaller size, no rotation
-    if (photos.length > 0) {
-      if (yPos > 240) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setTextColor(...mosaicGreen);
-      doc.setFontSize(14);
+    // Footer note about QuickCapture
+    if (yPos < 240) {
+      doc.setFillColor(255, 243, 224);
+      doc.roundedRect(15, yPos, 180, 20, 3, 3, 'F');
+      doc.setTextColor(245, 124, 0);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
-      doc.text(`Site Photos (${photos.length})`, 15, yPos);
-      yPos += 2;
-      doc.line(15, yPos, 195, yPos);
-      yPos += 8;
-
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i];
-        
-        if (yPos > 220) {
-          doc.addPage();
-          yPos = 20;
-        }
-
-        try {
-          // Smaller photos - 70mm wide instead of 85mm
-          // No rotation - keep original orientation
-          const imgWidth = 70;
-          const imgHeight = 52; // 4:3 aspect ratio
-          
-          doc.addImage(photo.data, 'JPEG', 15, yPos, imgWidth, imgHeight, undefined, 'FAST');
-          
-          // Photo info on the right
-          const textX = 90;
-          doc.setFontSize(9);
-          doc.setTextColor(...darkGray);
-          doc.setFont(undefined, 'bold');
-          doc.text(`Photo ${i + 1}`, textX, yPos + 5);
-          
-          doc.setFont(undefined, 'normal');
-          doc.setFontSize(8);
-          doc.text(new Date(photo.timestamp).toLocaleString(), textX, yPos + 10);
-          
-          if (photo.gps.latitude) {
-            doc.text(`GPS: ${photo.gps.latitude}, ${photo.gps.longitude}`, textX, yPos + 15);
-          }
-          
-          if (photo.comment) {
-            const commentLines = doc.splitTextToSize(photo.comment, 100);
-            doc.text(commentLines, textX, yPos + 22);
-          }
-          
-          yPos += imgHeight + 8;
-        } catch (error) {
-          console.error('Error adding photo to PDF:', error);
-          doc.setFontSize(9);
-          doc.text(`[Photo ${i + 1} - Error loading]`, 15, yPos);
-          yPos += 10;
-        }
-      }
+      doc.text('💡 Note:', 20, yPos + 7);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(...darkGray);
+      const noteText = 'This is a practice/reference assessment. Use QuickCapture for actual field data collection with GPS and photos.';
+      const noteLines = doc.splitTextToSize(noteText, 160);
+      doc.text(noteLines, 20, yPos + 13);
     }
 
     // Footer on all pages
@@ -245,14 +197,14 @@ export async function generateProfessionalPDF(assessment) {
       doc.rect(0, 270, 220, 27, 'F');
       doc.setTextColor(120, 120, 120);
       doc.setFontSize(8);
-      doc.text('Road Risk Assessment Report', 105, 278, { align: 'center' });
+      doc.text('Road Risk Assessment - Reference Tool', 105, 278, { align: 'center' });
       doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, 283, { align: 'center' });
       doc.text('© 2025 Mosaic Forest Management', 105, 288, { align: 'center' });
       doc.text(`Page ${i} of ${pageCount}`, 195, 288, { align: 'right' });
     }
 
     // Save the PDF
-    const fileName = `RoadRisk_${basicInfo.roadName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Assessment'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `RoadRisk_Practice_${basicInfo.roadName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Assessment'}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
     
     console.log('✅ PDF generated:', fileName);
@@ -264,25 +216,20 @@ export async function generateProfessionalPDF(assessment) {
   }
 }
 
-/**
- * Export assessment to professional PDF
- */
 export async function exportToProfessionalPDF(assessment) {
   const roadName = assessment.data?.basicInfo?.roadName || assessment.roadName || 'assessment';
   const method = assessment.data?.riskMethod || 'Scorecard';
   
-  console.log(`📄 Generating ${method} PDF for: ${roadName}`);
-  console.log('Photos to include:', assessment.data?.photos?.length || 0);
+  console.log(`📄 Generating ${method} practice PDF for: ${roadName}`);
   
   try {
     const result = await generateProfessionalPDF(assessment);
     
-    // Show success message
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     setTimeout(() => {
       if (isMobile) {
-        alert(`✅ PDF Downloaded!\n\nFile: ${result.fileName}\n\nCheck your Downloads folder or Files app.`);
+        alert(`✅ PDF Downloaded!\n\nFile: ${result.fileName}\n\nCheck your Downloads or Files app.`);
       } else {
         alert(`✅ PDF Downloaded!\n\nFile: ${result.fileName}\n\nCheck your Downloads folder.`);
       }
