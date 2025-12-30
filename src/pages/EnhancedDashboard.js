@@ -1,5 +1,5 @@
 // src/pages/EnhancedDashboard.js
-// Comprehensive dashboard with charts, filters, KPI tracking, and gamification
+// Dashboard for tracking learning progress and practice activity
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +26,6 @@ function EnhancedDashboard() {
       setAssessments(data);
       calculateStats(data);
       
-      // Load gamification stats
       const gStats = await calculateUserStats();
       setUserStats(gStats);
     } catch (error) {
@@ -50,7 +49,13 @@ function EnhancedDashboard() {
     };
 
     const methodCount = { Scorecard: 0, LMH: 0 };
-    let totalPhotos = 0;
+    
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    let thisWeek = 0;
+    let thisMonth = 0;
     
     data.forEach(a => {
       const riskLevel = a.data?.riskAssessment?.finalRisk || a.data?.riskAssessment?.riskLevel || a.data?.riskCategory;
@@ -61,15 +66,17 @@ function EnhancedDashboard() {
       const method = a.riskMethod || 'Scorecard';
       methodCount[method] = (methodCount[method] || 0) + 1;
       
-      totalPhotos += (a.data?.photos?.length || 0);
+      const assessmentDate = new Date(a.dateCreated);
+      if (assessmentDate >= weekAgo) thisWeek++;
+      if (assessmentDate >= monthAgo) thisMonth++;
     });
 
     setStats({
       total: data.length,
       riskDistribution,
       methodCount,
-      totalPhotos,
-      avgPhotosPerAssessment: data.length ? (totalPhotos / data.length).toFixed(1) : 0,
+      thisWeek,
+      thisMonth,
       highRiskCount: riskDistribution['Very High'] + riskDistribution['High']
     });
   };
@@ -152,8 +159,8 @@ function EnhancedDashboard() {
       <div style={{marginBottom: '24px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
           <div>
-            <h1 style={{margin: 0, color: '#2e7d32'}}>📊 Road Risk Dashboard</h1>
-            <p style={{color: '#666', margin: '4px 0 0 0'}}>Framework implementation tracking & KPI monitoring</p>
+            <h1 style={{margin: 0, color: '#2e7d32'}}>📊 Learning Dashboard</h1>
+            <p style={{color: '#666', margin: '4px 0 0 0'}}>Track your progress learning road risk assessment methodology</p>
           </div>
           <button onClick={() => navigate('/')} style={{
             padding: '10px 20px',
@@ -168,7 +175,7 @@ function EnhancedDashboard() {
         </div>
       </div>
 
-      {/* Gamification Stats - Streaks & Badges */}
+      {/* Gamification Stats */}
       {userStats && (
         <div style={{
           background: 'linear-gradient(135deg, #6a1b9a 0%, #9c27b0 100%)',
@@ -277,7 +284,7 @@ function EnhancedDashboard() {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>Total Assessments</div>
+            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>Practice Assessments</div>
             <div style={{fontSize: '36px', fontWeight: 'bold'}}>{stats.total}</div>
             <div style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>
               {stats.methodCount.Scorecard} Scorecard • {stats.methodCount.LMH} LMH
@@ -291,10 +298,10 @@ function EnhancedDashboard() {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>High Risk Roads</div>
+            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>High Risk Identified</div>
             <div style={{fontSize: '36px', fontWeight: 'bold'}}>{stats.highRiskCount}</div>
             <div style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>
-              Requiring priority action
+              Practice finding risk
             </div>
           </div>
 
@@ -305,10 +312,10 @@ function EnhancedDashboard() {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>Photo Documentation</div>
-            <div style={{fontSize: '36px', fontWeight: 'bold'}}>{stats.totalPhotos}</div>
+            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>This Week</div>
+            <div style={{fontSize: '36px', fontWeight: 'bold'}}>{stats.thisWeek}</div>
             <div style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>
-              Avg {stats.avgPhotosPerAssessment} per assessment
+              Weekly practice activity
             </div>
           </div>
 
@@ -319,12 +326,12 @@ function EnhancedDashboard() {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>Coverage</div>
+            <div style={{fontSize: '13px', opacity: 0.9, marginBottom: '8px'}}>This Month</div>
             <div style={{fontSize: '36px', fontWeight: 'bold'}}>
-              {Math.round((stats.total / 50) * 100)}%
+              {stats.thisMonth}
             </div>
             <div style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>
-              Of target network
+              Monthly practice activity
             </div>
           </div>
         </div>
@@ -340,6 +347,9 @@ function EnhancedDashboard() {
           marginBottom: '24px'
         }}>
           <h2 style={{color: '#2e7d32', marginTop: 0}}>Risk Level Distribution</h2>
+          <p style={{fontSize: '13px', color: '#666', marginTop: '-8px', marginBottom: '16px'}}>
+            Practice identifying different risk levels
+          </p>
           <div style={{marginTop: '20px'}}>
             {Object.entries(stats.riskDistribution).map(([level, count]) => {
               const colors = {
@@ -490,7 +500,7 @@ function EnhancedDashboard() {
 
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
           <div style={{color: '#666', fontSize: '14px'}}>
-            Showing <strong>{filteredAssessments.length}</strong> of {assessments.length} assessments
+            Showing <strong>{filteredAssessments.length}</strong> of {assessments.length} practice assessments
           </div>
           <div style={{display: 'flex', gap: '8px'}}>
             <button
@@ -526,7 +536,7 @@ function EnhancedDashboard() {
                 opacity: filteredAssessments.length > 0 ? 1 : 0.5
               }}
             >
-              📊 Export Filtered ({filteredAssessments.length})
+              📊 Export ({filteredAssessments.length})
             </button>
           </div>
         </div>
@@ -539,7 +549,7 @@ function EnhancedDashboard() {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{color: '#2e7d32', marginTop: 0}}>📋 Assessments</h2>
+        <h2 style={{color: '#2e7d32', marginTop: 0}}>📋 Practice Assessments</h2>
         
         {filteredAssessments.length === 0 ? (
           <div style={{padding: '40px', textAlign: 'center', color: '#999'}}>
@@ -591,16 +601,6 @@ function EnhancedDashboard() {
                           fontWeight: 'bold'
                         }}>
                           {riskLevel}
-                        </span>
-                      )}
-                      {(assessment.data?.photos?.length || 0) > 0 && (
-                        <span style={{
-                          background: '#e8f5e9',
-                          color: '#2e7d32',
-                          padding: '2px 8px',
-                          borderRadius: '3px'
-                        }}>
-                          📷 {assessment.data.photos.length}
                         </span>
                       )}
                       <span style={{color: '#999'}}>
