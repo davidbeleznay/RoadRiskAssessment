@@ -41,6 +41,10 @@ const HomeScreen = () => {
     navigate('/dashboard');
   };
 
+  const navigateToReferences = () => {
+    navigate('/references');
+  };
+
   const handleExport = async (format) => {
     setIsExporting(true);
     
@@ -85,7 +89,7 @@ const HomeScreen = () => {
           </div>
         </div>
         <p className="app-subtitle" style={{fontSize: '15px', color: '#555'}}>
-          Assessment tool with detailed field guidance - Supplements QuickCapture
+          Professional assessment tool with EGBC/FPBC guidance - Supplements QuickCapture
         </p>
         <div style={{
           background: '#2e7d32',
@@ -97,7 +101,7 @@ const HomeScreen = () => {
           fontWeight: 'bold',
           fontSize: '15px'
         }}>
-          ✅ v2.5.0 - Professional Assessment Tool
+          ✅ v2.5.0 - Professional Standards Integrated
         </div>
       </div>
 
@@ -120,9 +124,9 @@ const HomeScreen = () => {
       )}
       
       <div className="tool-section">
-        <h2 style={{color: '#2e7d32', marginBottom: '8px'}}>📋 Risk Assessment Tools</h2>
+        <h2 style={{color: '#2e7d32', marginBottom: '8px'}}>📋 Assessment Tools</h2>
         <p style={{fontSize: '14px', color: '#666', marginBottom: '16px'}}>
-          Complete assessments with detailed guidance, export PDFs
+          Complete assessments with professional guidance, export PDFs
         </p>
         
         <div className="field-card-grid">
@@ -149,6 +153,21 @@ const HomeScreen = () => {
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
+          </div>
+
+          <div className="field-card" onClick={navigateToReferences} style={{
+            background: 'white',
+            borderTop: '4px solid #1976d2',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            cursor: 'pointer'
+          }}>
+            <div className="field-card-content">
+              <div className="field-card-title" style={{color: '#333'}}>📚 References</div>
+              <div className="field-card-description" style={{color: '#666'}}>
+                EGBC/FPBC professional standards
+              </div>
+            </div>
+            <div className="field-card-icon" style={{fontSize: '48px'}}>📖</div>
           </div>
           
           <div className="field-card secondary" onClick={navigateToHistory}>
@@ -202,7 +221,7 @@ const HomeScreen = () => {
               Professional Workflow
             </div>
             <div style={{fontSize: '14px', color: '#555', lineHeight: '1.5'}}>
-              Use this tool to complete detailed risk assessments and generate professional PDF reports. 
+              Complete detailed assessments following EGBC/FPBC standards and generate professional PDF reports. 
               Supplement with <strong>QuickCapture</strong> for GPS coordinates and field photos that upload directly to LRM.
             </div>
           </div>
@@ -261,7 +280,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.5.0 - Professional Assessment Tool</div>
+        <div className="app-version">v2.5.0 - Professional Standards Integrated</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
