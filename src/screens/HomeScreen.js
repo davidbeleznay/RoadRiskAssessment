@@ -25,13 +25,11 @@ const HomeScreen = () => {
   
   const navigateToRoadRisk = () => {
     localStorage.removeItem('currentFieldNotes');
-    localStorage.removeItem('currentPhotos');
     navigate('/road-risk');
   };
 
   const navigateToLMH = () => {
     localStorage.removeItem('currentFieldNotes');
-    localStorage.removeItem('currentPhotos');
     navigate('/lmh-risk');
   };
   
@@ -86,7 +84,9 @@ const HomeScreen = () => {
             </p>
           </div>
         </div>
-        <p className="app-subtitle">Professional risk evaluation for forest roads</p>
+        <p className="app-subtitle" style={{fontSize: '15px', color: '#555'}}>
+          Risk methodology reference tool - Use with QuickCapture for field data collection
+        </p>
         <div style={{
           background: '#2e7d32',
           color: 'white',
@@ -97,7 +97,7 @@ const HomeScreen = () => {
           fontWeight: 'bold',
           fontSize: '15px'
         }}>
-          ✅ v2.4.1 - Gamification + Pro PDFs
+          ✅ v2.5.0 - Reference Tool + Dashboard
         </div>
       </div>
 
@@ -106,25 +106,31 @@ const HomeScreen = () => {
           textAlign: 'center',
           margin: '20px 0',
           padding: '16px',
-          background: '#f5f5f5',
-          borderRadius: '8px'
+          background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
+          borderRadius: '8px',
+          border: '2px solid #4caf50'
         }}>
           <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2e7d32'}}>
             {stats.inspections}
           </div>
-          <div style={{fontSize: '12px', color: '#666'}}>Saved Assessments</div>
+          <div style={{fontSize: '12px', color: '#2e7d32', fontWeight: '500'}}>
+            Practice Assessments Completed
+          </div>
         </div>
       )}
       
       <div className="tool-section">
-        <h2 style={{color: '#2e7d32', marginBottom: '16px'}}>📋 Assessment Tools</h2>
+        <h2 style={{color: '#2e7d32', marginBottom: '8px'}}>📋 Risk Assessment Tools</h2>
+        <p style={{fontSize: '14px', color: '#666', marginBottom: '16px'}}>
+          Learn the methodology, then use QuickCapture for field data
+        </p>
         
         <div className="field-card-grid">
           <div className="field-card primary" onClick={navigateToRoadRisk}>
             <div className="field-card-content">
               <div className="field-card-title">🔬 Scorecard Method</div>
               <div className="field-card-description">
-                Detailed 9-factor assessment
+                Detailed 9-factor risk assessment
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
@@ -139,7 +145,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>⚖️ LMH Method</div>
               <div className="field-card-description" style={{color: '#666'}}>
-                Simplified approach with photos
+                Simplified qualitative approach
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
@@ -147,9 +153,9 @@ const HomeScreen = () => {
           
           <div className="field-card secondary" onClick={navigateToHistory}>
             <div className="field-card-content">
-              <div className="field-card-title">Assessment History</div>
+              <div className="field-card-title">Practice History</div>
               <div className="field-card-description">
-                View all saved assessments
+                Review saved practice assessments
               </div>
             </div>
             <div className="field-card-icon">📋</div>
@@ -159,7 +165,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title">📤 Export Data</div>
               <div className="field-card-description">
-                JSON, CSV, or PDF
+                Export practice assessments
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>
@@ -174,10 +180,31 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
               <div className="field-card-description" style={{color: 'rgba(255,255,255,0.9)'}}>
-                KPIs, charts, streaks & badges
+                Track learning progress & activity
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📈</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        background: '#fff3e0',
+        padding: '16px',
+        borderRadius: '8px',
+        marginTop: '20px',
+        border: '2px solid #ff9800'
+      }}>
+        <div style={{display: 'flex', gap: '12px', alignItems: 'start'}}>
+          <div style={{fontSize: '24px'}}>💡</div>
+          <div>
+            <div style={{fontWeight: 'bold', color: '#f57c00', marginBottom: '4px'}}>
+              How to Use This Tool
+            </div>
+            <div style={{fontSize: '14px', color: '#555'}}>
+              This is a <strong>reference and training tool</strong> to learn road risk assessment methodology. 
+              For actual field data collection with GPS and photos, use <strong>QuickCapture</strong> and upload to LRM.
+            </div>
           </div>
         </div>
       </div>
@@ -191,7 +218,7 @@ const HomeScreen = () => {
           boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
           border: '3px solid #4caf50'
         }}>
-          <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Data</h3>
+          <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Practice Data</h3>
 
           <div style={{
             display: 'grid',
@@ -234,7 +261,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.4.1 - Gamification + Professional PDFs</div>
+        <div className="app-version">v2.5.0 - Reference Tool</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
