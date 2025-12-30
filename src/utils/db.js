@@ -1,16 +1,12 @@
 // src/utils/db.js
-// IndexedDB configuration using Dexie - simplified for assessments with photos
+// IndexedDB configuration using Dexie
 
 import Dexie from 'dexie';
 
 export const db = new Dexie('RoadRiskDB');
 
-// Simplified schema for road risk assessments
 db.version(2).stores({
-  // Main assessments table
   assessments: '++id, type, dateCreated, roadName, riskMethod',
-  
-  // Photos table (separate for better performance)
   photos: '++id, assessmentId, timestamp'
 });
 
@@ -22,16 +18,11 @@ db.open()
     console.error('❌ Failed to open RoadRiskDB:', err);
   });
 
-/**
- * Save assessment to IndexedDB
- */
 export async function saveAssessmentDB(assessmentData) {
   try {
-    // Get photos from localStorage temporarily
     const savedPhotos = localStorage.getItem('currentPhotos');
     const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
     
-    // Create assessment record
     const assessment = {
       type: 'roadRisk',
       dateCreated: new Date().toISOString(),
@@ -41,11 +32,9 @@ export async function saveAssessmentDB(assessmentData) {
       photoCount: photos.length
     };
     
-    // Save assessment
     const assessmentId = await db.assessments.add(assessment);
     console.log('✅ Assessment saved to IndexedDB:', assessmentId);
     
-    // Save photos separately
     if (photos.length > 0) {
       const photoRecords = photos.map(photo => ({
         assessmentId: assessmentId,
@@ -55,7 +44,6 @@ export async function saveAssessmentDB(assessmentData) {
       console.log('✅ Saved', photos.length, 'photos to IndexedDB');
     }
     
-    // Clear temporary storage
     localStorage.removeItem('currentPhotos');
     localStorage.removeItem('currentFieldNotes');
     
@@ -66,16 +54,27 @@ export async function saveAssessmentDB(assessmentData) {
   }
 }
 
-/**
- * Load all assessments from IndexedDB
- */
+export async function updateAssessmentDB(assessment) {
+  try {
+    await db.assessments.update(assessment.id, {
+      roadName: assessment.data?.basicInfo?.roadName || assessment.roadName,
+      data: assessment.data
+    });
+    console.log('✅ Assessment updated:', assessment.id);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error updating assessment:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function loadAssessmentsDB() {
   try {
     const assessments = await db.assessments.toArray();
     
-    // Load photos for each assessment
     for (const assessment of assessments) {
       const photos = await db.photos.where('assessmentId').equals(assessment.id).toArray();
+      if (!assessment.data) assessment.data = {};
       assessment.data.photos = photos;
     }
     
@@ -86,14 +85,9 @@ export async function loadAssessmentsDB() {
   }
 }
 
-/**
- * Delete assessment from IndexedDB
- */
 export async function deleteAssessmentDB(id) {
   try {
-    // Delete photos first
     await db.photos.where('assessmentId').equals(id).delete();
-    // Delete assessment
     await db.assessments.delete(id);
     console.log('✅ Assessment deleted:', id);
     return { success: true };
@@ -103,9 +97,6 @@ export async function deleteAssessmentDB(id) {
   }
 }
 
-/**
- * Get assessment count
- */
 export async function getAssessmentCountDB() {
   try {
     return await db.assessments.count();
@@ -114,14 +105,10 @@ export async function getAssessmentCountDB() {
   }
 }
 
-/**
- * Migrate data from localStorage to IndexedDB
- */
 export async function migrateFromLocalStorage() {
   try {
     const historyData = localStorage.getItem('assessmentHistory');
     if (!historyData) {
-      console.log('No localStorage data to migrate');
       return { success: true, migrated: 0 };
     }
     
@@ -143,7 +130,6 @@ export async function migrateFromLocalStorage() {
     
     console.log('✅ Migration complete!');
     
-    // Backup then clear localStorage
     localStorage.setItem('assessmentHistory_backup', historyData);
     localStorage.removeItem('assessmentHistory');
     
