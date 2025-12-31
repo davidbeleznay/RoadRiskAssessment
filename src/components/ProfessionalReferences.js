@@ -1,5 +1,5 @@
 // src/components/ProfessionalReferences.js
-// Official professional guidance references for road risk assessment
+// Professional references including LMH 56, 57, 61
 
 import React, { useState } from 'react';
 
@@ -12,54 +12,56 @@ const ProfessionalReferences = () => {
 
   const references = [
     {
-      id: 'egbc-fpbc',
-      title: '📘 EGBC/FPBC Forest Roads Guidelines',
-      agency: 'Engineers and Geoscientists BC & Forest Professionals BC',
-      year: '2024',
-      version: 'Version 2.0',
+      id: 'lmh-56',
+      title: '📘 LMH 56: Landslide Risk Case Studies',
+      agency: 'BC Ministry of Forests',
+      year: '2004',
       sections: [
         {
-          title: 'Simple vs Complex Road Criteria (Section 3.2)',
+          title: 'Risk Assessment Framework (Table 4a - pg. 119)',
           content: [
-            'Simple Road: Meets all criteria including slope <40%, stable terrain, adequate drainage',
-            'Complex Road: Does not meet Simple Road criteria - requires professional oversight',
-            'Risk-based approach: Higher risk = more professional involvement required'
+            'Official landslide risk matrix: Likelihood × Sediment Delivery = Risk Class (1-5)',
+            'Risk Class 5 (Very High): High likelihood + High sediment delivery',
+            'Risk Class 4 (High): High/Moderate likelihood + High/Moderate delivery',
+            'Risk Class 3 (Moderate): Various moderate combinations',
+            'Risk Class 2 (Moderate): Lower risk combinations',
+            'Risk Class 1 (Low): Very low likelihood or very low delivery'
           ]
         },
         {
-          title: 'Drainage & Sediment Management (Section 3.5.3)',
+          title: 'Likelihood Definitions (Table 4b)',
           content: [
-            'Road drainage must prevent sediment delivery to streams',
-            'Culvert sizing must account for watershed area, climate change, fish passage',
-            'Cross-drains, water bars, and ditches must be properly designed and maintained',
-            'Consider storm event frequency and intensity increases due to climate change'
+            'Based on 20-year period for forest development planning',
+            'High: Probable or certain (road fill >60%, instability likely in fillslopes)',
+            'Moderate: Not likely but possible (slopes 45-60%, may fail with misdirected drainage)',
+            'Low: Remote possibility (slopes <45%, landslide highly unlikely)',
+            'Very Low: Very remote (flat terrain OR no fillslope)'
           ]
         },
         {
-          title: 'Professional Obligations (Section 4.2)',
+          title: 'Sediment Delivery Potential',
           content: [
-            'Registrant must be personally familiar with site characteristics',
-            'Exercise duty of care - work must be complete, correct, and clear',
-            'Consult specialists for areas outside competence',
-            'Document assessment of risks and outcomes',
-            'Protect public safety and environment above all else'
+            'High: Material enters fish stream at time of event (no runout >75m)',
+            'Moderate: Most material deposits; fines may reach stream (75-100m runout)',
+            'Low: Coarse material stored; some fines may reach (100-200m runout)',
+            'Very Low: Material unlikely to reach value (>200m runout)'
           ]
         },
         {
-          title: 'Quality Management (Section 4.0)',
+          title: 'Application to Forest Roads',
           content: [
-            'All professional work requires quality management processes',
-            'Work must be technically correct and meet regulatory requirements',
-            'Independent review required for high-risk activities',
-            'Document deviations from standards with written rationale'
+            'Framework for landslide risk management in forest operations',
+            'Case studies demonstrate analysis approaches',
+            'Links probability and consequence to risk classification',
+            'Guides management prescriptions based on risk class'
           ]
         }
       ],
-      link: 'https://www.egbc.ca/getmedia/e0c8e8c8-3c64-4e4f-9f4d-8f0c0e0e0e0e/EGBC-FPBC-Forest-Roads-Guidelines-2024.pdf'
+      link: 'https://www.for.gov.bc.ca/hfd/pubs/Docs/Lmh/Lmh56.htm'
     },
     {
       id: 'lmh-61',
-      title: '📗 LMH 61: Managing Forested Watersheds for Hydrogeomorphic Risks on Fans',
+      title: '📗 LMH 61: Managing Watersheds for Hydrogeomorphic Risks on Fans',
       agency: 'BC Ministry of Forests',
       year: '2009',
       sections: [
@@ -79,15 +81,6 @@ const ProfessionalReferences = () => {
             'Fan identification, watershed pre-typing, field verification',
             'Prescription development based on hazard level',
             'Monitoring requirements for high-hazard areas'
-          ]
-        },
-        {
-          title: 'Risk Assessment Framework',
-          content: [
-            'Likelihood based on watershed morphometrics and disturbance',
-            'Consequence based on elements at risk (infrastructure, habitat, values)',
-            'Combined risk matrix guides management prescriptions',
-            'Special considerations for roads crossing or accessing fans'
           ]
         }
       ],
@@ -121,38 +114,30 @@ const ProfessionalReferences = () => {
       link: 'https://www.for.gov.bc.ca/hfd/pubs/Docs/Lmh/Lmh57.htm'
     },
     {
-      id: 'forest-service-standards',
-      title: '📙 BC Forest Service Road Engineering Standards',
-      agency: 'BC Ministry of Forests',
+      id: 'egbc-fpbc',
+      title: '📙 EGBC/FPBC Forest Roads Guidelines',
+      agency: 'Engineers and Geoscientists BC & Forest Professionals BC',
+      year: '2024',
+      version: 'Version 2.0',
       sections: [
         {
-          title: 'Road Classification & Design',
+          title: 'Simple vs Complex Road Criteria (Section 3.2)',
           content: [
-            'Industrial roads vs resource roads - different standards',
-            'Design vehicle determines minimum road width, curve radii',
-            'Running surface width, ditch depth, and grade specifications',
-            'Seasonal vs year-round access requirements'
+            'Simple Road: slope <40%, stable terrain, adequate drainage',
+            'Complex Road: requires professional oversight',
+            'Risk-based approach to professional involvement'
           ]
         },
         {
-          title: 'Drainage Structures',
+          title: 'Professional Obligations (Section 4.2)',
           content: [
-            'Culvert spacing based on gradient and soil erodibility',
-            'Minimum culvert size: 300mm for ephemeral, 450mm for permanent streams',
-            'Outslope, cross-drain, and water bar spacing standards',
-            'Armoring requirements for high-flow areas'
-          ]
-        },
-        {
-          title: 'Geotechnical Considerations',
-          content: [
-            'Fill slope stability - 1.5:1 max grade in competent material',
-            'Cutslope stability based on soil/rock type',
-            'Benching requirements on steep slopes',
-            'Compaction specifications for fill placement'
+            'Registrant must be personally familiar with site',
+            'Exercise duty of care - complete, correct, clear',
+            'Document assessment of risks and outcomes'
           ]
         }
-      ]
+      ],
+      link: 'https://www.egbc.ca/Practice-Resources/Professional-Practice/Professional-Practice-Guidelines'
     },
     {
       id: 'terrain-stability',
@@ -163,83 +148,9 @@ const ProfessionalReferences = () => {
         {
           title: 'Terrain Stability Classes',
           content: [
-            'Class I: Stable - no evidence of instability',
-            'Class II: Moderately stable - minor instability evident',
-            'Class III: Unstable - evidence of instability',
-            'Class IV: Very unstable - active or recent landslides',
-            'Class V: Active instability - currently moving'
-          ]
-        },
-        {
-          title: 'Field Indicators',
-          content: [
-            'Hummocky topography indicates old landslide deposits',
-            'Tension cracks indicate incipient failure',
-            'Leaning or jackstrawed trees show ground movement',
-            'Fresh scarps and debris indicate recent activity',
-            'Springs and seeps reduce slope stability'
-          ]
-        }
-      ]
-    },
-    {
-      id: 'crossings',
-      title: '📓 Professional Services - Crossings',
-      agency: 'EGBC & FPBC',
-      year: '2021',
-      sections: [
-        {
-          title: 'Crossing Definitions',
-          content: [
-            'Major Culvert: Clear span >3m OR rise >2m',
-            'Bridge: Any structure with clear span >6m',
-            'Log/wood culverts also considered crossings',
-            'All crossings require professional oversight'
-          ]
-        },
-        {
-          title: 'Inspection Requirements',
-          content: [
-            'Annual inspections required for all crossings',
-            'Detailed inspection every 3-5 years depending on condition',
-            'Log stringer bridges: More frequent due to decay',
-            'Document hazards even if access blocked',
-            'Professional accountability for crossing integrity'
-          ]
-        },
-        {
-          title: 'Fish Stream Crossings',
-          content: [
-            'Timing windows for instream work (typically July 15 - Sept 15)',
-            'Sediment control during construction',
-            'Passage requirements for fish (velocity, depth, gradient)',
-            'Embedment of culverts for natural streambed'
-          ]
-        }
-      ]
-    },
-    {
-      id: 'climate-considerations',
-      title: '🌡️ Climate Change Considerations',
-      agency: 'EGBC/FPBC Guidelines Section 3.1.2',
-      year: '2024',
-      sections: [
-        {
-          title: 'Hydrological Factors',
-          content: [
-            'Increase peak flow estimates for climate change (use Mosaic Q200 tool)',
-            'Consider more intense precipitation events',
-            'Longer wet seasons affecting road stability',
-            'Rain-on-snow events becoming more common'
-          ]
-        },
-        {
-          title: 'Design Adaptations',
-          content: [
-            'Upsize culverts beyond historical standards',
-            'Increased freeboard at stream crossings',
-            'More robust armoring and erosion protection',
-            'Enhanced drainage capacity throughout network'
+            'Class I-V classification system',
+            'Field indicators for each class',
+            'Assessment requirements by class'
           ]
         }
       ]
@@ -256,7 +167,7 @@ const ProfessionalReferences = () => {
     }}>
       <h2 style={{color: '#2e7d32', marginTop: 0}}>📚 Professional Standards & References</h2>
       <p style={{fontSize: '14px', color: '#666', marginBottom: '20px'}}>
-        Official guidance from regulatory bodies and BC Ministry of Forests
+        Official guidance from BC Ministry of Forests and regulatory bodies
       </p>
 
       {references.map((ref) => (
