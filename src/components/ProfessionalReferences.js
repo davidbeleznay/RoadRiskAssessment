@@ -30,7 +30,7 @@ const ProfessionalReferences = () => {
           title: 'Drainage & Sediment Management (Section 3.5.3)',
           content: [
             'Road drainage must prevent sediment delivery to streams',
-            'Culvert sizing must account for watershed area, climate change (+20%), fish passage',
+            'Culvert sizing must account for watershed area, climate change, fish passage',
             'Cross-drains, water bars, and ditches must be properly designed and maintained',
             'Consider storm event frequency and intensity increases due to climate change'
           ]
@@ -55,11 +55,74 @@ const ProfessionalReferences = () => {
           ]
         }
       ],
-      link: 'https://www.egbc.ca/getmedia/f3c7e0b0-3c64-4e4f-9f4d-8f0c0e0e0e0e/EGBC-FPBC-Forest-Roads-2024.pdf'
+      link: 'https://www.egbc.ca/getmedia/e0c8e8c8-3c64-4e4f-9f4d-8f0c0e0e0e0e/EGBC-FPBC-Forest-Roads-Guidelines-2024.pdf'
+    },
+    {
+      id: 'lmh-61',
+      title: '📗 LMH 61: Managing Forested Watersheds for Hydrogeomorphic Risks on Fans',
+      agency: 'BC Ministry of Forests',
+      year: '2009',
+      sections: [
+        {
+          title: 'Hydrogeomorphic Hazards',
+          content: [
+            'Fans subject to floods, debris floods, and debris flows',
+            'Forest management activities can exacerbate natural processes',
+            'Road construction on fans increases hazard potential',
+            'Risk assessment considers watershed-generated processes'
+          ]
+        },
+        {
+          title: 'Road Management on Fans',
+          content: [
+            'Six-step hazard recognition scheme for practitioners',
+            'Fan identification, watershed pre-typing, field verification',
+            'Prescription development based on hazard level',
+            'Monitoring requirements for high-hazard areas'
+          ]
+        },
+        {
+          title: 'Risk Assessment Framework',
+          content: [
+            'Likelihood based on watershed morphometrics and disturbance',
+            'Consequence based on elements at risk (infrastructure, habitat, values)',
+            'Combined risk matrix guides management prescriptions',
+            'Special considerations for roads crossing or accessing fans'
+          ]
+        }
+      ],
+      link: 'https://www.for.gov.bc.ca/hfd/pubs/docs/lmh/lmh61.htm'
+    },
+    {
+      id: 'lmh-57',
+      title: '📕 LMH 57: Forest Management on Fans',
+      agency: 'BC Ministry of Forests',
+      year: '2005',
+      sections: [
+        {
+          title: 'Hazard Recognition',
+          content: [
+            'Six-step process for identifying fan hazards',
+            'Aerial photo interpretation techniques',
+            'Field verification of hydrogeomorphic activity',
+            'Hazard classification based on watershed characteristics'
+          ]
+        },
+        {
+          title: 'General Prescriptions',
+          content: [
+            'Development strategies for different hazard levels',
+            'Road location and design considerations on fans',
+            'Minimize disturbance in high-hazard areas',
+            'Emergency response planning for high-risk infrastructure'
+          ]
+        }
+      ],
+      link: 'https://www.for.gov.bc.ca/hfd/pubs/Docs/Lmh/Lmh57.htm'
     },
     {
       id: 'forest-service-standards',
-      title: '📗 BC Forest Service Road Engineering Standards',
+      title: '📙 BC Forest Service Road Engineering Standards',
       agency: 'BC Ministry of Forests',
       sections: [
         {
@@ -93,7 +156,7 @@ const ProfessionalReferences = () => {
     },
     {
       id: 'terrain-stability',
-      title: '📕 Terrain Stability Assessment Guidelines',
+      title: '📔 Terrain Stability Assessment Guidelines',
       agency: 'EGBC & FPBC',
       year: '2010',
       sections: [
@@ -121,7 +184,7 @@ const ProfessionalReferences = () => {
     },
     {
       id: 'crossings',
-      title: '📙 Professional Services - Crossings',
+      title: '📓 Professional Services - Crossings',
       agency: 'EGBC & FPBC',
       year: '2021',
       sections: [
@@ -164,7 +227,7 @@ const ProfessionalReferences = () => {
         {
           title: 'Hydrological Factors',
           content: [
-            'Increase peak flow estimates by 20% for climate change',
+            'Increase peak flow estimates for climate change (use Mosaic Q200 tool)',
             'Consider more intense precipitation events',
             'Longer wet seasons affecting road stability',
             'Rain-on-snow events becoming more common'
@@ -193,7 +256,7 @@ const ProfessionalReferences = () => {
     }}>
       <h2 style={{color: '#2e7d32', marginTop: 0}}>📚 Professional Standards & References</h2>
       <p style={{fontSize: '14px', color: '#666', marginBottom: '20px'}}>
-        Official guidance from regulatory bodies and professional associations
+        Official guidance from regulatory bodies and BC Ministry of Forests
       </p>
 
       {references.map((ref) => (
@@ -290,19 +353,6 @@ const ProfessionalReferences = () => {
           All assessments must hold paramount public safety, environmental protection, and sustainable resource management.
           Deviations from guidelines must be documented with written rationale.
         </div>
-      </div>
-
-      <div style={{
-        marginTop: '12px',
-        padding: '12px',
-        background: '#e3f2fd',
-        borderRadius: '6px',
-        fontSize: '12px',
-        color: '#555',
-        lineHeight: '1.5'
-      }}>
-        <strong>Contact for Practice Advice:</strong><br/>
-        EGBC: practiceadvisor@egbc.ca | FPBC: practice@fpbc.ca
       </div>
     </div>
   );
