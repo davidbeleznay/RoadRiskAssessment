@@ -1,5 +1,5 @@
 // src/pages/AssessmentDetailPage.js
-// Comprehensive assessment view with edit and QuickCapture integration
+// Assessment detail view with simplified QuickCapture integration
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -50,7 +50,6 @@ function AssessmentDetailPage() {
 
   const handleSaveEdits = async () => {
     try {
-      // Update assessment in IndexedDB
       const updatedAssessment = {
         ...assessment,
         data: {
@@ -194,7 +193,7 @@ function AssessmentDetailPage() {
             cursor: 'pointer'
           }}
         >
-          {isEditing ? '❌ Cancel Edit' : '✏️ Edit Assessment'}
+          {isEditing ? '❌ Cancel' : '✏️ Edit'}
         </button>
         {isEditing && (
           <button
@@ -240,7 +239,7 @@ function AssessmentDetailPage() {
         {isEditing ? (
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px'}}>
             <div>
-              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>Road Name/ID</label>
+              <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>Road Name</label>
               <input
                 type="text"
                 value={editedData.basicInfo.roadName || ''}
@@ -324,32 +323,41 @@ function AssessmentDetailPage() {
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         marginBottom: '20px'
       }}>
-        <h2 style={{color: '#2e7d32', marginTop: 0}}>📍 QuickCapture Data Reference</h2>
+        <h2 style={{color: '#2e7d32', marginTop: 0}}>📍 QuickCapture Field Data</h2>
         <p style={{fontSize: '13px', color: '#666', marginBottom: '12px'}}>
-          Link this assessment to QuickCapture points/lines for GPS and photos
+          Reference features captured in QuickCapture (line/point layer, KM locations, brief descriptions)
         </p>
         
         {isEditing ? (
           <div>
             <label style={{display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 'bold'}}>
-              QuickCapture Feature IDs or Line Segments
+              QuickCapture Features Captured
             </label>
             <textarea
               value={editedData.quickCaptureRef || ''}
               onChange={(e) => setEditedData(d => ({...d, quickCaptureRef: e.target.value}))}
-              rows={3}
-              placeholder="e.g., Points: QC_001, QC_002, QC_005 | Line: Segment 5.2-7.8km"
+              rows={5}
+              placeholder="Example:
+Road Inspection line: KM 5.2-7.8
+
+Points captured:
+- KM 5.4: Existing culvert 1400 (functioning)
+- KM 6.2: No Culvert Observed 
+- KM 6.8: Tension cracks (parallel to road)
+- KM 7.1: Water flowing across road surface"
               style={{
                 width: '100%',
                 padding: '10px',
                 borderRadius: '4px',
                 border: '1px solid #ddd',
-                fontSize: '14px',
-                fontFamily: 'monospace'
+                fontSize: '13px',
+                fontFamily: 'monospace',
+                lineHeight: '1.5'
               }}
             />
-            <div style={{fontSize: '12px', color: '#666', marginTop: '6px'}}>
-              Reference the QuickCapture point IDs or line segments where GPS and photos are stored in LRM
+            <div style={{fontSize: '12px', color: '#666', marginTop: '6px', lineHeight: '1.5'}}>
+              Reference the QuickCapture layer (line or point), KM locations, and what each photo shows. 
+              This connects your assessment to spatial field data that will be uploaded to LRM.
             </div>
           </div>
         ) : (
@@ -357,12 +365,13 @@ function AssessmentDetailPage() {
             {quickCaptureRef ? (
               <div style={{
                 background: '#e8f5e9',
-                padding: '12px',
+                padding: '14px',
                 borderRadius: '6px',
                 border: '2px solid #4caf50',
                 fontFamily: 'monospace',
-                fontSize: '14px',
-                whiteSpace: 'pre-wrap'
+                fontSize: '13px',
+                whiteSpace: 'pre-wrap',
+                lineHeight: '1.6'
               }}>
                 {quickCaptureRef}
               </div>
@@ -375,7 +384,7 @@ function AssessmentDetailPage() {
                 fontSize: '13px',
                 color: '#f57c00'
               }}>
-                ⚠️ No QuickCapture reference added yet. Click Edit to add QuickCapture feature IDs.
+                ⚠️ No QuickCapture reference added. Click Edit to link this assessment to field data captured in QuickCapture.
               </div>
             )}
           </div>
@@ -422,11 +431,6 @@ function AssessmentDetailPage() {
           <div style={{fontSize: '24px', fontWeight: 'bold', marginTop: '8px'}}>
             {riskLevel?.toUpperCase()} RISK
           </div>
-          {riskAssessment.priority && (
-            <div style={{fontSize: '14px', marginTop: '12px', opacity: 0.9}}>
-              Priority: {riskAssessment.priority}
-            </div>
-          )}
         </div>
       </div>
 
@@ -495,31 +499,7 @@ function AssessmentDetailPage() {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           marginBottom: '20px'
         }}>
-          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes & Documentation</h2>
-          
-          {/* Documentation Guidance */}
-          {isEditing && (
-            <div style={{
-              background: '#e3f2fd',
-              padding: '14px',
-              borderRadius: '6px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              border: '2px solid #2196f3'
-            }}>
-              <div style={{fontWeight: 'bold', color: '#1976d2', marginBottom: '8px'}}>
-                📸 Documentation Requirements by Risk Level:
-              </div>
-              <div style={{lineHeight: '1.6', color: '#555'}}>
-                <strong>High/Very High Risk:</strong> Detailed observations, multiple QuickCapture points showing: 
-                drainage issues, soil conditions, proximity to water, infrastructure condition, visible hazards.
-                Minimum 5-7 photo points.<br/>
-                <strong>Moderate Risk:</strong> Key observations with QuickCapture points at: critical drainage features, 
-                soil exposures, stream crossings. Minimum 3-5 photo points.<br/>
-                <strong>Low Risk:</strong> General conditions documented. 1-3 QuickCapture points showing overall road condition.
-              </div>
-            </div>
-          )}
+          <h2 style={{color: '#2e7d32', marginTop: 0}}>📝 Field Notes</h2>
           
           {isEditing ? (
             <div style={{display: 'grid', gap: '16px'}}>
@@ -534,7 +514,7 @@ function AssessmentDetailPage() {
                     fieldNotes: {...d.fieldNotes, hazardObservations: e.target.value}
                   }))}
                   rows={4}
-                  placeholder="Describe terrain, slopes, soil types, drainage conditions observed..."
+                  placeholder="Terrain, slopes, soil types, drainage conditions..."
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -556,7 +536,7 @@ function AssessmentDetailPage() {
                     fieldNotes: {...d.fieldNotes, consequenceObservations: e.target.value}
                   }))}
                   rows={4}
-                  placeholder="Describe proximity to water, infrastructure condition, road use, environmental values..."
+                  placeholder="Water proximity, infrastructure, road use, values..."
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -578,7 +558,7 @@ function AssessmentDetailPage() {
                     fieldNotes: {...d.fieldNotes, generalComments: e.target.value}
                   }))}
                   rows={4}
-                  placeholder="Additional observations, context, site conditions..."
+                  placeholder="Additional observations, context..."
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -600,7 +580,7 @@ function AssessmentDetailPage() {
                     fieldNotes: {...d.fieldNotes, recommendations: e.target.value}
                   }))}
                   rows={4}
-                  placeholder="Recommended actions, maintenance needs, follow-up required..."
+                  placeholder="Actions, maintenance needs, follow-up..."
                   style={{
                     width: '100%',
                     padding: '10px',
