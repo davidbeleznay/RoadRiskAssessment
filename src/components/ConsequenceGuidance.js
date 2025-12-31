@@ -1,5 +1,5 @@
 // src/components/ConsequenceGuidance.js
-// Detailed consequence assessment guidance with sediment delivery framework
+// Detailed consequence assessment with road use and updated water assessment
 
 import React from 'react';
 
@@ -29,7 +29,7 @@ const ConsequenceGuidance = () => {
         <div style={{fontSize: '14px', lineHeight: '1.6', color: '#555'}}>
           Consequence ratings assess the <strong>magnitude and duration of harm</strong> if road failure occurs. 
           Primary factors: sediment delivery to fish streams, infrastructure damage, public safety risk, 
-          and impact to environmental/cultural values.
+          road use intensity, and impact to environmental/cultural values.
         </div>
       </div>
 
@@ -72,12 +72,23 @@ const ConsequenceGuidance = () => {
             </div>
 
             <div style={{marginBottom: '10px'}}>
-              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure & Use:</strong>
+              <strong style={{color: '#1976d2'}}>🚗 Road Use & Public Access:</strong>
               <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
-                <li>Critical access road (emergency, community)</li>
-                <li>High traffic volume (active hauling)</li>
-                <li>Major infrastructure (bridges, large culverts)</li>
-                <li>Failure would block essential access</li>
+                <li><strong>High traffic volume</strong> (active hauling operations)</li>
+                <li><strong>Public road use agreements</strong> in place</li>
+                <li>Critical access for emergency services or communities</li>
+                <li>Failure would block essential public or commercial access</li>
+                <li>Multiple users depend on this road</li>
+              </ul>
+            </div>
+
+            <div style={{marginBottom: '10px'}}>
+              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure:</strong>
+              <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
+                <li>Major infrastructure (bridges, large culverts &gt;1800mm)</li>
+                <li>Failure would damage critical structures</li>
+                <li>High remediation cost (&gt;$100K)</li>
+                <li>Extended closure (&gt;1 month)</li>
               </ul>
             </div>
 
@@ -93,7 +104,7 @@ const ConsequenceGuidance = () => {
 
             <div style={{background: '#ffebee', padding: '8px', borderRadius: '4px', fontSize: '12px'}}>
               <strong>Key Question:</strong> "If this fails, does sediment go directly into fish stream? 
-              Is critical value immediately impacted?"
+              Is critical value or public access immediately impacted?"
             </div>
           </div>
         </div>
@@ -131,17 +142,26 @@ const ConsequenceGuidance = () => {
                 <li>Non-fish stream <strong>30-100m</strong> from road</li>
                 <li>Seasonal drainage channels</li>
                 <li>Wetlands within sediment delivery distance</li>
-                <li>Fish habitat exists but not immediate/direct</li>
+                <li>Fish habitat exists but not immediate/direct connection</li>
               </ul>
             </div>
 
             <div style={{marginBottom: '10px'}}>
-              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure & Use:</strong>
+              <strong style={{color: '#1976d2'}}>🚗 Road Use & Public Access:</strong>
               <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
-                <li>Regular use (periodic hauling)</li>
-                <li>Moderate traffic volume</li>
-                <li>Standard culverts/infrastructure</li>
-                <li>Failure causes inconvenience but alternate access exists</li>
+                <li><strong>Moderate traffic</strong> (periodic hauling, seasonal use)</li>
+                <li>Some public access allowed or informal use</li>
+                <li>Alternate routes available but inconvenient</li>
+                <li>Mixed private/public use considerations</li>
+              </ul>
+            </div>
+
+            <div style={{marginBottom: '10px'}}>
+              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure:</strong>
+              <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
+                <li>Standard culverts/infrastructure (600-1400mm)</li>
+                <li>Moderate repair costs ($20-100K)</li>
+                <li>Short-term closure possible (days to weeks)</li>
               </ul>
             </div>
 
@@ -155,8 +175,8 @@ const ConsequenceGuidance = () => {
             </div>
 
             <div style={{background: '#fff3e0', padding: '8px', borderRadius: '4px', fontSize: '12px'}}>
-              <strong>Key Question:</strong> "If this fails, does fine sediment potentially reach fish over time? 
-              Are impacts manageable with mitigation?"
+              <strong>Key Question:</strong> "If this fails, do fines potentially reach fish over time? 
+              Are public access impacts manageable?"
             </div>
           </div>
         </div>
@@ -192,18 +212,27 @@ const ConsequenceGuidance = () => {
               <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
                 <li>Water resources <strong>&gt;100m</strong> away</li>
                 <li>No fish streams in sediment delivery path</li>
-                <li>Good vegetated buffer</li>
+                <li>Good vegetated buffer zones</li>
                 <li>Topography prevents material from reaching water</li>
               </ul>
             </div>
 
             <div style={{marginBottom: '10px'}}>
-              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure & Use:</strong>
+              <strong style={{color: '#1976d2'}}>🚗 Road Use & Public Access:</strong>
               <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
-                <li>Minimal use (deactivation planned, seasonal access)</li>
-                <li>Low traffic volume</li>
-                <li>Minor infrastructure</li>
-                <li>Alternate routes available</li>
+                <li><strong>Minimal use</strong> (deactivation planned, internal access only)</li>
+                <li>No public road use agreements</li>
+                <li>Private road with limited traffic</li>
+                <li>Multiple alternate routes available</li>
+              </ul>
+            </div>
+
+            <div style={{marginBottom: '10px'}}>
+              <strong style={{color: '#1976d2'}}>🏗️ Infrastructure:</strong>
+              <ul style={{marginTop: '4px', paddingLeft: '20px', marginBottom: '8px'}}>
+                <li>Minor infrastructure (small culverts &lt;600mm)</li>
+                <li>Low repair costs (&lt;$20K)</li>
+                <li>Easy to bypass or repair quickly</li>
               </ul>
             </div>
 
@@ -217,8 +246,8 @@ const ConsequenceGuidance = () => {
             </div>
 
             <div style={{background: '#f1f8e9', padding: '8px', borderRadius: '4px', fontSize: '12px'}}>
-              <strong>Key Question:</strong> "If this fails, does material actually reach any sensitive values? 
-              Is harm limited and recoverable?"
+              <strong>Key Question:</strong> "If this fails, is harm limited to the road itself? 
+              No public impact?"
             </div>
           </div>
         </div>
@@ -254,15 +283,16 @@ const ConsequenceGuidance = () => {
               <ul style={{marginTop: '4px', paddingLeft: '20px'}}>
                 <li>No water resources nearby</li>
                 <li>No critical infrastructure</li>
-                <li>Minimal use or deactivated</li>
+                <li>Minimal or no use (deactivated)</li>
+                <li>No public access</li>
                 <li>No identified environmental/cultural values</li>
                 <li>Failure impact contained to road itself</li>
               </ul>
             </div>
 
             <div style={{background: '#e3f2fd', padding: '8px', borderRadius: '4px', fontSize: '12px'}}>
-              <strong>Key Question:</strong> "If this fails, is all material contained on-site with no impact 
-              to any values?"
+              <strong>Key Question:</strong> "If this fails, is all material contained on-site with zero impact 
+              to any values or users?"
             </div>
           </div>
         </div>
@@ -284,9 +314,9 @@ const ConsequenceGuidance = () => {
           <div style={{marginBottom: '12px'}}>
             <strong>Step 1: Identify Nearest Water Body</strong>
             <ul style={{marginTop: '4px', paddingLeft: '20px'}}>
-              <li>Use map to locate streams (blue lines)</li>
+              <li>Identify streams from maps, field observation, and local knowledge</li>
               <li>Measure horizontal distance from road to water</li>
-              <li>Determine if fish-bearing (check fisheries maps or local knowledge)</li>
+              <li>Determine if fish-bearing (check fisheries maps, stream surveys, local knowledge)</li>
               <li>Identify any wetlands, lakes, or drainage channels</li>
             </ul>
           </div>
@@ -312,12 +342,22 @@ const ConsequenceGuidance = () => {
           </div>
 
           <div style={{marginBottom: '12px'}}>
-            <strong>Step 4: Consider Other Values</strong>
+            <strong>Step 4: Evaluate Road Use & Public Impact</strong>
             <ul style={{marginTop: '4px', paddingLeft: '20px'}}>
-              <li><strong>Infrastructure:</strong> Would failure damage culverts, bridges, or block critical access?</li>
-              <li><strong>Public safety:</strong> Is this a public road or high-use area?</li>
-              <li><strong>Remediation cost:</strong> How much would it cost to fix? (&gt;$50K = high consequence)</li>
-              <li><strong>Duration:</strong> Would road be unusable for &gt;1 month?</li>
+              <li><strong>Traffic intensity:</strong> Average daily trips, seasonal patterns</li>
+              <li><strong>Public access:</strong> Road use agreements, community dependence</li>
+              <li><strong>User types:</strong> Commercial hauling, recreational, emergency access</li>
+              <li><strong>Alternatives:</strong> Are other routes available if this fails?</li>
+            </ul>
+          </div>
+
+          <div style={{marginBottom: '12px'}}>
+            <strong>Step 5: Consider Infrastructure & Cost</strong>
+            <ul style={{marginTop: '4px', paddingLeft: '20px'}}>
+              <li><strong>Infrastructure:</strong> Would failure damage culverts, bridges, or other structures?</li>
+              <li><strong>Remediation cost:</strong> How much to fix? (&gt;$50K = moderate, &gt;$100K = high)</li>
+              <li><strong>Duration:</strong> How long would road be unusable? (&gt;1 month = high)</li>
+              <li><strong>Accessibility:</strong> Can repairs be done easily or requires major mobilization?</li>
             </ul>
           </div>
 
@@ -333,7 +373,7 @@ const ConsequenceGuidance = () => {
               • What is the <strong>vulnerability</strong> of the value?<br/>
               • What is the <strong>nature and magnitude</strong> of potential harm?<br/>
               • Would the value be <strong>rendered unusable or unsafe</strong>?<br/>
-              • Is there <strong>significant cost</strong> consequence to Mosaic?<br/>
+              • Is there <strong>significant cost</strong> or public impact?<br/>
               • Are harm mitigation or remediation measures <strong>feasible</strong>?
             </div>
           </div>
@@ -395,8 +435,8 @@ const ConsequenceGuidance = () => {
         color: '#666'
       }}>
         <strong>Source:</strong> Mosaic Road Risk Framework (2025), based on BC Watershed Assessment 
-        guidelines for sediment delivery potential. Consequence levels based on magnitude and duration 
-        of harm to identified values.
+        guidelines and LMH 57/61 for sediment delivery potential. Consequence levels based on magnitude 
+        and duration of harm to identified values including fish habitat, public access, and infrastructure.
       </div>
     </div>
   );
