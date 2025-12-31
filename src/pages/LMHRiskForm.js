@@ -1,10 +1,10 @@
-// src/pages/LMHRiskForm.js
-// LMH Risk Assessment with professional override and detailed guidance
-
+// src/pages/LMHRiskForm.js - With integrated frameworks
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveAssessmentDB } from '../utils/db';
 import FieldNotesSection from '../components/FieldNotesSection';
+import LikelihoodGuidance from '../components/LikelihoodGuidance';
+import ConsequenceGuidance from '../components/ConsequenceGuidance';
 import '../styles/enhanced-form.css';
 
 const LMHRiskForm = () => {
@@ -12,38 +12,15 @@ const LMHRiskForm = () => {
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
   const [showOverride, setShowOverride] = useState(false);
-  const [overrideData, setOverrideData] = useState({
-    enabled: false,
-    finalRisk: '',
-    professionalName: '',
-    designation: '',
-    justification: ''
-  });
-  const [showGuidance, setShowGuidance] = useState({
-    terrain: false,
-    soils: false,
-    drainage: false,
-    water: false,
-    infrastructure: false
-  });
-
-  const [basicInfo, setBasicInfo] = useState({
-    assessmentDate: new Date().toISOString().split('T')[0],
-    roadName: '',
-    assessor: '',
-    startKm: '',
-    endKm: '',
-    weatherConditions: '',
-    notes: ''
-  });
-
+  const [showFrameworks, setShowFrameworks] = useState({ likelihood: false, consequence: false });
+  const [overrideData, setOverrideData] = useState({ enabled: false, finalRisk: '', professionalName: '', designation: '', justification: '' });
+  const [basicInfo, setBasicInfo] = useState({ assessmentDate: new Date().toISOString().split('T')[0], roadName: '', assessor: '', startKm: '', endKm: '', weatherConditions: '', notes: '' });
   const [likelihood, setLikelihood] = useState(null);
   const [consequence, setConsequence] = useState(null);
   const [riskResult, setRiskResult] = useState(null);
 
   const calculateLMHRisk = (l, c) => {
     if (!l || !c) return null;
-
     const matrix = {
       'Low-Low': { level: 'Low', color: '#4caf50', priority: 'Routine monitoring' },
       'Low-Moderate': { level: 'Low', color: '#8bc34a', priority: 'Regular inspection' },
@@ -55,107 +32,42 @@ const LMHRiskForm = () => {
       'High-Moderate': { level: 'High', color: '#ff9800', priority: 'Priority action required' },
       'High-High': { level: 'Very High', color: '#f44336', priority: 'Immediate action required' }
     };
-
     return matrix[`${l}-${c}`];
   };
 
-  const handleLikelihoodChange = (value) => {
-    setLikelihood(value);
-    const result = calculateLMHRisk(value, consequence);
-    setRiskResult(result);
-  };
-
-  const handleConsequenceChange = (value) => {
-    setConsequence(value);
-    const result = calculateLMHRisk(likelihood, value);
-    setRiskResult(result);
-  };
-
-  const handleBasicInfoChange = (e) => {
-    const { name, value } = e.target;
-    setBasicInfo(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleOverrideChange = (field, value) => {
-    setOverrideData(prev => ({ ...prev, [field]: value }));
-  };
+  const handleLikelihoodChange = (v) => { setLikelihood(v); setRiskResult(calculateLMHRisk(v, consequence)); };
+  const handleConsequenceChange = (v) => { setConsequence(v); setRiskResult(calculateLMHRisk(likelihood, v)); };
+  const handleBasicInfoChange = (e) => { setBasicInfo(p => ({ ...p, [e.target.name]: e.target.value })); };
+  const handleOverrideChange = (f, v) => { setOverrideData(p => ({ ...p, [f]: v })); };
+  const toggleFramework = (k) => { setShowFrameworks(p => ({ ...p, [k]: !p[k] })); };
 
   const getFinalRisk = () => {
     if (overrideData.enabled && overrideData.finalRisk) {
-      const overrideColors = {
-        'Very High': '#f44336',
-        'High': '#ff9800',
-        'Moderate': '#ffc107',
-        'Low': '#4caf50',
-        'Very Low': '#2196f3'
-      };
-      return {
-        ...riskResult,
-        level: overrideData.finalRisk,
-        color: overrideColors[overrideData.finalRisk],
-        isOverridden: true
-      };
+      const colors = { 'Very High': '#f44336', 'High': '#ff9800', 'Moderate': '#ffc107', 'Low': '#4caf50', 'Very Low': '#2196f3' };
+      return { ...riskResult, level: overrideData.finalRisk, color: colors[overrideData.finalRisk], isOverridden: true };
     }
     return riskResult;
   };
 
   const handleSave = async () => {
     if (overrideData.enabled && (!overrideData.professionalName || !overrideData.designation || !overrideData.justification)) {
-      alert('❌ Professional override requires: Name, Designation, and Justification');
-      return;
+      alert('Professional override requires: Name, Designation, and Justification'); return;
     }
-
     setIsSaving(true);
-
     try {
-      const savedNotes = localStorage.getItem('currentFieldNotes');
-      const fieldNotes = savedNotes ? JSON.parse(savedNotes) : {};
-      
+      const fieldNotes = JSON.parse(localStorage.getItem('currentFieldNotes') || '{}');
       const finalRisk = getFinalRisk();
-      
-      const assessmentData = {
-        basicInfo,
-        riskMethod: 'LMH',
-        likelihood,
-        consequence,
-        riskAssessment: {
-          ...finalRisk,
-          method: 'LMH',
-          riskLevel: finalRisk?.level,
-          calculatedRisk: riskResult?.level,
-          professionalOverride: overrideData.enabled ? {
-            originalRisk: riskResult?.level,
-            overriddenRisk: overrideData.finalRisk,
-            professionalName: overrideData.professionalName,
-            designation: overrideData.designation,
-            justification: overrideData.justification,
-            date: new Date().toISOString()
-          } : null
+      await saveAssessmentDB({
+        basicInfo, riskMethod: 'LMH', likelihood, consequence,
+        riskAssessment: { ...finalRisk, method: 'LMH', riskLevel: finalRisk?.level, calculatedRisk: riskResult?.level,
+          professionalOverride: overrideData.enabled ? { ...overrideData, originalRisk: riskResult?.level, overriddenRisk: overrideData.finalRisk, date: new Date().toISOString() } : null
         },
-        fieldNotes,
-        riskScore: `${likelihood}/${consequence}`,
-        riskCategory: finalRisk?.level
-      };
-
-      console.log('Saving assessment...');
-      const result = await saveAssessmentDB(assessmentData);
-
-      if (result.success) {
-        alert('✅ Assessment saved!');
-        setTimeout(() => navigate('/history'), 1000);
-      } else {
-        alert('❌ Save failed: ' + result.error);
-      }
+        fieldNotes, riskScore: `${likelihood}/${consequence}`, riskCategory: finalRisk?.level
+      });
+      alert('Assessment saved!'); setTimeout(() => navigate('/history'), 1000);
     } catch (error) {
-      console.error('Save error:', error);
-      alert('❌ Error: ' + error.message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const toggleGuidance = (key) => {
-    setShowGuidance(prev => ({ ...prev, [key]: !prev[key] }));
+      alert('Error: ' + error.message);
+    } finally { setIsSaving(false); }
   };
 
   const sections = [
@@ -169,62 +81,43 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Land Management Hazard methodology with professional guidance</p>
-        <button onClick={() => navigate('/')} className="back-button">
-          ← Back to Home
-        </button>
+        <p>Scientific methodology with probability & sediment delivery frameworks</p>
+        <button onClick={() => navigate('/')} className="back-button">← Back</button>
       </div>
 
       <div className="section-navigation">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            className={`nav-button ${activeSection === section.id ? 'active' : ''}`}
-            onClick={() => setActiveSection(section.id)}
-          >
-            <span className="nav-icon">{section.icon}</span>
-            <span className="nav-title">{section.title}</span>
+        {sections.map(s => (
+          <button key={s.id} className={`nav-button ${activeSection === s.id ? 'active' : ''}`} onClick={() => setActiveSection(s.id)}>
+            <span className="nav-icon">{s.icon}</span><span className="nav-title">{s.title}</span>
           </button>
         ))}
       </div>
 
       <div className="form-content">
         {activeSection === 'basic' && (
-          <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
-            <h2 className="section-header" style={{ color: '#2196f3', paddingLeft: '40px' }}>
-              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2196f3, #64b5f6)' }}></span>
+          <div className="form-section" style={{borderTop: '4px solid #2196f3'}}>
+            <h2 className="section-header" style={{color: '#2196f3', paddingLeft: '40px'}}>
+              <span className="section-accent" style={{background: 'linear-gradient(to bottom, #2196f3, #64b5f6)'}}></span>
               Basic Information
             </h2>
-            
             <div className="form-grid">
+              {[
+                {name: 'assessmentDate', label: 'Date', type: 'date'},
+                {name: 'roadName', label: 'Road Name', type: 'text', placeholder: 'FSR 123'},
+                {name: 'assessor', label: 'Assessor', type: 'text'},
+                {name: 'startKm', label: 'Start KM', type: 'text'},
+                {name: 'endKm', label: 'End KM', type: 'text'}
+              ].map(f => (
+                <div key={f.name} className="form-group">
+                  <label>{f.label}</label>
+                  <input type={f.type} name={f.name} value={basicInfo[f.name]} onChange={handleBasicInfoChange} placeholder={f.placeholder} required={f.name === 'assessmentDate'} />
+                </div>
+              ))}
               <div className="form-group">
-                <label htmlFor="assessmentDate">Assessment Date</label>
-                <input type="date" id="assessmentDate" name="assessmentDate" value={basicInfo.assessmentDate} onChange={handleBasicInfoChange} required />
-              </div>
-              <div className="form-group">
-                <label htmlFor="roadName">Road Name/ID</label>
-                <input type="text" id="roadName" name="roadName" value={basicInfo.roadName} onChange={handleBasicInfoChange} placeholder="e.g., Forest Service Road 123" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="assessor">Assessor Name</label>
-                <input type="text" id="assessor" name="assessor" value={basicInfo.assessor} onChange={handleBasicInfoChange} placeholder="Your name" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="startKm">Start Kilometer</label>
-                <input type="text" id="startKm" name="startKm" value={basicInfo.startKm} onChange={handleBasicInfoChange} placeholder="e.g., 5.2 km" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="endKm">End Kilometer</label>
-                <input type="text" id="endKm" name="endKm" value={basicInfo.endKm} onChange={handleBasicInfoChange} placeholder="e.g., 7.8 km" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="weatherConditions">Weather Conditions</label>
-                <select id="weatherConditions" name="weatherConditions" value={basicInfo.weatherConditions} onChange={handleBasicInfoChange}>
-                  <option value="">Select conditions</option>
-                  <option value="dry">Dry</option>
-                  <option value="recent-rain">Recent Rain</option>
-                  <option value="wet">Wet</option>
-                  <option value="snow">Snow</option>
+                <label>Weather</label>
+                <select name="weatherConditions" value={basicInfo.weatherConditions} onChange={handleBasicInfoChange}>
+                  <option value="">Select</option>
+                  {['Dry', 'Recent Rain', 'Wet', 'Snow'].map(w => <option key={w} value={w.toLowerCase().replace(' ', '-')}>{w}</option>)}
                 </select>
               </div>
             </div>
@@ -232,440 +125,60 @@ const LMHRiskForm = () => {
         )}
 
         {activeSection === 'assessment' && (
-          <div className="form-section" style={{ borderTop: '4px solid #1976d2' }}>
-            <h2 className="section-header" style={{ color: '#1976d2', paddingLeft: '40px' }}>
-              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #1976d2, #42a5f5)' }}></span>
+          <div className="form-section" style={{borderTop: '4px solid #1976d2'}}>
+            <h2 className="section-header" style={{color: '#1976d2', paddingLeft: '40px'}}>
+              <span className="section-accent" style={{background: 'linear-gradient(to bottom, #1976d2, #42a5f5)'}}></span>
               LMH Risk Assessment
             </h2>
-            <p className="scoring-explanation">
-              Qualitative assessment based on observable field conditions
-            </p>
 
             <div className="factor-group">
               <h3>1. Likelihood of Failure</h3>
-              <p style={{marginBottom: '16px', color: '#555'}}>
-                How likely is this road section to fail (slide, erode, washout)?
-              </p>
+              <p style={{marginBottom: '16px'}}>Probability of failure within 20-year period</p>
 
-              {/* Terrain Guidance */}
-              <div style={{marginBottom: '16px'}}>
-                <button
-                  onClick={() => toggleGuidance('terrain')}
-                  style={{
-                    background: '#e3f2fd',
-                    border: '2px solid #2196f3',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    width: '100%',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#1976d2',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>Terrain Stability - What to Look For</span>
-                  <span>{showGuidance.terrain ? '▼' : '▶'}</span>
-                </button>
-                
-                {showGuidance.terrain && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '0 0 6px 6px',
-                    borderLeft: '3px solid #2196f3',
-                    fontSize: '13px',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>Stable Terrain Signs:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Slopes less than 40%</li>
-                        <li>No recent slides or slumps visible</li>
-                        <li>Solid bedrock exposure</li>
-                        <li>Dense, established vegetation</li>
-                        <li>No tension cracks in road surface or cutbanks</li>
-                        <li>Old, weathered cutbanks (stable over time)</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>Unstable Terrain Signs:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Slopes greater than 60%</li>
-                        <li>Recent slide scars or debris</li>
-                        <li>Tension cracks parallel to road</li>
-                        <li>Leaning trees ("pistol-butted" trees)</li>
-                        <li>Fresh slumping in cutbanks</li>
-                        <li>Hummocky terrain (old slide deposits)</li>
-                        <li>Springs or seeps on slope</li>
-                        <li>Road surface showing settlement or bulging</li>
-                      </ul>
-                    </div>
+              <button onClick={() => toggleFramework('likelihood')} style={{background: 'linear-gradient(135deg, #1976d2, #42a5f5)', color: 'white', border: 'none', padding: '18px 24px', borderRadius: '8px', width: '100%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)'}}>
+                <span>📊 UNDERSTANDING LIKELIHOOD - 20-Year Probability Framework</span>
+                <span style={{fontSize: '24px'}}>{showFrameworks.likelihood ? '▼' : '▶'}</span>
+              </button>
+              {showFrameworks.likelihood && <LikelihoodGuidance />}
 
-                    <div>
-                      <strong style={{color: '#2196f3'}}>Slope Estimation:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>40% = 22° angle (moderate slope)</li>
-                        <li>60% = 31° angle (steep slope)</li>
-                        <li>100% = 45° angle (very steep)</li>
-                        <li>Use clinometer or smartphone inclinometer app</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Soils Guidance */}
-              <div style={{marginBottom: '16px'}}>
-                <button
-                  onClick={() => toggleGuidance('soils')}
-                  style={{
-                    background: '#e3f2fd',
-                    border: '2px solid #2196f3',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    width: '100%',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#1976d2',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>Soil Types - Field Identification</span>
-                  <span>{showGuidance.soils ? '▼' : '▶'}</span>
-                </button>
-                
-                {showGuidance.soils && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '0 0 6px 6px',
-                    borderLeft: '3px solid #2196f3',
-                    fontSize: '13px',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>Cohesive Soils (Low Risk):</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li><strong>Clay:</strong> Sticky when wet, holds shape, smooth texture</li>
-                        <li><strong>Clay-Loam:</strong> Moldable, holds together in hand</li>
-                        <li><strong>Compacted Till:</strong> Dense, hard to dig, mixed particle sizes</li>
-                        <li><strong>Test:</strong> Can form a ball that holds shape</li>
-                        <li><strong>Cutbanks:</strong> Stand vertically without sloughing</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>Erodible Soils (High Risk):</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li><strong>Silt:</strong> Smooth/floury texture, easily eroded by water</li>
-                        <li><strong>Fine Sand:</strong> Feels gritty, won't hold shape</li>
-                        <li><strong>Loose Fill:</strong> Unconsolidated material, easily disturbed</li>
-                        <li><strong>Decomposed Granite:</strong> Crumbly, granular texture</li>
-                        <li><strong>Test:</strong> Falls apart immediately when squeezed</li>
-                        <li><strong>Cutbanks:</strong> Slough readily, rill erosion visible</li>
-                      </ul>
-                    </div>
-
-                    <div>
-                      <strong style={{color: '#2196f3'}}>Quick Field Test:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Grab handful of soil, squeeze into ball</li>
-                        <li>Cohesive: Ball holds shape when opened hand</li>
-                        <li>Erodible: Falls apart immediately</li>
-                        <li>Check cutbank: Does it stand or slough?</li>
-                        <li>Look for rills and gullies (erosion indicators)</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Drainage Guidance */}
-              <div style={{marginBottom: '16px'}}>
-                <button
-                  onClick={() => toggleGuidance('drainage')}
-                  style={{
-                    background: '#e3f2fd',
-                    border: '2px solid #2196f3',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    width: '100%',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#1976d2',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>Drainage Assessment Guide</span>
-                  <span>{showGuidance.drainage ? '▼' : '▶'}</span>
-                </button>
-                
-                {showGuidance.drainage && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '0 0 6px 6px',
-                    borderLeft: '3px solid #2196f3',
-                    fontSize: '13px',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>Good Drainage:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Ditches clear, free-flowing, proper grade</li>
-                        <li>Culverts clear, adequate capacity, no plugging</li>
-                        <li>Water bars functional, draining to stable areas</li>
-                        <li>No ponding on road surface</li>
-                        <li>Outslope functioning properly</li>
-                        <li>Cross-drains spaced appropriately for gradient</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>Poor Drainage:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Ditches full of debris, overgrown, silted in</li>
-                        <li>Culverts plugged, undersized, or rusted out</li>
-                        <li>Water bars breached, eroded, or absent</li>
-                        <li>Standing water on road surface</li>
-                        <li>Water flowing down road (not off to sides)</li>
-                        <li>Erosion gullies developing in road surface</li>
-                        <li>Saturated fillslope or cutbank</li>
-                      </ul>
-                    </div>
-
-                    <div>
-                      <strong style={{color: '#f44336'}}>Critical Drainage Issues:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Water undermining road structure</li>
-                        <li>Culvert outlet causing fillslope erosion</li>
-                        <li>Springs emerging in cutbank or road surface</li>
-                        <li>Perched water table above road</li>
-                        <li>Concentrated flow patterns developing</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="rating-options">
+              <div className="rating-options" style={{marginTop: '20px'}}>
                 {[
-                  { value: 'Low', label: 'Low Likelihood', description: 'Stable terrain (<40% slope), good drainage, cohesive soils, no failure history' },
-                  { value: 'Moderate', label: 'Moderate Likelihood', description: 'Moderate slopes (40-60%), some drainage issues, moderately stable soils, minor historical issues' },
-                  { value: 'High', label: 'High Likelihood', description: 'Steep/unstable terrain (>60%), poor drainage, erodible soils, history of failures' }
-                ].map((option) => (
-                  <label key={option.value} className="rating-option">
-                    <input
-                      type="radio"
-                      name="likelihood"
-                      value={option.value}
-                      checked={likelihood === option.value}
-                      onChange={(e) => handleLikelihoodChange(e.target.value)}
-                    />
-                    <div className={`option-content score-${option.value.toLowerCase()}`}>
-                      <div className="option-header">
-                        <span className="option-label">{option.label}</span>
-                      </div>
-                      <span className="option-description">{option.description}</span>
+                  {value: 'Low', label: 'Low Likelihood', description: 'Remote - <20% over 20 years (stable <45%, good drainage)'},
+                  {value: 'Moderate', label: 'Moderate Likelihood', description: 'Possible - 20-50% over 20 years (slopes 45-60%)'},
+                  {value: 'High', label: 'High Likelihood', description: 'Probable - 50-100% over 20 years (steep >60%, poor drainage)'}
+                ].map(o => (
+                  <label key={o.value} className="rating-option">
+                    <input type="radio" name="likelihood" value={o.value} checked={likelihood === o.value} onChange={(e) => handleLikelihoodChange(e.target.value)} />
+                    <div className={`option-content score-${o.value.toLowerCase()}`}>
+                      <div className="option-header"><span className="option-label">{o.label}</span></div>
+                      <span className="option-description">{o.description}</span>
                     </div>
                   </label>
                 ))}
               </div>
             </div>
 
-            <div className="factor-group" style={{marginTop: '32px'}}>
+            <div className="factor-group" style={{marginTop: '40px'}}>
               <h3>2. Consequence of Failure</h3>
-              <p style={{marginBottom: '16px', color: '#555'}}>
-                What would happen if this road section failed?
-              </p>
+              <p style={{marginBottom: '16px'}}>Magnitude and duration of harm</p>
 
-              {/* Water Resources Guidance */}
-              <div style={{marginBottom: '16px'}}>
-                <button
-                  onClick={() => toggleGuidance('water')}
-                  style={{
-                    background: '#fff3e0',
-                    border: '2px solid #ff9800',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    width: '100%',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#f57c00',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>Water Resources Assessment</span>
-                  <span>{showGuidance.water ? '▼' : '▶'}</span>
-                </button>
-                
-                {showGuidance.water && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '0 0 6px 6px',
-                    borderLeft: '3px solid #ff9800',
-                    fontSize: '13px',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>Low Consequence (&gt;100m from water):</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>No streams, wetlands, or lakes nearby</li>
-                        <li>If failure occurred, sediment would not reach water</li>
-                        <li>Adequate vegetated buffer between road and any water</li>
-                        <li>Topography prevents sediment delivery</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>Moderate Consequence (30-100m from water):</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Non-fish bearing stream nearby</li>
-                        <li>Seasonal drainage channel present</li>
-                        <li>Wetland within sediment delivery distance</li>
-                        <li>Some vegetated buffer but failure could deliver sediment</li>
-                      </ul>
-                    </div>
+              <button onClick={() => toggleFramework('consequence')} style={{background: 'linear-gradient(135deg, #f57c00, #ff9800)', color: 'white', border: 'none', padding: '18px 24px', borderRadius: '8px', width: '100%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(245, 124, 0, 0.3)'}}>
+                <span>🌊 UNDERSTANDING CONSEQUENCE - Sediment Delivery & Impact</span>
+                <span style={{fontSize: '24px'}}>{showFrameworks.consequence ? '▼' : '▶'}</span>
+              </button>
+              {showFrameworks.consequence && <ConsequenceGuidance />}
 
-                    <div>
-                      <strong style={{color: '#f44336'}}>High Consequence (&lt;30m from fish-bearing water):</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Fish-bearing stream within 30m</li>
-                        <li>Road crosses stream (culvert present)</li>
-                        <li>Direct sediment delivery pathway visible</li>
-                        <li>Spawning habitat present downstream</li>
-                        <li>Community water source</li>
-                        <li>Known critical habitat area</li>
-                      </ul>
-                    </div>
-
-                    <div style={{marginTop: '12px', padding: '10px', background: '#e3f2fd', borderRadius: '4px'}}>
-                      <strong style={{color: '#1976d2'}}>How to Assess:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Use map to identify streams (blue lines)</li>
-                        <li>Measure distance from road to water</li>
-                        <li>Look for fish presence (check fisheries maps)</li>
-                        <li>Trace potential sediment flow path</li>
-                        <li>Consider gradient toward water body</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Infrastructure Guidance - Updated */}
-              <div style={{marginBottom: '16px'}}>
-                <button
-                  onClick={() => toggleGuidance('infrastructure')}
-                  style={{
-                    background: '#fff3e0',
-                    border: '2px solid #ff9800',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    width: '100%',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#f57c00',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>Infrastructure Capacity Guide</span>
-                  <span>{showGuidance.infrastructure ? '▼' : '▶'}</span>
-                </button>
-                
-                {showGuidance.infrastructure && (
-                  <div style={{
-                    background: '#f5f5f5',
-                    padding: '16px',
-                    borderRadius: '0 0 6px 6px',
-                    borderLeft: '3px solid #ff9800',
-                    fontSize: '13px',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#4caf50'}}>Adequate Infrastructure:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Culvert meets Q200 flow requirement (use Mosaic culvert sizing tool)</li>
-                        <li>Recent installation/maintenance records</li>
-                        <li>No signs of overtopping during storms</li>
-                        <li>Inlet/outlet in good condition</li>
-                        <li>Proper gradient (min 2% slope)</li>
-                        <li>Headwalls and wingwalls intact</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#ff9800'}}>Moderate Concerns:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Culvert at or near Q200 capacity</li>
-                        <li>Minor debris accumulation</li>
-                        <li>Some rust but structurally sound</li>
-                        <li>Watershed showing some development/harvesting</li>
-                        <li>Age: 15-25 years old</li>
-                      </ul>
-                    </div>
-
-                    <div style={{marginBottom: '12px'}}>
-                      <strong style={{color: '#f44336'}}>Undersized/Failing Infrastructure:</strong>
-                      <ul style={{marginTop: '6px', paddingLeft: '20px'}}>
-                        <li>Evidence of overtopping (debris on road)</li>
-                        <li>Culvert does not meet Q200 requirement</li>
-                        <li>Heavy rust, holes, structural failure</li>
-                        <li>Significant debris plugging</li>
-                        <li>Beaver activity creating backwater</li>
-                        <li>Inlet/outlet erosion undermining road</li>
-                        <li>Age: &gt;30 years without assessment</li>
-                      </ul>
-                    </div>
-
-                    <div style={{marginTop: '12px', padding: '10px', background: '#e8f5e9', borderRadius: '4px', border: '2px solid #4caf50'}}>
-                      <strong style={{color: '#2e7d32'}}>Use Mosaic Culvert Sizing Tool:</strong>
-                      <div style={{marginTop: '6px'}}>
-                        Mosaic's hydrological tool assesses culvert adequacy for Q200 (200-year) 
-                        daily flow with climate change factors integrated. Use this tool for accurate 
-                        capacity assessment rather than simple rules of thumb.
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="rating-options">
+              <div className="rating-options" style={{marginTop: '20px'}}>
                 {[
-                  { value: 'Low', label: 'Low Consequence', description: 'No water resources nearby (>100m), adequate infrastructure, minimal use, no special values' },
-                  { value: 'Moderate', label: 'Moderate Consequence', description: 'Non-fish streams (30-100m), moderate infrastructure, regular use, some environmental values' },
-                  { value: 'High', label: 'High Consequence', description: 'Fish streams (<30m), undersized infrastructure, high use, critical habitat/cultural areas' }
-                ].map((option) => (
-                  <label key={option.value} className="rating-option">
-                    <input
-                      type="radio"
-                      name="consequence"
-                      value={option.value}
-                      checked={consequence === option.value}
-                      onChange={(e) => handleConsequenceChange(e.target.value)}
-                    />
-                    <div className={`option-content score-${option.value.toLowerCase()}`}>
-                      <div className="option-header">
-                        <span className="option-label">{option.label}</span>
-                      </div>
-                      <span className="option-description">{option.description}</span>
+                  {value: 'Low', label: 'Low Consequence', description: 'Contained (>100m, >200m runout, no critical values)'},
+                  {value: 'Moderate', label: 'Moderate Consequence', description: 'Some delivery (30-100m, 75-100m runout, fines may reach fish)'},
+                  {value: 'High', label: 'High Consequence', description: 'Direct impact (<30m fish stream, <75m runout, critical values)'}
+                ].map(o => (
+                  <label key={o.value} className="rating-option">
+                    <input type="radio" name="consequence" value={o.value} checked={consequence === o.value} onChange={(e) => handleConsequenceChange(e.target.value)} />
+                    <div className={`option-content score-${o.value.toLowerCase()}`}>
+                      <div className="option-header"><span className="option-label">{o.label}</span></div>
+                      <span className="option-description">{o.description}</span>
                     </div>
                   </label>
                 ))}
@@ -675,300 +188,99 @@ const LMHRiskForm = () => {
         )}
 
         {activeSection === 'notes' && (
-          <div className="form-section" style={{ borderTop: '4px solid #2e7d32' }}>
-            <h2 className="section-header" style={{ color: '#2e7d32', paddingLeft: '40px' }}>
-              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)' }}></span>
+          <div className="form-section" style={{borderTop: '4px solid #2e7d32'}}>
+            <h2 className="section-header" style={{color: '#2e7d32', paddingLeft: '40px'}}>
+              <span className="section-accent" style={{background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)'}}></span>
               Field Notes
             </h2>
-            
-            <div style={{
-              background: '#fff3e0',
-              padding: '14px',
-              borderRadius: '6px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              border: '2px solid #ff9800'
-            }}>
-              <strong style={{color: '#f57c00'}}>Tip:</strong> Record detailed observations here, 
-              then use <strong>QuickCapture</strong> in the field to capture GPS, photos, and upload to LRM.
+            <div style={{background: '#fff3e0', padding: '14px', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', border: '2px solid #ff9800'}}>
+              <strong>Tip:</strong> Record observations, use <strong>QuickCapture</strong> for GPS/photos
             </div>
-            
-            <FieldNotesSection onSave={(notes) => console.log('Notes saved')} />
+            <FieldNotesSection />
           </div>
         )}
 
         {activeSection === 'results' && (
-          <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
-            <h2 className="section-header" style={{ color: '#4caf50', paddingLeft: '40px' }}>
-              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
-              LMH Risk Results
+          <div className="form-section" style={{borderTop: '4px solid #4caf50'}}>
+            <h2 className="section-header" style={{color: '#4caf50', paddingLeft: '40px'}}>
+              <span className="section-accent" style={{background: 'linear-gradient(to bottom, #4caf50, #81c784)'}}></span>
+              Results
             </h2>
-
             {riskResult ? (
-              <div className="risk-results-container">
-                <div className="methodology-display" style={{marginLeft: '20px'}}>
-                  <h3 style={{marginLeft: '20px'}}>LMH Methodology</h3>
-                  <p><strong>Simplified Land Management Hazard Assessment</strong></p>
-                  <p>Qualitative risk determination using Likelihood × Consequence matrix</p>
+              <div>
+                <div style={{marginBottom: '20px'}}>
+                  <p><strong>20-year probability × Sediment delivery = Risk</strong></p>
+                </div>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '20px', alignItems: 'center', margin: '30px 0'}}>
+                  <div style={{background: '#e3f2fd', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
+                    <div style={{fontSize: '14px', marginBottom: '8px'}}>Likelihood</div>
+                    <div style={{fontSize: '32px', fontWeight: 'bold', color: '#1976d2'}}>{likelihood}</div>
+                  </div>
+                  <div style={{fontSize: '32px'}}>×</div>
+                  <div style={{background: '#fff3e0', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
+                    <div style={{fontSize: '14px', marginBottom: '8px'}}>Consequence</div>
+                    <div style={{fontSize: '32px', fontWeight: 'bold', color: '#f57c00'}}>{consequence}</div>
+                  </div>
+                  <div style={{fontSize: '32px'}}>=</div>
+                  <div style={{background: getFinalRisk()?.color, color: 'white', padding: '30px', borderRadius: '8px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'}}>
+                    <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>Risk</div>
+                    <div style={{fontSize: '36px', fontWeight: 'bold'}}>{getFinalRisk()?.level}</div>
+                    {overrideData.enabled && <div style={{fontSize: '11px', marginTop: '6px'}}>(Override)</div>}
+                  </div>
                 </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto 1fr auto 1fr',
-                  gap: '20px',
-                  alignItems: 'center',
-                  margin: '30px 0'
-                }}>
-                  <div style={{
-                    background: '#e3f2fd',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>Likelihood</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1976d2' }}>
-                      {likelihood}
-                    </div>
-                  </div>
+                <button onClick={() => setShowOverride(!showOverride)} style={{background: overrideData.enabled ? '#ff9800' : '#f5f5f5', color: overrideData.enabled ? 'white' : '#666', border: '2px solid ' + (overrideData.enabled ? '#f57c00' : '#ddd'), padding: '12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', width: '100%', marginBottom: '20px'}}>
+                  {overrideData.enabled ? '⚠️ Override Active' : '🔧 Professional Override'}
+                </button>
 
-                  <div style={{ fontSize: '32px', color: '#666' }}>×</div>
-
-                  <div style={{
-                    background: '#fff3e0',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>Consequence</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#f57c00' }}>
-                      {consequence}
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: '32px', color: '#666' }}>=</div>
-
-                  <div style={{
-                    background: getFinalRisk()?.color || riskResult.color,
-                    color: 'white',
-                    padding: '30px',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                  }}>
-                    <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>Risk Level</div>
-                    <div style={{ fontSize: '36px', fontWeight: 'bold' }}>
-                      {getFinalRisk()?.level || riskResult.level}
-                    </div>
+                {showOverride && (
+                  <div style={{background: '#fff3e0', padding: '20px', borderRadius: '8px', border: '2px solid #ff9800', marginBottom: '20px'}}>
+                    <label style={{display: 'flex', gap: '8px', marginBottom: '16px'}}>
+                      <input type="checkbox" checked={overrideData.enabled} onChange={(e) => handleOverrideChange('enabled', e.target.checked)} />
+                      <span style={{fontWeight: 'bold'}}>Enable Override</span>
+                    </label>
                     {overrideData.enabled && (
-                      <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '6px' }}>
-                        (Professional Override)
+                      <div style={{display: 'grid', gap: '12px'}}>
+                        <select value={overrideData.finalRisk} onChange={(e) => handleOverrideChange('finalRisk', e.target.value)} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}>
+                          <option value="">Select...</option>
+                          {['Very High', 'High', 'Moderate', 'Low', 'Very Low'].map(r => <option key={r}>{r}</option>)}
+                        </select>
+                        <input type="text" placeholder="Name" value={overrideData.professionalName} onChange={(e) => handleOverrideChange('professionalName', e.target.value)} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}} />
+                        <input type="text" placeholder="Designation" value={overrideData.designation} onChange={(e) => handleOverrideChange('designation', e.target.value)} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}} />
+                        <textarea placeholder="Justification..." value={overrideData.justification} onChange={(e) => handleOverrideChange('justification', e.target.value)} rows={4} style={{padding: '10px', borderRadius: '4px', border: '1px solid #ddd'}} />
                       </div>
                     )}
                   </div>
-                </div>
+                )}
 
-                {/* Professional Override */}
-                <div style={{marginBottom: '24px'}}>
-                  <button
-                    onClick={() => setShowOverride(!showOverride)}
-                    style={{
-                      background: overrideData.enabled ? '#ff9800' : '#f5f5f5',
-                      color: overrideData.enabled ? 'white' : '#666',
-                      border: overrideData.enabled ? '2px solid #f57c00' : '2px solid #ddd',
-                      padding: '12px 24px',
-                      borderRadius: '6px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      width: '100%'
-                    }}
-                  >
-                    {overrideData.enabled ? '⚠️ Professional Override Active' : '🔧 Professional Override (Optional)'}
-                  </button>
-
-                  {showOverride && (
-                    <div style={{
-                      background: '#fff3e0',
-                      padding: '20px',
-                      borderRadius: '0 0 8px 8px',
-                      border: '2px solid #ff9800',
-                      borderTop: 'none',
-                      marginTop: '-2px'
-                    }}>
-                      <div style={{marginBottom: '16px'}}>
-                        <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
-                          <input
-                            type="checkbox"
-                            checked={overrideData.enabled}
-                            onChange={(e) => handleOverrideChange('enabled', e.target.checked)}
-                            style={{width: '18px', height: '18px'}}
-                          />
-                          <span style={{fontWeight: 'bold', color: '#f57c00'}}>
-                            Enable Professional Override
-                          </span>
-                        </label>
-                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px', marginLeft: '26px'}}>
-                          Override calculated risk with professional judgment (requires justification)
-                        </div>
-                      </div>
-
-                      {overrideData.enabled && (
-                        <div style={{display: 'grid', gap: '12px'}}>
-                          <div>
-                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
-                              Override Risk Level *
-                            </label>
-                            <select
-                              value={overrideData.finalRisk}
-                              onChange={(e) => handleOverrideChange('finalRisk', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '4px',
-                                border: '1px solid #ddd',
-                                fontSize: '14px'
-                              }}
-                            >
-                              <option value="">Select override risk...</option>
-                              <option value="Very High">Very High</option>
-                              <option value="High">High</option>
-                              <option value="Moderate">Moderate</option>
-                              <option value="Low">Low</option>
-                              <option value="Very Low">Very Low</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
-                              Professional Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={overrideData.professionalName}
-                              onChange={(e) => handleOverrideChange('professionalName', e.target.value)}
-                              placeholder="Your full name"
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '4px',
-                                border: '1px solid #ddd',
-                                fontSize: '14px'
-                              }}
-                            />
-                          </div>
-
-                          <div>
-                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
-                              Professional Designation *
-                            </label>
-                            <input
-                              type="text"
-                              value={overrideData.designation}
-                              onChange={(e) => handleOverrideChange('designation', e.target.value)}
-                              placeholder="e.g., RPF, P.Eng, P.Geo"
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '4px',
-                                border: '1px solid #ddd',
-                                fontSize: '14px'
-                              }}
-                            />
-                          </div>
-
-                          <div>
-                            <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '13px'}}>
-                              Justification for Override *
-                            </label>
-                            <textarea
-                              value={overrideData.justification}
-                              onChange={(e) => handleOverrideChange('justification', e.target.value)}
-                              placeholder="Explain professional rationale for overriding calculated risk (site-specific factors, additional information, engineering judgment...)"
-                              rows={4}
-                              style={{
-                                width: '100%',
-                                padding: '10px',
-                                borderRadius: '4px',
-                                border: '1px solid #ddd',
-                                fontSize: '14px'
-                              }}
-                            />
-                          </div>
-
-                          <div style={{
-                            background: '#e3f2fd',
-                            padding: '10px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            color: '#1976d2'
-                          }}>
-                            <strong>Note:</strong> Professional override will be documented in the PDF report including 
-                            original calculated risk, overridden risk, professional details, and justification per EGBC/FPBC requirements.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{
-                  background: '#f5f5f5',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  marginBottom: '20px'
-                }}>
-                  <h4 style={{ marginTop: 0, color: '#333' }}>Recommended Action:</h4>
-                  <p style={{ margin: 0, fontSize: '16px' }}>{getFinalRisk()?.priority || riskResult.priority}</p>
-                </div>
-
-                <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    style={{
-                      background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '16px 48px',
-                      borderRadius: '8px',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      cursor: isSaving ? 'not-allowed' : 'pointer',
-                      opacity: isSaving ? 0.6 : 1,
-                      boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
-                    }}
-                  >
+                <div style={{textAlign: 'center', marginTop: '30px'}}>
+                  <button onClick={handleSave} disabled={isSaving} style={{background: 'linear-gradient(135deg, #2e7d32, #66bb6a)', color: 'white', border: 'none', padding: '16px 48px', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1}}>
                     {isSaving ? 'Saving...' : 'Save Assessment'}
                   </button>
-                  <div style={{
-                    marginTop: '12px',
-                    fontSize: '13px',
-                    color: '#666'
-                  }}>
-                    Export as PDF report or use QuickCapture for field data
-                  </div>
+                  <div style={{marginTop: '12px', fontSize: '13px', color: '#666'}}>Export PDF or supplement with QuickCapture</div>
                 </div>
-
               </div>
             ) : (
-              <div style={{
-                padding: '40px',
-                textAlign: 'center',
-                background: '#f9f9f9',
-                borderRadius: '8px'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-                <h3>Assessment Incomplete</h3>
-                <p>Complete both <strong>Likelihood</strong> and <strong>Consequence</strong> ratings.</p>
-                <div style={{ marginTop: '20px' }}>
-                  <div style={{ marginBottom: '8px' }}>
-                    {likelihood ? '✅' : '⏹️'} Likelihood: {likelihood || 'Not selected'}
-                  </div>
-                  <div>
-                    {consequence ? '✅' : '⏹️'} Consequence: {consequence || 'Not selected'}
-                  </div>
-                </div>
+              <div style={{padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '8px'}}>
+                <h3>Incomplete</h3>
+                <p>Complete both ratings</p>
+                <div>{likelihood ? '✅' : '⏹️'} Likelihood</div>
+                <div>{consequence ? '✅' : '⏹️'} Consequence</div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeSection === 'notes' && (
+          <div className="form-section" style={{borderTop: '4px solid #2e7d32'}}>
+            <h2 className="section-header" style={{color: '#2e7d32', paddingLeft: '40px'}}>
+              <span className="section-accent" style={{background: 'linear-gradient(to bottom, #2e7d32, #66bb6a)'}}></span>
+              Field Notes
+            </h2>
+            <div style={{background: '#fff3e0', padding: '14px', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', border: '2px solid #ff9800'}}>
+              <strong>Tip:</strong> Record observations, use <strong>QuickCapture</strong> for GPS/photos
+            </div>
+            <FieldNotesSection />
           </div>
         )}
       </div>
