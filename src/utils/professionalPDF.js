@@ -1,5 +1,5 @@
 // src/utils/professionalPDF.js
-// Professional PDF with complete factor details and QuickCapture integration
+// Professional PDF with QuickCapture integration (no prescriptive requirements)
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -26,7 +26,7 @@ export async function generateProfessionalPDF(assessment) {
 
     let yPos = 20;
 
-    // Clean header (no emojis - they cause encoding issues)
+    // Clean header
     doc.setFillColor(...mosaicGreen);
     doc.rect(0, 0, 220, 30, 'F');
     
@@ -41,7 +41,7 @@ export async function generateProfessionalPDF(assessment) {
 
     yPos = 40;
 
-    // Method badge (no emoji)
+    // Method badge
     doc.setFillColor(method === 'LMH' ? 225 : 230, method === 'LMH' ? 190 : 247, method === 'LMH' ? 231 : 255);
     doc.roundedRect(15, yPos, 60, 8, 2, 2, 'F');
     doc.setTextColor(...darkGray);
@@ -57,7 +57,6 @@ export async function generateProfessionalPDF(assessment) {
     doc.setFont(undefined, 'bold');
     doc.text('Basic Information', 15, yPos);
     yPos += 2;
-    
     doc.setDrawColor(224, 224, 224);
     doc.setLineWidth(0.5);
     doc.line(15, yPos, 195, yPos);
@@ -133,7 +132,6 @@ export async function generateProfessionalPDF(assessment) {
 
     // DETAILED FACTOR SCORES (Scorecard only)
     if (method === 'Scorecard' && data.hazardFactors) {
-      // Hazard Factors
       doc.setTextColor(...mosaicGreen);
       doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
@@ -161,11 +159,9 @@ export async function generateProfessionalPDF(assessment) {
           2: { cellWidth: 30, halign: 'center' }
         },
         didParseCell: (data) => {
-          if (data.section === 'body' && data.column.index === 2) {
-            if (data.cell.raw === 'High') {
-              data.cell.styles.textColor = [244, 67, 54];
-              data.cell.styles.fontStyle = 'bold';
-            }
+          if (data.section === 'body' && data.column.index === 2 && data.cell.raw === 'High') {
+            data.cell.styles.textColor = [244, 67, 54];
+            data.cell.styles.fontStyle = 'bold';
           }
         },
         margin: { left: 15 }
@@ -173,7 +169,6 @@ export async function generateProfessionalPDF(assessment) {
 
       yPos = doc.lastAutoTable.finalY + 10;
 
-      // Consequence Factors
       doc.setTextColor(...mosaicGreen);
       doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
@@ -201,11 +196,9 @@ export async function generateProfessionalPDF(assessment) {
           2: { cellWidth: 30, halign: 'center' }
         },
         didParseCell: (data) => {
-          if (data.section === 'body' && data.column.index === 2) {
-            if (data.cell.raw === 'High') {
-              data.cell.styles.textColor = [244, 67, 54];
-              data.cell.styles.fontStyle = 'bold';
-            }
+          if (data.section === 'body' && data.column.index === 2 && data.cell.raw === 'High') {
+            data.cell.styles.textColor = [244, 67, 54];
+            data.cell.styles.fontStyle = 'bold';
           }
         },
         margin: { left: 15 }
@@ -214,9 +207,57 @@ export async function generateProfessionalPDF(assessment) {
       yPos = doc.lastAutoTable.finalY + 10;
     }
 
-    // QuickCapture Reference
+    // Professional Override (if present)
+    if (riskAssessment.professionalOverride) {
+      const override = riskAssessment.professionalOverride;
+      
+      if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setTextColor(255, 152, 0);
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.text('Professional Override', 15, yPos);
+      yPos += 2;
+      doc.line(15, yPos, 195, yPos);
+      yPos += 8;
+
+      const overrideData = [
+        ['Calculated Risk', override.originalRisk || 'N/A'],
+        ['Override Risk', override.overriddenRisk || 'N/A'],
+        ['Professional', `${override.professionalName}, ${override.designation}`],
+        ['Date', new Date(override.date).toLocaleDateString()]
+      ];
+
+      doc.autoTable({
+        startY: yPos,
+        body: overrideData,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 3, textColor: darkGray },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 50 },
+          1: { cellWidth: 130 }
+        },
+        margin: { left: 15 }
+      });
+
+      yPos = doc.lastAutoTable.finalY + 6;
+
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Justification:', 15, yPos);
+      yPos += 5;
+      doc.setFont(undefined, 'normal');
+      const justLines = doc.splitTextToSize(override.justification, 175);
+      doc.text(justLines, 15, yPos);
+      yPos += (justLines.length * 4.5) + 10;
+    }
+
+    // QuickCapture Reference (if present)
     if (quickCaptureRef) {
-      if (yPos > 240) {
+      if (yPos > 230) {
         doc.addPage();
         yPos = 20;
       }
@@ -224,76 +265,32 @@ export async function generateProfessionalPDF(assessment) {
       doc.setTextColor(...mosaicGreen);
       doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.text('QuickCapture Data Reference', 15, yPos);
+      doc.text('QuickCapture Field Data', 15, yPos);
       yPos += 2;
       doc.line(15, yPos, 195, yPos);
       yPos += 8;
 
-      doc.setFillColor(227, 242, 253);
-      doc.roundedRect(15, yPos, 180, 'auto', 3, 3, 'F');
-      
       doc.setTextColor(...darkGray);
       doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      const refLines = doc.splitTextToSize(quickCaptureRef, 170);
-      doc.text(refLines, 18, yPos + 6);
-      yPos += (refLines.length * 5) + 10;
+      const refLines = doc.splitTextToSize(quickCaptureRef, 175);
+      doc.text(refLines, 15, yPos);
+      yPos += (refLines.length * 4.5) + 8;
 
+      doc.setFillColor(227, 242, 253);
+      doc.roundedRect(15, yPos, 180, 12, 3, 3, 'F');
       doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text('See LRM database for GPS coordinates and field photos at these QuickCapture points/segments', 18, yPos);
-      yPos += 8;
+      doc.setTextColor(25, 118, 210);
+      doc.setFont(undefined, 'italic');
+      doc.text('Features captured in QuickCapture with photos. Upload to LRM Road Maintenance layers to view spatial data.', 18, yPos + 8);
+      yPos += 18;
     }
-
-    // Field Documentation Requirements
-    if (yPos > 235) {
-      doc.addPage();
-      yPos = 20;
-    }
-
-    doc.setTextColor(...mosaicGreen);
-    doc.setFontSize(13);
-    doc.setFont(undefined, 'bold');
-    doc.text('Field Documentation Requirements', 15, yPos);
-    yPos += 2;
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-
-    const docRequirements = {
-      'Very High': 'Minimum 7 photo points: drainage issues, soil conditions, water proximity, infrastructure, visible hazards, tension cracks, erosion features',
-      'High': 'Minimum 5 photo points: critical drainage features, soil exposures, stream crossings, infrastructure condition, potential failure indicators',
-      'Moderate': 'Minimum 3 photo points: key drainage structures, soil/terrain characteristics, stream crossings if present',
-      'Low': 'Minimum 1-2 photo points: general road condition, representative features'
-    };
-
-    const requirement = docRequirements[riskLevel] || docRequirements['Moderate'];
-    
-    const colorMap = {
-      'Very High': [244, 67, 54],
-      'High': [255, 152, 0],
-      'Moderate': [255, 193, 7],
-      'Low': [76, 175, 80]
-    };
-    
-    doc.setFillColor(...(colorMap[riskLevel] || [200,200,200]));
-    doc.roundedRect(15, yPos, 180, 'auto', 3, 3, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'bold');
-    doc.text(`${riskLevel} Risk - QuickCapture Documentation:`, 18, yPos + 6);
-    
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(9);
-    const reqLines = doc.splitTextToSize(requirement, 170);
-    doc.text(reqLines, 18, yPos + 12);
-    yPos += (reqLines.length * 5) + 18;
 
     // Field Notes
     if (fieldNotes.hazardObservations || fieldNotes.consequenceObservations || 
         fieldNotes.generalComments || fieldNotes.recommendations) {
       
-      if (yPos > 230) {
+      if (yPos > 220) {
         doc.addPage();
         yPos = 20;
       }
@@ -331,22 +328,6 @@ export async function generateProfessionalPDF(assessment) {
       addNote('Recommendations:', fieldNotes.recommendations);
     }
 
-    // Professional note
-    if (yPos < 235) {
-      doc.setFillColor(227, 242, 253);
-      doc.roundedRect(15, yPos, 180, 18, 3, 3, 'F');
-      doc.setTextColor(25, 118, 210);
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'bold');
-      doc.text('PROFESSIONAL NOTE:', 18, yPos + 6);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(...darkGray);
-      doc.setFontSize(8);
-      const noteText = 'This assessment supplements QuickCapture field data. GPS coordinates and photos referenced above are stored in LRM.';
-      const noteLines = doc.splitTextToSize(noteText, 170);
-      doc.text(noteLines, 18, yPos + 11);
-    }
-
     // Footer on all pages
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -361,7 +342,7 @@ export async function generateProfessionalPDF(assessment) {
       doc.text(`Page ${i} of ${pageCount}`, 195, 288, { align: 'right' });
     }
 
-    // Save the PDF
+    // Save
     const fileName = `RoadRisk_${basicInfo.roadName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Assessment'}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
     
