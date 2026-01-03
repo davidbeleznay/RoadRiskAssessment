@@ -1,4 +1,4 @@
-// src/pages/LMHRiskForm.js - Multi-Segment Toggle (FIXED)
+// src/pages/LMHRiskForm.js - Enhanced Summary View
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveAssessmentDB } from '../utils/db';
@@ -128,7 +128,7 @@ const LMHRiskForm = () => {
   return (
     <div className="road-risk-form">
       <div className="form-header">
-        <h1>⚖️ LMH Risk Assessment v2.6.0</h1>
+        <h1>⚖️ LMH Risk Assessment</h1>
         <p>Assess entire road or identify risk segments</p>
         <button onClick={() => navigate('/')} className="back-button">← Back</button>
       </div>
@@ -282,53 +282,283 @@ const LMHRiskForm = () => {
           <div className="form-section" style={{borderTop: '4px solid #4caf50'}}>
             <h2 className="section-header" style={{color: '#4caf50', paddingLeft: '40px'}}>
               <span className="section-accent" style={{background: 'linear-gradient(to bottom, #4caf50, #81c784)'}}></span>
-              Summary
+              Assessment Summary
             </h2>
 
-            <div style={{background: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px'}}>
-              <h3>Road: {roadInfo.roadName || 'Untitled'}</h3>
-              <p>Range: KM {roadInfo.startKm || '?'} - {roadInfo.endKm || '?'}</p>
-              
-              {useSegments ? (
+            {/* Road Overview Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, #ffffff, #f5f5f5)',
+              padding: '24px',
+              borderRadius: '12px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              border: '2px solid #e0e0e0'
+            }}>
+              <div style={{display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '16px', alignItems: 'center'}}>
+                <div style={{fontSize: '64px', opacity: 0.2}}>🛣️</div>
                 <div>
-                  <p><strong>Segments: {segments.length}</strong></p>
-                  {(() => {
-                    const stats = getSegmentStats();
-                    return stats.totalKm > 0 && (
-                      <div style={{marginTop: '16px'}}>
-                        <div style={{fontWeight: 'bold', marginBottom: '8px'}}>Risk Distribution:</div>
-                        {stats.veryHigh > 0 && <div>🔴 Very High: {stats.veryHigh.toFixed(1)} km</div>}
-                        {stats.high > 0 && <div>🟠 High: {stats.high.toFixed(1)} km</div>}
-                        {stats.moderate > 0 && <div>🟡 Moderate: {stats.moderate.toFixed(1)} km</div>}
-                        {stats.low > 0 && <div>🟢 Low: {stats.low.toFixed(1)} km</div>}
-                      </div>
-                    );
-                  })()}
+                  <h2 style={{margin: '0 0 8px 0', color: '#2e7d32', fontSize: '24px'}}>
+                    {roadInfo.roadName || 'Untitled Road'}
+                  </h2>
+                  <div style={{display: 'grid', gap: '6px', fontSize: '14px', color: '#555'}}>
+                    <div><strong>Range:</strong> KM {roadInfo.startKm || '?'} - {roadInfo.endKm || '?'} 
+                      ({roadInfo.endKm && roadInfo.startKm ? (parseFloat(roadInfo.endKm) - parseFloat(roadInfo.startKm)).toFixed(1) : '?'} km total)
+                    </div>
+                    <div><strong>Assessor:</strong> {roadInfo.assessor || 'Not specified'}</div>
+                    <div><strong>Date:</strong> {roadInfo.assessmentDate}</div>
+                    <div><strong>Weather:</strong> {roadInfo.weatherConditions || 'Not specified'}</div>
+                  </div>
                 </div>
-              ) : (
-                entireRoad.likelihood && entireRoad.consequence && (
-                  <div style={{marginTop: '16px'}}>
+              </div>
+            </div>
+
+            {/* Risk Summary - Different for segments vs entire */}
+            {useSegments ? (
+              <div>
+                {/* Multi-Segment Summary */}
+                <div style={{
+                  background: 'white',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  border: '2px solid #4caf50'
+                }}>
+                  <h3 style={{marginTop: 0, color: '#2e7d32', fontSize: '18px'}}>
+                    📍 Risk Segment Analysis
+                  </h3>
+                  
+                  {segments.length === 0 ? (
+                    <div style={{textAlign: 'center', padding: '40px', color: '#999'}}>
+                      <div style={{fontSize: '48px', marginBottom: '12px'}}>📍</div>
+                      <div>No segments added yet</div>
+                      <div style={{fontSize: '13px', marginTop: '8px'}}>
+                        Go to Assessment tab and click "+ Add Risk Segment"
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '16px',
+                        marginBottom: '20px'
+                      }}>
+                        {(() => {
+                          const stats = getSegmentStats();
+                          return (
+                            <>
+                              <div style={{background: '#fff3e0', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
+                                <div style={{fontSize: '32px', fontWeight: 'bold', color: '#f57c00'}}>
+                                  {segments.length}
+                                </div>
+                                <div style={{fontSize: '12px', color: '#f57c00', fontWeight: 'bold'}}>
+                                  SEGMENTS
+                                </div>
+                              </div>
+                              <div style={{background: '#e8f5e9', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
+                                <div style={{fontSize: '32px', fontWeight: 'bold', color: '#2e7d32'}}>
+                                  {stats.totalKm.toFixed(1)}
+                                </div>
+                                <div style={{fontSize: '12px', color: '#2e7d32', fontWeight: 'bold'}}>
+                                  KM ASSESSED
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Risk Distribution Chart */}
+                      {(() => {
+                        const stats = getSegmentStats();
+                        const total = stats.totalKm;
+                        return total > 0 && (
+                          <div>
+                            <div style={{fontWeight: 'bold', marginBottom: '12px', color: '#333'}}>
+                              Risk Distribution:
+                            </div>
+                            {[
+                              {key: 'veryHigh', label: 'Very High (Class 5)', color: '#f44336', icon: '🔴'},
+                              {key: 'high', label: 'High (Class 4)', color: '#ff9800', icon: '🟠'},
+                              {key: 'moderate', label: 'Moderate (Class 2-3)', color: '#ffc107', icon: '🟡'},
+                              {key: 'low', label: 'Low (Class 1)', color: '#8bc34a', icon: '🟢'}
+                            ].map(risk => (
+                              stats[risk.key] > 0 && (
+                                <div key={risk.key} style={{marginBottom: '12px'}}>
+                                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', fontSize: '13px'}}>
+                                    <span><strong>{risk.icon} {risk.label}</strong></span>
+                                    <span style={{fontWeight: 'bold'}}>{stats[risk.key].toFixed(1)} km ({((stats[risk.key]/total)*100).toFixed(0)}%)</span>
+                                  </div>
+                                  <div style={{background: '#e0e0e0', height: '24px', borderRadius: '12px', overflow: 'hidden'}}>
+                                    <div style={{
+                                      background: risk.color,
+                                      height: '100%',
+                                      width: `${(stats[risk.key]/total)*100}%`,
+                                      transition: 'width 0.3s',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '11px',
+                                      fontWeight: 'bold'
+                                    }}>
+                                      {stats[risk.key].toFixed(1)} km
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Segment Details List */}
+                      <div style={{marginTop: '24px'}}>
+                        <div style={{fontWeight: 'bold', marginBottom: '12px', color: '#333'}}>
+                          Segment Details:
+                        </div>
+                        {segments.map((seg, idx) => {
+                          const risk = getRiskMatrix(seg.likelihood, seg.consequence);
+                          const length = seg.endKm && seg.startKm ? (parseFloat(seg.endKm) - parseFloat(seg.startKm)).toFixed(1) : '?';
+                          return risk && (
+                            <div key={seg.id} style={{
+                              background: 'white',
+                              padding: '12px',
+                              borderRadius: '6px',
+                              marginBottom: '8px',
+                              border: `2px solid ${risk.color}`,
+                              borderLeft: `6px solid ${risk.color}`
+                            }}>
+                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <div>
+                                  <div style={{fontWeight: 'bold', fontSize: '14px'}}>
+                                    Segment {idx + 1}: KM {seg.startKm || '?'} - {seg.endKm || '?'}
+                                  </div>
+                                  <div style={{fontSize: '12px', color: '#666', marginTop: '2px'}}>
+                                    {seg.likelihood} × {seg.consequence} • {length} km
+                                  </div>
+                                </div>
+                                <div style={{
+                                  background: risk.color,
+                                  color: 'white',
+                                  padding: '8px 16px',
+                                  borderRadius: '6px',
+                                  fontWeight: 'bold',
+                                  fontSize: '13px',
+                                  textAlign: 'center'
+                                }}>
+                                  Class {risk.class}<br/>{risk.level}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Entire Road Summary */
+              <div>
+                {entireRoad.likelihood && entireRoad.consequence ? (
+                  <div style={{
+                    background: 'white',
+                    padding: '24px',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    border: '2px solid #4caf50'
+                  }}>
+                    <h3 style={{marginTop: 0, color: '#2e7d32', fontSize: '18px'}}>
+                      🛣️ Entire Road Assessment
+                    </h3>
                     {(() => {
                       const risk = getRiskMatrix(entireRoad.likelihood, entireRoad.consequence);
+                      const length = roadInfo.endKm && roadInfo.startKm ? (parseFloat(roadInfo.endKm) - parseFloat(roadInfo.startKm)).toFixed(1) : '?';
                       return risk && (
-                        <div style={{background: risk.color, color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
-                          <div style={{fontSize: '16px', marginBottom: '8px'}}>
-                            {entireRoad.likelihood} × {entireRoad.consequence}
+                        <div>
+                          <div style={{
+                            background: risk.color,
+                            color: 'white',
+                            padding: '32px',
+                            borderRadius: '12px',
+                            textAlign: 'center',
+                            marginBottom: '20px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                          }}>
+                            <div style={{fontSize: '14px', opacity: 0.9, marginBottom: '8px'}}>
+                              {entireRoad.likelihood} Likelihood × {entireRoad.consequence} Consequence
+                            </div>
+                            <div style={{fontSize: '48px', fontWeight: 'bold', marginBottom: '8px'}}>
+                              Class {risk.class}
+                            </div>
+                            <div style={{fontSize: '24px', fontWeight: 'bold'}}>
+                              {risk.level} Risk
+                            </div>
                           </div>
-                          <div style={{fontSize: '32px', fontWeight: 'bold'}}>
-                            Class {risk.class}: {risk.level}
+                          
+                          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px'}}>
+                            <div style={{background: '#e3f2fd', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
+                              <div style={{fontSize: '11px', color: '#666', marginBottom: '4px'}}>ROAD LENGTH</div>
+                              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#1976d2'}}>{length} km</div>
+                            </div>
+                            <div style={{background: '#f3e5f5', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
+                              <div style={{fontSize: '11px', color: '#666', marginBottom: '4px'}}>RISK CLASS</div>
+                              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#9c27b0'}}>{risk.class}</div>
+                            </div>
+                            {entireRoad.quickCapture?.photosCollected && (
+                              <div style={{background: '#e8f5e9', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
+                                <div style={{fontSize: '11px', color: '#666', marginBottom: '4px'}}>PHOTOS</div>
+                                <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2e7d32'}}>✓ Yes</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
                     })()}
                   </div>
-                )
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: '#f9f9f9',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{fontSize: '64px', marginBottom: '16px', opacity: 0.3}}>⚖️</div>
+                    <h3 style={{color: '#999'}}>Assessment Incomplete</h3>
+                    <p style={{color: '#999'}}>Complete Likelihood and Consequence ratings in Assessment tab</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div style={{textAlign: 'center', marginTop: '32px'}}>
+              <button onClick={handleSave} 
+                disabled={isSaving || (useSegments && segments.length === 0) || (!useSegments && (!entireRoad.likelihood || !entireRoad.consequence))}
+                style={{
+                  background: 'linear-gradient(135deg, #2e7d32, #66bb6a)',
+                  color: 'white', border: 'none',
+                  padding: '18px 56px', borderRadius: '8px',
+                  fontSize: '18px', fontWeight: 'bold',
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  opacity: isSaving ? 0.5 : 1,
+                  boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'
+                }}>
+                {isSaving ? '💾 Saving...' : '💾 Save Assessment'}
+              </button>
+              
+              {useSegments && segments.length === 0 && (
+                <p style={{color: '#f57c00', marginTop: '12px', fontSize: '14px'}}>
+                  ⚠️ Add at least one risk segment to save
+                </p>
+              )}
+              {!useSegments && (!entireRoad.likelihood || !entireRoad.consequence) && (
+                <p style={{color: '#f57c00', marginTop: '12px', fontSize: '14px'}}>
+                  ⚠️ Complete Likelihood and Consequence ratings to save
+                </p>
               )}
             </div>
-
-            <button onClick={handleSave} disabled={isSaving} style={{background: 'linear-gradient(135deg, #2e7d32, #66bb6a)', color: 'white', border: 'none', padding: '16px 48px', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', opacity: isSaving ? 0.5 : 1}}>
-              {isSaving ? 'Saving...' : 'Save Assessment'}
-            </button>
           </div>
         )}
       </div>
