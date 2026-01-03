@@ -107,43 +107,50 @@ const HomeScreen = () => {
       )}
       
       <div className="tool-section">
-        <h2 style={{color: '#2e7d32', marginBottom: '8px'}}>📋 Assessment Tools</h2>
+        <h2 style={{color: '#2e7d32', marginBottom: '8px'}}>📋 Assessment Methods</h2>
         <p style={{fontSize: '14px', color: '#666', marginBottom: '16px'}}>
-          Complete assessments with professional guidance, export PDFs
+          Choose assessment method - LMH recommended for field use
         </p>
         
         <div className="field-card-grid">
-          <div className="field-card primary" onClick={navigateToRoadRisk}>
+          {/* LMH METHOD - NOW PRIMARY */}
+          <div className="field-card primary" onClick={navigateToLMH} style={{
+            background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
+            cursor: 'pointer'
+          }}>
             <div className="field-card-content">
-              <div className="field-card-title">🔬 Scorecard Method</div>
-              <div className="field-card-description">
-                Detailed 9-factor risk assessment
+              <div className="field-card-title" style={{color: 'white', fontSize: '18px'}}>⚖️ LMH Method</div>
+              <div className="field-card-description" style={{color: 'rgba(255,255,255,0.95)', fontSize: '14px'}}>
+                Primary field assessment - Multi-segment capable
+              </div>
+            </div>
+            <div className="field-card-icon" style={{fontSize: '56px'}}>⚡</div>
+          </div>
+
+          {/* SCORECARD - NOW SECONDARY */}
+          <div className="field-card" onClick={navigateToRoadRisk} style={{
+            background: 'white',
+            borderTop: '4px solid #1976d2',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            cursor: 'pointer'
+          }}>
+            <div className="field-card-content">
+              <div className="field-card-title" style={{color: '#333'}}>🔬 Scorecard Method</div>
+              <div className="field-card-description" style={{color: '#666'}}>
+                Detailed 9-factor comparison assessment
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📊</div>
           </div>
 
-          <div className="field-card" onClick={navigateToLMH} style={{
-            background: 'white', borderTop: '4px solid #f44336',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', cursor: 'pointer'
-          }}>
-            <div className="field-card-content">
-              <div className="field-card-title" style={{color: '#333'}}>⚖️ LMH Method</div>
-              <div className="field-card-description" style={{color: '#666'}}>
-                Qualitative with field guidance
-              </div>
-            </div>
-            <div className="field-card-icon" style={{fontSize: '48px'}}>⚡</div>
-          </div>
-
           <div className="field-card" onClick={navigateToReferences} style={{
-            background: 'white', borderTop: '4px solid #1976d2',
+            background: 'white', borderTop: '4px solid #9c27b0',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', cursor: 'pointer'
           }}>
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>📚 References</div>
               <div className="field-card-description" style={{color: '#666'}}>
-                EGBC/FPBC professional standards
+                LMH 56/57/61, EGBC/FPBC standards
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📖</div>
@@ -186,18 +193,19 @@ const HomeScreen = () => {
       </div>
 
       <div style={{
-        background: '#e3f2fd', padding: '16px', borderRadius: '8px',
-        marginTop: '20px', border: '2px solid #2196f3'
+        background: '#e8f5e9', padding: '16px', borderRadius: '8px',
+        marginTop: '20px', border: '2px solid #4caf50'
       }}>
         <div style={{display: 'flex', gap: '12px', alignItems: 'start'}}>
-          <div style={{fontSize: '24px'}}>💡</div>
+          <div style={{fontSize: '24px'}}>⚖️</div>
           <div>
-            <div style={{fontWeight: 'bold', color: '#1976d2', marginBottom: '4px'}}>
-              Professional Workflow
+            <div style={{fontWeight: 'bold', color: '#2e7d32', marginBottom: '4px'}}>
+              LMH Method - Primary Assessment Tool
             </div>
             <div style={{fontSize: '14px', color: '#555', lineHeight: '1.5'}}>
-              Complete assessments following EGBC/FPBC standards and generate professional PDFs. 
-              Supplement with <strong>QuickCapture</strong> for GPS and field photos.
+              Based on LMH 56 (BC Ministry of Forests). Assess entire road or identify risk segments. 
+              Includes structured QuickCapture integration for GPS and field photos. 
+              Use <strong>Scorecard</strong> for detailed comparison when needed.
             </div>
           </div>
         </div>
