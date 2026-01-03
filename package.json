@@ -1,7 +1,7 @@
 {
   "name": "road-risk-assessment",
-  "version": "2.3.0",
-  "description": "Professional road risk assessment tool for forestry operations",
+  "version": "2.6.0",
+  "description": "Professional road risk assessment tool with multi-segment LMH capability",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
