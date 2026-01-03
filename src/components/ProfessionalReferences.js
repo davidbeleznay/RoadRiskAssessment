@@ -1,5 +1,5 @@
 // src/components/ProfessionalReferences.js
-// Professional references including LMH 56, 57, 61
+// Comprehensive professional references with inspection requirements
 
 import React, { useState } from 'react';
 
@@ -12,6 +12,170 @@ const ProfessionalReferences = () => {
 
   const references = [
     {
+      id: 'road-inspections',
+      title: '🔍 Road Inspection Requirements',
+      agency: 'EGBC/FPBC Forest Roads Guidelines',
+      year: '2024',
+      sections: [
+        {
+          title: 'Forest Road Inspection Requirements (Section 3.7.1)',
+          content: [
+            'Inspections must be carried out as prescribed in Road Maintenance Plan',
+            'Conducted by or under direct supervision of Road Activity POR',
+            'Level of detail varies with road complexity, use, timing, region, infrastructure',
+            'Frequency set commensurate with potential for unsafe conditions and environmental hazards',
+            'Inspections required after severe storm events'
+          ]
+        },
+        {
+          title: 'Inspection Items (Section 3.7.1)',
+          content: [
+            'Road surface condition and drainage',
+            'Ditches and drainage structures',
+            'Cut and fill slopes stability',
+            'Sight lines and safety',
+            'Road prism stability',
+            'Vegetation management',
+            'Changes in use or users',
+            'Access conditions',
+            'Retaining walls (may require specialist)'
+          ]
+        },
+        {
+          title: 'Inspection Reports (Section 3.7.2)',
+          content: [
+            'Date of inspection required',
+            'Condition assessment for each item inspected',
+            'Maintenance recommendations with priority levels',
+            'Repair recommendations with reason (structural, safety, environmental)',
+            'Photographs of highlighted items, if required',
+            'Recommendation for specialist inspection if needed',
+            'Date of next scheduled inspection',
+            'Authentication by inspector'
+          ]
+        },
+        {
+          title: 'Risk-Based Inspection Frequency',
+          content: [
+            'High-risk roads: More frequent inspections (e.g., annually or semi-annually)',
+            'Moderate-risk roads: Regular inspections per maintenance plan',
+            'Low-risk roads: Less frequent but documented inspections',
+            'Inspection frequency must increase for roads nearing end of design life',
+            'Known hazards require increased monitoring (active fans, floodplains, unstable slopes)'
+          ]
+        }
+      ]
+    },
+    {
+      id: 'crossing-inspections',
+      title: '🌉 Crossing Inspection Requirements',
+      agency: 'EGBC/FPBC Forest Roads Guidelines',
+      year: '2024',
+      sections: [
+        {
+          title: 'Crossing Inspection Frequency (Section 3.12.3)',
+          content: [
+            'Permanent structures (except log/wood culverts): Every 3 years minimum',
+            'Temporary retaining walls, bridges, log/wood culverts: Every 2 years minimum',
+            'Log stringer bridges: Carefully consider frequency due to potential deterioration',
+            'Additional inspections required after severe storm events',
+            'Increased frequency when nearing end of design service life',
+            'Professional engineer may specify different frequency'
+          ]
+        },
+        {
+          title: 'Routine vs Detailed Inspections',
+          content: [
+            'Routine: Confirm consistency with design, identify standard maintenance needs',
+            'Detailed: Required when deficiencies may impact load rating or function',
+            'Detailed inspection evaluates current load rating and remaining service life',
+            'Required for log structures showing decay or damage',
+            'Required within 3 years of end of design service life'
+          ]
+        },
+        {
+          title: 'Inspection Report Requirements (Section 3.12.2)',
+          content: [
+            'Date of inspection',
+            'Condition assessment of all structural components',
+            'Repair recommendations with priority levels',
+            'Photographs including highlighted items',
+            'Load rating on date of inspection',
+            'Next scheduled inspection date',
+            'Authentication by qualified inspector'
+          ]
+        }
+      ]
+    },
+    {
+      id: 'bc-engineering-manual',
+      title: '📗 BC Ministry Engineering Manual',
+      agency: 'BC Ministry of Forests',
+      year: '2025',
+      sections: [
+        {
+          title: 'Forest Service Road (FSR) Management',
+          content: [
+            'Ministry prioritizes inspections, maintenance based on risk',
+            'Risk-based planning processes identify roads for deactivation vs maintenance',
+            'Engineering Manual provides policy and technical guidance',
+            'Outlines safety and environmental outcomes for inspections',
+            'Approximately 58,000 km of FSRs in BC managed by ministry'
+          ]
+        },
+        {
+          title: 'Road Inspection Standards (Section 232+)',
+          content: [
+            'Inspection frequency based on road classification and risk level',
+            'Wilderness roads: Minimum maintenance to protect against adverse effects',
+            'Industrial roads: Maintained for safe industrial use',
+            'Inspection schedules documented in Road Maintenance Plans',
+            'Professional engineers oversee inspection programs'
+          ]
+        },
+        {
+          title: 'Road Maintenance Plan Requirements (Section 230)',
+          content: [
+            'Must identify current or expected road use and maintenance purpose',
+            'Consider original planning objectives and current conditions',
+            'Set frequency and scope of inspections based on risk',
+            'Establish priorities for remedial work flowing from inspections',
+            'May use SOPs for routine inspection and maintenance tasks',
+            'More detailed instructions required for high-risk road sections'
+          ]
+        }
+      ],
+      link: 'https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/engineering-manual/engineering_manual.pdf'
+    },
+    {
+      id: 'forest-road-regulation',
+      title: '⚖️ Forest Road Regulation',
+      agency: 'Forest and Range Practices Act',
+      sections: [
+        {
+          title: 'Road Maintenance Requirements (Section 13)',
+          content: [
+            'Maintain structural integrity of road prism and clearing width',
+            'Ensure drainage systems are functional',
+            'Minimize sediment transport and effects on forest resources',
+            'Provide safe fish passage at stream crossings',
+            'Ensure road can be safely used for intended purposes'
+          ]
+        },
+        {
+          title: 'Bridge and Major Culvert Inspections (Section 11)',
+          content: [
+            'Inspection required every 3 years after construction',
+            'Every 2 years if stringers are untreated wood',
+            'Inspection after events that might cause damage',
+            'Inspection records must be retained for 1 year beyond structure life',
+            'Structural deficiencies require professional engineer evaluation',
+            'Bridge capacity signage required if unable to carry original design load'
+          ]
+        }
+      ]
+    },
+    {
       id: 'lmh-56',
       title: '📘 LMH 56: Landslide Risk Case Studies',
       agency: 'BC Ministry of Forests',
@@ -22,38 +186,18 @@ const ProfessionalReferences = () => {
           content: [
             'Official landslide risk matrix: Likelihood × Sediment Delivery = Risk Class (1-5)',
             'Risk Class 5 (Very High): High likelihood + High sediment delivery',
-            'Risk Class 4 (High): High/Moderate likelihood + High/Moderate delivery',
-            'Risk Class 3 (Moderate): Various moderate combinations',
-            'Risk Class 2 (Moderate): Lower risk combinations',
+            'Risk Class 4 (High): High/Moderate combinations',
+            'Risk Class 3-2 (Moderate): Various moderate combinations',
             'Risk Class 1 (Low): Very low likelihood or very low delivery'
           ]
         },
         {
-          title: 'Likelihood Definitions (Table 4b)',
+          title: 'Likelihood Definitions (20-year period)',
           content: [
-            'Based on 20-year period for forest development planning',
-            'High: Probable or certain (road fill >60%, instability likely in fillslopes)',
-            'Moderate: Not likely but possible (slopes 45-60%, may fail with misdirected drainage)',
-            'Low: Remote possibility (slopes <45%, landslide highly unlikely)',
+            'High: Probable or certain (road fill >60%, instability likely)',
+            'Moderate: Not likely but possible (slopes 45-60%)',
+            'Low: Remote possibility (slopes <45%)',
             'Very Low: Very remote (flat terrain OR no fillslope)'
-          ]
-        },
-        {
-          title: 'Sediment Delivery Potential',
-          content: [
-            'High: Material enters fish stream at time of event (no runout >75m)',
-            'Moderate: Most material deposits; fines may reach stream (75-100m runout)',
-            'Low: Coarse material stored; some fines may reach (100-200m runout)',
-            'Very Low: Material unlikely to reach value (>200m runout)'
-          ]
-        },
-        {
-          title: 'Application to Forest Roads',
-          content: [
-            'Framework for landslide risk management in forest operations',
-            'Case studies demonstrate analysis approaches',
-            'Links probability and consequence to risk classification',
-            'Guides management prescriptions based on risk class'
           ]
         }
       ],
@@ -61,25 +205,16 @@ const ProfessionalReferences = () => {
     },
     {
       id: 'lmh-61',
-      title: '📗 LMH 61: Managing Watersheds for Hydrogeomorphic Risks on Fans',
+      title: '📗 LMH 61: Managing Watersheds for Hydrogeomorphic Risks',
       agency: 'BC Ministry of Forests',
       year: '2009',
       sections: [
         {
-          title: 'Hydrogeomorphic Hazards',
-          content: [
-            'Fans subject to floods, debris floods, and debris flows',
-            'Forest management activities can exacerbate natural processes',
-            'Road construction on fans increases hazard potential',
-            'Risk assessment considers watershed-generated processes'
-          ]
-        },
-        {
           title: 'Road Management on Fans',
           content: [
-            'Six-step hazard recognition scheme for practitioners',
-            'Fan identification, watershed pre-typing, field verification',
-            'Prescription development based on hazard level',
+            'Six-step hazard recognition scheme',
+            'Fan identification and watershed pre-typing',
+            'Field verification requirements',
             'Monitoring requirements for high-hazard areas'
           ]
         }
@@ -93,67 +228,15 @@ const ProfessionalReferences = () => {
       year: '2005',
       sections: [
         {
-          title: 'Hazard Recognition',
+          title: 'Hazard Recognition and Prescriptions',
           content: [
             'Six-step process for identifying fan hazards',
-            'Aerial photo interpretation techniques',
-            'Field verification of hydrogeomorphic activity',
-            'Hazard classification based on watershed characteristics'
-          ]
-        },
-        {
-          title: 'General Prescriptions',
-          content: [
-            'Development strategies for different hazard levels',
             'Road location and design considerations on fans',
-            'Minimize disturbance in high-hazard areas',
-            'Emergency response planning for high-risk infrastructure'
+            'Development strategies for different hazard levels'
           ]
         }
       ],
       link: 'https://www.for.gov.bc.ca/hfd/pubs/Docs/Lmh/Lmh57.htm'
-    },
-    {
-      id: 'egbc-fpbc',
-      title: '📙 EGBC/FPBC Forest Roads Guidelines',
-      agency: 'Engineers and Geoscientists BC & Forest Professionals BC',
-      year: '2024',
-      version: 'Version 2.0',
-      sections: [
-        {
-          title: 'Simple vs Complex Road Criteria (Section 3.2)',
-          content: [
-            'Simple Road: slope <40%, stable terrain, adequate drainage',
-            'Complex Road: requires professional oversight',
-            'Risk-based approach to professional involvement'
-          ]
-        },
-        {
-          title: 'Professional Obligations (Section 4.2)',
-          content: [
-            'Registrant must be personally familiar with site',
-            'Exercise duty of care - complete, correct, clear',
-            'Document assessment of risks and outcomes'
-          ]
-        }
-      ],
-      link: 'https://www.egbc.ca/Practice-Resources/Professional-Practice/Professional-Practice-Guidelines'
-    },
-    {
-      id: 'terrain-stability',
-      title: '📔 Terrain Stability Assessment Guidelines',
-      agency: 'EGBC & FPBC',
-      year: '2010',
-      sections: [
-        {
-          title: 'Terrain Stability Classes',
-          content: [
-            'Class I-V classification system',
-            'Field indicators for each class',
-            'Assessment requirements by class'
-          ]
-        }
-      ]
     }
   ];
 
@@ -165,9 +248,9 @@ const ProfessionalReferences = () => {
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       marginTop: '20px'
     }}>
-      <h2 style={{color: '#2e7d32', marginTop: 0}}>📚 Professional Standards & References</h2>
+      <h2 style={{color: '#2e7d32', marginTop: 0}}>📚 Professional Standards & Inspection Requirements</h2>
       <p style={{fontSize: '14px', color: '#666', marginBottom: '20px'}}>
-        Official guidance from BC Ministry of Forests and regulatory bodies
+        Official guidance from EGBC/FPBC, BC Ministry of Forests, and regulatory frameworks
       </p>
 
       {references.map((ref) => (
@@ -193,7 +276,7 @@ const ProfessionalReferences = () => {
                 {ref.title}
               </div>
               <div style={{fontSize: '12px', color: '#666'}}>
-                {ref.agency} {ref.year && `(${ref.year})`} {ref.version}
+                {ref.agency} {ref.year && `(${ref.year})`}
               </div>
             </div>
             <span style={{fontSize: '20px', color: '#2e7d32'}}>
