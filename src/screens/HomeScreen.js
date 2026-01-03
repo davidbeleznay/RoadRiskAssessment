@@ -33,21 +33,12 @@ const HomeScreen = () => {
     navigate('/lmh-risk');
   };
   
-  const navigateToHistory = () => {
-    navigate('/history');
-  };
-
-  const navigateToDashboard = () => {
-    navigate('/dashboard');
-  };
-
-  const navigateToReferences = () => {
-    navigate('/references');
-  };
+  const navigateToHistory = () => navigate('/history');
+  const navigateToDashboard = () => navigate('/dashboard');
+  const navigateToReferences = () => navigate('/references');
 
   const handleExport = async (format) => {
     setIsExporting(true);
-    
     try {
       if (format === 'json') {
         const data = exportToJSON();
@@ -58,7 +49,6 @@ const HomeScreen = () => {
         downloadCSV(csvContent);
         alert('✅ Exported to CSV!');
       }
-      
       await loadStats();
     } catch (error) {
       alert('❌ Export failed: ' + error.message);
@@ -71,48 +61,41 @@ const HomeScreen = () => {
   return (
     <div className="home-container">
       <div className="app-header">
-        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px'}}>
+        {/* Mobile-friendly header */}
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px', flexWrap: 'wrap'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 auto'}}>
+            <div style={{fontSize: '40px', lineHeight: '1'}}>🛣️</div>
+            <div style={{textAlign: 'left'}}>
+              <h1 style={{margin: 0, fontSize: '24px', lineHeight: '1.2', color: '#2e7d32'}}>
+                Road Risk Assessment
+              </h1>
+              <p style={{margin: '2px 0 0 0', fontSize: '11px', color: '#666', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                Mosaic Forest Management
+              </p>
+            </div>
+          </div>
           <div style={{
-            fontSize: '48px',
-            background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 'bold'
+            background: '#2e7d32',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            fontWeight: 'bold',
+            fontSize: '13px',
+            whiteSpace: 'nowrap'
           }}>
-            🛣️
-          </div>
-          <div style={{textAlign: 'left'}}>
-            <h1 className="app-title" style={{margin: 0, fontSize: '32px'}}>Road Risk Assessment</h1>
-            <p style={{margin: '4px 0 0 0', fontSize: '13px', color: '#666', fontWeight: '500'}}>
-              MOSAIC FOREST MANAGEMENT
-            </p>
+            ✅ v2.6.0
           </div>
         </div>
-        <p className="app-subtitle" style={{fontSize: '15px', color: '#555'}}>
-          Professional assessment tool with EGBC/FPBC guidance - Supplements QuickCapture
+        <p style={{fontSize: '13px', color: '#555', lineHeight: '1.4', margin: '8px 0 0 0'}}>
+          Professional tool with EGBC/FPBC guidance - Supplements QuickCapture
         </p>
-        <div style={{
-          background: '#2e7d32',
-          color: 'white',
-          padding: '12px',
-          borderRadius: '6px',
-          marginTop: '10px',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          fontSize: '15px'
-        }}>
-          ✅ v2.5.0 - Professional Standards Integrated
-        </div>
       </div>
 
       {stats && stats.inspections > 0 && (
         <div style={{
-          textAlign: 'center',
-          margin: '20px 0',
-          padding: '16px',
+          textAlign: 'center', margin: '20px 0', padding: '16px',
           background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
-          borderRadius: '8px',
-          border: '2px solid #4caf50'
+          borderRadius: '8px', border: '2px solid #4caf50'
         }}>
           <div style={{fontSize: '24px', fontWeight: 'bold', color: '#2e7d32'}}>
             {stats.inspections}
@@ -141,10 +124,8 @@ const HomeScreen = () => {
           </div>
 
           <div className="field-card" onClick={navigateToLMH} style={{
-            background: 'white',
-            borderTop: '4px solid #f44336',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer'
+            background: 'white', borderTop: '4px solid #f44336',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', cursor: 'pointer'
           }}>
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>⚖️ LMH Method</div>
@@ -156,10 +137,8 @@ const HomeScreen = () => {
           </div>
 
           <div className="field-card" onClick={navigateToReferences} style={{
-            background: 'white',
-            borderTop: '4px solid #1976d2',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer'
+            background: 'white', borderTop: '4px solid #1976d2',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', cursor: 'pointer'
           }}>
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>📚 References</div>
@@ -193,8 +172,7 @@ const HomeScreen = () => {
           </div>
 
           <div className="field-card" onClick={navigateToDashboard} style={{
-            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-            cursor: 'pointer'
+            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)', cursor: 'pointer'
           }}>
             <div className="field-card-content">
               <div className="field-card-title" style={{color: 'white'}}>📊 Dashboard</div>
@@ -208,11 +186,8 @@ const HomeScreen = () => {
       </div>
 
       <div style={{
-        background: '#e3f2fd',
-        padding: '16px',
-        borderRadius: '8px',
-        marginTop: '20px',
-        border: '2px solid #2196f3'
+        background: '#e3f2fd', padding: '16px', borderRadius: '8px',
+        marginTop: '20px', border: '2px solid #2196f3'
       }}>
         <div style={{display: 'flex', gap: '12px', alignItems: 'start'}}>
           <div style={{fontSize: '24px'}}>💡</div>
@@ -221,8 +196,8 @@ const HomeScreen = () => {
               Professional Workflow
             </div>
             <div style={{fontSize: '14px', color: '#555', lineHeight: '1.5'}}>
-              Complete detailed assessments following EGBC/FPBC standards and generate professional PDF reports. 
-              Supplement with <strong>QuickCapture</strong> for GPS coordinates and field photos that upload directly to LRM.
+              Complete assessments following EGBC/FPBC standards and generate professional PDFs. 
+              Supplement with <strong>QuickCapture</strong> for GPS and field photos.
             </div>
           </div>
         </div>
@@ -231,48 +206,18 @@ const HomeScreen = () => {
       {showExport && (
         <div style={{
           background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
-          borderRadius: '12px',
-          padding: '24px',
-          marginTop: '20px',
+          borderRadius: '12px', padding: '24px', marginTop: '20px',
           boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
           border: '3px solid #4caf50'
         }}>
           <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Assessment Data</h3>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '16px'
-          }}>
-            <button
-              onClick={() => handleExport('json')}
-              disabled={isExporting}
-              style={{
-                background: '#2196f3',
-                color: 'white',
-                border: 'none',
-                padding: '20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px'}}>
+            <button onClick={() => handleExport('json')} disabled={isExporting}
+              style={{background: '#2196f3', color: 'white', border: 'none', padding: '20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'}}>
               📄 JSON
             </button>
-
-            <button
-              onClick={() => handleExport('csv')}
-              disabled={isExporting}
-              style={{
-                background: '#4caf50',
-                color: 'white',
-                border: 'none',
-                padding: '20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
+            <button onClick={() => handleExport('csv')} disabled={isExporting}
+              style={{background: '#4caf50', color: 'white', border: 'none', padding: '20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'}}>
               📊 CSV
             </button>
           </div>
@@ -280,7 +225,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.5.0 - Professional Standards Integrated</div>
+        <div className="app-version">v2.6.0 - Multi-Segment LMH + QuickCapture Integration</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
