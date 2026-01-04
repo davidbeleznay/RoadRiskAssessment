@@ -1,5 +1,5 @@
 // src/components/RiskSegmentCard.js
-// Individual risk segment with structured QuickCapture entry
+// Remove photos checkbox from line (only for points)
 
 import React, { useState } from 'react';
 
@@ -89,7 +89,6 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
       marginBottom: '20px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
     }}>
-      {/* Segment Header */}
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px'}}>
         <div>
           <h3 style={{margin: 0, color: risk?.color || '#333'}}>
@@ -99,12 +98,14 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
             {length} km • KM {segment.startKm || '?'} - {segment.endKm || '?'}
           </div>
         </div>
-        <button onClick={onDelete} style={{
-          background: '#dc3545', color: 'white', border: 'none',
-          padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
-        }}>
-          🗑️ Delete
-        </button>
+        {onDelete && (
+          <button onClick={onDelete} style={{
+            background: '#dc3545', color: 'white', border: 'none',
+            padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+          }}>
+            🗑️ Delete
+          </button>
+        )}
       </div>
 
       {/* Location */}
@@ -140,10 +141,7 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
             <select value={segment.likelihood || ''} onChange={(e) => updateSegment('likelihood', e.target.value)}
               style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}>
               <option value="">Select...</option>
-              <option value="High">High</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Low">Low</option>
-              <option value="Very Low">Very Low</option>
+              {['High', 'Moderate', 'Low', 'Very Low'].map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           <div>
@@ -151,26 +149,20 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
             <select value={segment.consequence || ''} onChange={(e) => updateSegment('consequence', e.target.value)}
               style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}>
               <option value="">Select...</option>
-              <option value="High">High</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Low">Low</option>
-              <option value="Very Low">Very Low</option>
+              {['High', 'Moderate', 'Low', 'Very Low'].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
         {risk && (
-          <div style={{
-            marginTop: '10px', background: risk.color, color: 'white', 
-            padding: '12px', borderRadius: '6px', textAlign: 'center', fontWeight: 'bold'
-          }}>
+          <div style={{marginTop: '10px', background: risk.color, color: 'white', padding: '12px', borderRadius: '6px', textAlign: 'center', fontWeight: 'bold'}}>
             Risk Class {risk.class}: {risk.level}
           </div>
         )}
       </div>
 
-      {/* QuickCapture */}
+      {/* QuickCapture - NO LINE PHOTOS */}
       <div style={{marginBottom: '16px'}}>
-        <div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>📍 QuickCapture Data</div>
+        <div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>📍 QuickCapture Line</div>
         <div style={{display: 'grid', gap: '10px'}}>
           <div>
             <label style={{fontSize: '12px', color: '#666'}}>Line Type</label>
@@ -181,21 +173,15 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
             </select>
           </div>
           <div>
-            <label style={{fontSize: '12px', color: '#666'}}>Line Range</label>
+            <label style={{fontSize: '12px', color: '#666'}}>Line Range (auto-populated)</label>
             <input type="text" 
               value={segment.quickCapture?.lineRange || `KM ${segment.startKm || '?'}-${segment.endKm || '?'}`}
               onChange={(e) => updateQC('lineRange', e.target.value)}
-              style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}} />
+              style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px', background: '#f9f9f9'}} />
           </div>
-          <div>
-            <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
-              <input type="checkbox" 
-                checked={segment.quickCapture?.photosCollected || false}
-                onChange={(e) => updateQC('photosCollected', e.target.checked)}
-                style={{width: '16px', height: '16px'}} />
-              <span style={{fontSize: '13px', fontWeight: '500'}}>Photos collected for this segment</span>
-            </label>
-          </div>
+        </div>
+        <div style={{fontSize: '11px', color: '#666', marginTop: '6px', fontStyle: 'italic'}}>
+          Note: Photos are captured at point features, not for line features
         </div>
       </div>
 
@@ -242,9 +228,9 @@ const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
                   </label>
                 </div>
                 <div>
-                  <label style={{fontSize: '11px', color: '#666'}}>Description</label>
+                  <label style={{fontSize: '11px', color: '#666'}}>Description (what photo shows)</label>
                   <textarea value={point.description || ''} onChange={(e) => updatePoint(idx, 'description', e.target.value)}
-                    rows={2} placeholder="Describe what photo shows..."
+                    rows={2} placeholder="Describe condition, issue, or what photo shows..."
                     style={{width: '100%', padding: '6px', borderRadius: '3px', border: '1px solid #ddd', fontSize: '12px'}} />
                 </div>
                 <button onClick={() => deletePoint(idx)} style={{
