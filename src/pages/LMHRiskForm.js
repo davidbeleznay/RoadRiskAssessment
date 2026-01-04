@@ -1,7 +1,7 @@
-// src/pages/LMHRiskForm.js - Add inspection report features incrementally
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { saveAssessmentDB } from '../utils/db';
+// src/pages/LMHRiskForm.js - Add auto-date calculation and edit mode
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { saveAssessmentDB, getAssessmentDB } from '../utils/db';
 import RiskSegmentCard from '../components/RiskSegmentCard';
 import LMHRiskMatrix from '../components/LMHRiskMatrix';
 import LikelihoodGuidance from '../components/LikelihoodGuidance';
@@ -11,10 +11,13 @@ import '../styles/enhanced-form.css';
 
 const LMHRiskForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
   const [useSegments, setUseSegments] = useState(false);
   const [showFrameworks, setShowFrameworks] = useState({ likelihood: false, consequence: false, matrix: false });
+  const [editMode, setEditMode] = useState(false);
+  const [assessmentId, setAssessmentId] = useState(null);
 
   const [roadInfo, setRoadInfo] = useState({
     roadName: '', startKm: '', endKm: '',
@@ -37,6 +40,80 @@ const LMHRiskForm = () => {
     inspectionFrequency: '',
     inspectorDesignation: ''
   });
+
+  // Load existing assessment if editing
+  useEffect(() => {
+    const loadAssessment = async () => {
+      if (location.state?.assessmentId) {
+        try {
+          const existing = await getAssessmentDB(location.state.assessmentId);
+          if (existing && existing.data) {
+            setEditMode(true);
+            setAssessmentId(location.state.assessmentId);
+            
+            const data = existing.data;
+            setRoadInfo(data.basicInfo || roadInfo);
+            setUseSegments(data.useSegments || false);
+            
+            if (data.useSegments) {
+              setSegments(data.segments || []);
+            } else {
+              setEntireRoad({
+                likelihood: data.likelihood || '',
+                consequence: data.consequence || '',
+                observations: data.observations || '',
+                quickCapture: data.quickCapture || { lineType: '', points: [] }
+              });
+            }
+            
+            setInspectionReport(data.inspectionReport || inspectionReport);
+            
+            if (data.fieldNotes) {
+              localStorage.setItem('currentFieldNotes', JSON.stringify(data.fieldNotes));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading assessment:', error);
+          alert('Error loading assessment for editing');
+        }
+      }
+    };
+    
+    loadAssessment();
+  }, [location.state]);
+
+  // Auto-calculate next inspection date when frequency changes
+  useEffect(() => {
+    if (inspectionReport.inspectionFrequency && 
+        inspectionReport.inspectionFrequency !== 'After Storm Events' && 
+        inspectionReport.inspectionFrequency !== 'Custom' &&
+        !inspectionReport.nextInspectionDate) {
+      
+      const baseDate = roadInfo.assessmentDate ? new Date(roadInfo.assessmentDate) : new Date();
+      let months = 0;
+      
+      switch(inspectionReport.inspectionFrequency) {
+        case 'Semi-Annual': months = 6; break;
+        case 'Annual': months = 12; break;
+        case 'Bi-Annual': months = 24; break;
+        case 'Tri-Annual': months = 36; break;
+        default: return;
+      }
+      
+      const nextDate = new Date(baseDate);
+      nextDate.setMonth(nextDate.getMonth() + months);
+      
+      setInspectionReport({
+        ...inspectionReport,
+        nextInspectionDate: nextDate.toISOString().split('T')[0]
+      });
+    } else if (inspectionReport.inspectionFrequency === 'After Storm Events') {
+      setInspectionReport({
+        ...inspectionReport,
+        nextInspectionDate: ''
+      });
+    }
+  }, [inspectionReport.inspectionFrequency, roadInfo.assessmentDate]);
 
   const getRiskMatrix = (l, c) => {
     const matrix = {
@@ -141,35 +218,38 @@ const LMHRiskForm = () => {
     try {
       const fieldNotes = JSON.parse(localStorage.getItem('currentFieldNotes') || '{}');
       
+      const assessmentData = {
+        basicInfo: roadInfo,
+        riskMethod: useSegments ? 'LMH-Multi' : 'LMH',
+        useSegments: useSegments,
+        inspectionReport: inspectionReport,
+        fieldNotes
+      };
+
       if (useSegments) {
-        await saveAssessmentDB({
-          basicInfo: roadInfo,
-          riskMethod: 'LMH-Multi',
-          useSegments: true,
-          segments: segments,
-          inspectionReport: inspectionReport,
-          fieldNotes,
-          summary: getSegmentStats()
-        });
+        assessmentData.segments = segments;
+        assessmentData.summary = getSegmentStats();
       } else {
         const risk = getRiskMatrix(entireRoad.likelihood, entireRoad.consequence);
-        await saveAssessmentDB({
-          basicInfo: roadInfo,
-          riskMethod: 'LMH',
-          useSegments: false,
-          likelihood: entireRoad.likelihood,
-          consequence: entireRoad.consequence,
-          riskAssessment: { ...risk, method: 'LMH', riskLevel: risk?.level, riskClass: risk?.class },
-          quickCapture: entireRoad.quickCapture,
-          observations: entireRoad.observations,
-          inspectionReport: inspectionReport,
-          fieldNotes,
-          riskScore: `${entireRoad.likelihood}/${entireRoad.consequence}`,
-          riskCategory: risk?.level
-        });
+        assessmentData.likelihood = entireRoad.likelihood;
+        assessmentData.consequence = entireRoad.consequence;
+        assessmentData.riskAssessment = { ...risk, method: 'LMH', riskLevel: risk?.level, riskClass: risk?.class };
+        assessmentData.quickCapture = entireRoad.quickCapture;
+        assessmentData.observations = entireRoad.observations;
+        assessmentData.riskScore = `${entireRoad.likelihood}/${entireRoad.consequence}`;
+        assessmentData.riskCategory = risk?.level;
+      }
+
+      if (editMode && assessmentId) {
+        // Update existing assessment
+        await saveAssessmentDB(assessmentData, assessmentId);
+        alert('Assessment updated!');
+      } else {
+        // Save new assessment
+        await saveAssessmentDB(assessmentData);
+        alert('Assessment saved!');
       }
       
-      alert('Assessment saved!');
       setTimeout(() => navigate('/history'), 1000);
     } catch (error) {
       alert('Error: ' + error.message);
@@ -189,7 +269,7 @@ const LMHRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Assess entire road or identify risk segments</p>
+        <p>{editMode ? '✏️ Editing assessment' : 'Assess entire road or identify risk segments'}</p>
         <button onClick={() => navigate('/')} className="back-button">← Back</button>
       </div>
 
@@ -210,6 +290,11 @@ const LMHRiskForm = () => {
               <span className="section-accent" style={{background: 'linear-gradient(to bottom, #2196f3, #64b5f6)'}}></span>
               Road Information
             </h2>
+            {editMode && (
+              <div style={{background: '#fff3e0', padding: '12px', borderRadius: '6px', border: '2px solid #ff9800', marginBottom: '16px', fontSize: '13px'}}>
+                <strong>✏️ Edit Mode:</strong> Updating existing assessment
+              </div>
+            )}
             <div className="form-grid">
               {[
                 {name: 'roadName', label: 'Road Name', placeholder: 'FSR 123'},
@@ -636,15 +721,21 @@ const LMHRiskForm = () => {
                     <option value="Bi-Annual">Bi-Annual (24 months) - Moderate Risk</option>
                     <option value="Tri-Annual">Tri-Annual (36 months) - Low Risk</option>
                     <option value="After Storm Events">After Storm Events Only</option>
-                    <option value="Custom">Custom</option>
+                    <option value="Custom">Custom (choose date below)</option>
                   </select>
                 </div>
-                <div className="form-group" style={{marginTop: '12px'}}>
-                  <label>Next Inspection Date</label>
-                  <input type="date" value={inspectionReport.nextInspectionDate}
-                    onChange={(e) => setInspectionReport({...inspectionReport, nextInspectionDate: e.target.value})}
-                    style={{width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd'}} />
-                </div>
+                {inspectionReport.inspectionFrequency && inspectionReport.inspectionFrequency !== 'After Storm Events' && (
+                  <div className="form-group" style={{marginTop: '12px'}}>
+                    <label>Next Inspection Date {inspectionReport.inspectionFrequency === 'Custom' ? '' : '(auto-calculated)'}</label>
+                    <input 
+                      type="date" 
+                      value={inspectionReport.nextInspectionDate}
+                      onChange={(e) => setInspectionReport({...inspectionReport, nextInspectionDate: e.target.value})}
+                      disabled={inspectionReport.inspectionFrequency !== 'Custom'}
+                      style={{width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', background: inspectionReport.inspectionFrequency === 'Custom' ? 'white' : '#f5f5f5'}} 
+                    />
+                  </div>
+                )}
               </div>
 
               <div style={{background: 'white', padding: '16px', borderRadius: '8px', border: '2px solid #2e7d32'}}>
@@ -705,7 +796,7 @@ const LMHRiskForm = () => {
 
             <div style={{textAlign: 'center', marginTop: '32px'}}>
               <button onClick={handleSave} disabled={isSaving} style={{background: 'linear-gradient(135deg, #2e7d32, #66bb6a)', color: 'white', border: 'none', padding: '18px 56px', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1, boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'}}>
-                {isSaving ? '💾 Saving...' : '💾 Save Assessment'}
+                {isSaving ? '💾 Saving...' : (editMode ? '💾 Update Assessment' : '💾 Save Assessment')}
               </button>
             </div>
           </div>
