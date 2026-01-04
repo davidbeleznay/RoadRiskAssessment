@@ -61,7 +61,6 @@ const HomeScreen = () => {
   return (
     <div className="home-container">
       <div className="app-header">
-        {/* Mobile-friendly header */}
         <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px', flexWrap: 'wrap'}}>
           <div style={{display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 auto'}}>
             <div style={{fontSize: '40px', lineHeight: '1'}}>🛣️</div>
@@ -83,11 +82,11 @@ const HomeScreen = () => {
             fontSize: '13px',
             whiteSpace: 'nowrap'
           }}>
-            ✅ v2.6.0
+            ✅ v2.7.0
           </div>
         </div>
         <p style={{fontSize: '13px', color: '#555', lineHeight: '1.4', margin: '8px 0 0 0'}}>
-          Professional tool with EGBC/FPBC guidance - Supplements QuickCapture
+          EGBC/FPBC inspection-ready with Section 11 compliance - Supplements QuickCapture
         </p>
       </div>
 
@@ -113,7 +112,6 @@ const HomeScreen = () => {
         </p>
         
         <div className="field-card-grid">
-          {/* LMH METHOD - NOW PRIMARY */}
           <div className="field-card primary" onClick={navigateToLMH} style={{
             background: 'linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)',
             cursor: 'pointer'
@@ -127,7 +125,6 @@ const HomeScreen = () => {
             <div className="field-card-icon" style={{fontSize: '56px'}}>⚡</div>
           </div>
 
-          {/* SCORECARD - NOW SECONDARY */}
           <div className="field-card" onClick={navigateToRoadRisk} style={{
             background: 'white',
             borderTop: '4px solid #1976d2',
@@ -150,7 +147,7 @@ const HomeScreen = () => {
             <div className="field-card-content">
               <div className="field-card-title" style={{color: '#333'}}>📚 References</div>
               <div className="field-card-description" style={{color: '#666'}}>
-                LMH 56/57/61, EGBC/FPBC standards
+                LMH 56/57/61, EGBC/FPBC, inspection standards
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>📖</div>
@@ -233,7 +230,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">v2.6.0 - Multi-Segment LMH + QuickCapture Integration</div>
+        <div className="app-version">v2.7.0 - EGBC Inspection Reports + Section 11 Compliance</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
