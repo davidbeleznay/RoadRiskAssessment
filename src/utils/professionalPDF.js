@@ -1,5 +1,5 @@
 // src/utils/professionalPDF.js
-// Enhanced multi-segment PDF generation
+// Enhanced PDF with inspection report section
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -12,11 +12,13 @@ export async function generateProfessionalPDF(assessment) {
     const method = data.riskMethod || 'Scorecard';
     const useSegments = data.useSegments || false;
     const segments = data.segments || [];
+    const inspectionReport = data.inspectionReport || {};
     
     const mosaicGreen = [46, 125, 50];
     const white = [255, 255, 255];
     const lightGray = [245, 245, 245];
     const darkGray = [51, 51, 51];
+    const orange = [255, 152, 0];
 
     let yPos = 20;
 
@@ -62,7 +64,7 @@ export async function generateProfessionalPDF(assessment) {
       ['Weather:', basicInfo.weatherConditions || 'N/A']
     ];
 
-    infoData.forEach(([label, value], idx) => {
+    infoData.forEach(([label, value]) => {
       doc.setFont(undefined, 'bold');
       doc.text(label, 20, yPos);
       doc.setFont(undefined, 'normal');
@@ -74,7 +76,6 @@ export async function generateProfessionalPDF(assessment) {
 
     // MULTI-SEGMENT ASSESSMENT
     if (useSegments && segments.length > 0) {
-      // Segment Summary Stats
       const stats = { veryHigh: 0, high: 0, moderate: 0, low: 0, totalKm: 0 };
       const riskMatrix = {
         'High-High': 5, 'High-Moderate': 4, 'High-Low': 3, 'High-Very Low': 1,
@@ -109,24 +110,31 @@ export async function generateProfessionalPDF(assessment) {
       doc.setFont(undefined, 'normal');
       doc.setTextColor(...darkGray);
       
-      const summaryData = [
-        [`Total Road Length: ${roadLength} km`, `Segments Assessed: ${segments.length}`, `Total Assessed: ${stats.totalKm.toFixed(1)} km`]
-      ];
-      if (stats.veryHigh > 0) summaryData.push([`Very High Risk (Class 5): ${stats.veryHigh.toFixed(1)} km`, '', '']);
-      if (stats.high > 0) summaryData.push([`High Risk (Class 4): ${stats.high.toFixed(1)} km`, '', '']);
-      if (stats.moderate > 0) summaryData.push([`Moderate Risk (Class 2-3): ${stats.moderate.toFixed(1)} km`, '', '']);
-      if (stats.low > 0) summaryData.push([`Low Risk (Class 1): ${stats.low.toFixed(1)} km`, '', '']);
-
-      summaryData.forEach(row => {
-        doc.text(row[0], 20, yPos);
-        if (row[1]) doc.text(row[1], 80, yPos);
-        if (row[2]) doc.text(row[2], 140, yPos);
-        yPos += 5;
-      });
+      doc.text(`Total Road Length: ${roadLength} km`, 20, yPos);
+      doc.text(`Segments Assessed: ${segments.length}`, 80, yPos);
+      doc.text(`Total Assessed: ${stats.totalKm.toFixed(1)} km`, 140, yPos);
+      yPos += 5;
+      
+      if (stats.veryHigh > 0) {
+        doc.text(`Very High Risk (Class 5): ${stats.veryHigh.toFixed(1)} km`, 20, yPos);
+        yPos += 4;
+      }
+      if (stats.high > 0) {
+        doc.text(`High Risk (Class 4): ${stats.high.toFixed(1)} km`, 20, yPos);
+        yPos += 4;
+      }
+      if (stats.moderate > 0) {
+        doc.text(`Moderate Risk (Class 2-3): ${stats.moderate.toFixed(1)} km`, 20, yPos);
+        yPos += 4;
+      }
+      if (stats.low > 0) {
+        doc.text(`Low Risk (Class 1): ${stats.low.toFixed(1)} km`, 20, yPos);
+        yPos += 4;
+      }
 
       yPos += 10;
 
-      // Individual Segment Details
+      // Individual Segments
       segments.forEach((seg, idx) => {
         if (yPos > 240) {
           doc.addPage();
@@ -149,17 +157,16 @@ export async function generateProfessionalPDF(assessment) {
         
         yPos += 17;
 
-        // Segment Info
         doc.setTextColor(...darkGray);
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
         doc.text(`Location: KM ${seg.startKm || '?'} - ${seg.endKm || '?'} (${length} km)`, 20, yPos);
         yPos += 5;
         doc.setFont(undefined, 'normal');
-        doc.text(`Assessment: ${seg.likelihood || '?'} Likelihood × ${seg.consequence || '?'} Consequence`, 20, yPos);
+        doc.text(`Assessment: ${seg.likelihood || '?'} × ${seg.consequence || '?'}`, 20, yPos);
         yPos += 8;
 
-        // QuickCapture Data
+        // QuickCapture
         if (seg.quickCapture?.lineType || (seg.quickCapture?.points && seg.quickCapture.points.length > 0)) {
           doc.setFont(undefined, 'bold');
           doc.text('QuickCapture Field Data:', 20, yPos);
@@ -168,31 +175,22 @@ export async function generateProfessionalPDF(assessment) {
           
           if (seg.quickCapture.lineType) {
             doc.text(`Line: ${seg.quickCapture.lineType} (${seg.quickCapture.lineRange || `KM ${seg.startKm}-${seg.endKm}`})`, 20, yPos);
-            yPos += 4;
-          }
-          
-          if (seg.quickCapture.photosCollected) {
-            doc.text('Photos: Yes', 20, yPos);
-            yPos += 4;
+            yPos += 5;
           }
 
           if (seg.quickCapture.points && seg.quickCapture.points.length > 0) {
-            yPos += 2;
             doc.setFont(undefined, 'bold');
             doc.text('Point Features:', 20, yPos);
             yPos += 5;
             doc.setFont(undefined, 'normal');
             
-            seg.quickCapture.points.forEach((pt, ptIdx) => {
+            seg.quickCapture.points.forEach(pt => {
               if (yPos > 270) {
                 doc.addPage();
                 yPos = 20;
               }
-              
-              const ptText = `  KM ${pt.km || '?'}: ${pt.featureType || 'Unknown'} ${pt.photoTaken ? '[Photo]' : ''}`;
-              doc.text(ptText, 20, yPos);
+              doc.text(`  KM ${pt.km || '?'}: ${pt.featureType || 'Unknown'} ${pt.photoTaken ? '[Photo]' : ''}`, 20, yPos);
               yPos += 4;
-              
               if (pt.description) {
                 const descLines = doc.splitTextToSize(`     ${pt.description}`, 170);
                 doc.setFont(undefined, 'italic');
@@ -202,7 +200,7 @@ export async function generateProfessionalPDF(assessment) {
               }
             });
           }
-          yPos += 4;
+          yPos += 6;
         }
 
         // Observations
@@ -224,13 +222,12 @@ export async function generateProfessionalPDF(assessment) {
       });
 
     } else {
-      // ENTIRE ROAD OR SCORECARD
+      // ENTIRE ROAD
       const riskAssessment = data.riskAssessment || {};
       const riskLevel = riskAssessment.riskLevel || data.riskCategory || 'N/A';
       const riskColors = { 'Very High': [244, 67, 54], 'High': [255, 152, 0], 'Moderate': [255, 193, 7], 'Low': [76, 175, 80] };
       const riskColor = riskColors[riskLevel] || [100, 100, 100];
 
-      // Risk Summary Box
       doc.setFillColor(...riskColor);
       doc.roundedRect(15, yPos, 180, 30, 3, 3, 'F');
       doc.setTextColor(...white);
@@ -256,7 +253,7 @@ export async function generateProfessionalPDF(assessment) {
 
       yPos += 40;
 
-      // QuickCapture Data (Entire Road)
+      // QuickCapture
       if (data.quickCapture?.lineType || (data.quickCapture?.points && data.quickCapture.points.length > 0)) {
         doc.setTextColor(...mosaicGreen);
         doc.setFontSize(12);
@@ -276,13 +273,7 @@ export async function generateProfessionalPDF(assessment) {
           yPos += 5;
         }
 
-        if (data.quickCapture.photosCollected) {
-          doc.text('Photos: Yes', 15, yPos);
-          yPos += 5;
-        }
-
         if (data.quickCapture.points && data.quickCapture.points.length > 0) {
-          yPos += 2;
           doc.setFont(undefined, 'bold');
           doc.text('Point Features:', 15, yPos);
           yPos += 5;
@@ -307,89 +298,7 @@ export async function generateProfessionalPDF(assessment) {
         yPos += 8;
       }
 
-      // Scorecard Factor Tables
-      if (method === 'Scorecard' && data.hazardFactors) {
-        if (yPos > 200) {
-          doc.addPage();
-          yPos = 20;
-        }
-
-        doc.setTextColor(...mosaicGreen);
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('HAZARD FACTORS', 15, yPos);
-        yPos += 2;
-        doc.line(15, yPos, 195, yPos);
-        yPos += 6;
-
-        const hazardData = Object.entries(data.hazardFactors).map(([k, v]) => [
-          k.replace(/([A-Z])/g, ' $1').trim(),
-          `${v || 0}/10`,
-          v >= 7 ? 'High' : (v >= 4 ? 'Moderate' : 'Low')
-        ]);
-
-        doc.autoTable({
-          startY: yPos,
-          head: [['Factor', 'Score', 'Level']],
-          body: hazardData,
-          theme: 'grid',
-          styles: { fontSize: 8, cellPadding: 2.5, textColor: darkGray },
-          headStyles: { fillColor: [255, 152, 0], textColor: white, fontStyle: 'bold' },
-          columnStyles: {
-            0: { cellWidth: 120 },
-            1: { cellWidth: 30, halign: 'center', fontStyle: 'bold' },
-            2: { cellWidth: 30, halign: 'center' }
-          },
-          didParseCell: (data) => {
-            if (data.section === 'body' && data.column.index === 2 && data.cell.raw === 'High') {
-              data.cell.styles.textColor = [244, 67, 54];
-              data.cell.styles.fontStyle = 'bold';
-            }
-          },
-          margin: { left: 15 }
-        });
-
-        yPos = doc.lastAutoTable.finalY + 10;
-
-        doc.setTextColor(...mosaicGreen);
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('CONSEQUENCE FACTORS', 15, yPos);
-        yPos += 2;
-        doc.line(15, yPos, 195, yPos);
-        yPos += 6;
-
-        const consequenceData = Object.entries(data.consequenceFactors || {}).map(([k, v]) => [
-          k.replace(/([A-Z])/g, ' $1').trim(),
-          `${v || 0}/10`,
-          v >= 7 ? 'High' : (v >= 4 ? 'Moderate' : 'Low')
-        ]);
-
-        doc.autoTable({
-          startY: yPos,
-          head: [['Factor', 'Score', 'Level']],
-          body: consequenceData,
-          theme: 'grid',
-          styles: { fontSize: 8, cellPadding: 2.5, textColor: darkGray },
-          headStyles: { fillColor: [233, 30, 99], textColor: white, fontStyle: 'bold' },
-          columnStyles: {
-            0: { cellWidth: 120 },
-            1: { cellWidth: 30, halign: 'center', fontStyle: 'bold' },
-            2: { cellWidth: 30, halign: 'center' }
-          },
-          didParseCell: (data) => {
-            if (data.section === 'body' && data.column.index === 2 && data.cell.raw === 'High') {
-              data.cell.styles.textColor = [244, 67, 54];
-              data.cell.styles.fontStyle = 'bold';
-            }
-          },
-          margin: { left: 15 }
-        });
-
-        yPos = doc.lastAutoTable.finalY + 10;
-      }
-
-      // Observations (Entire Road)
+      // Observations
       if (data.observations) {
         if (yPos > 250) {
           doc.addPage();
@@ -454,7 +363,128 @@ export async function generateProfessionalPDF(assessment) {
       addNote('Recommendations:', fieldNotes.recommendations);
     }
 
-    // Footer on all pages
+    // INSPECTION REPORT (EGBC/FPBC 3.7.2)
+    if (inspectionReport.actionItems || inspectionReport.requiresSpecialist || 
+        inspectionReport.inspectionFrequency || inspectionReport.inspectorDesignation) {
+      
+      if (yPos > 180) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFillColor(227, 242, 253);
+      doc.roundedRect(15, yPos, 180, 8, 2, 2, 'F');
+      doc.setTextColor(25, 118, 210);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('INSPECTION REPORT (EGBC/FPBC 3.7.2)', 20, yPos + 6);
+      yPos += 12;
+
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(9);
+
+      // Priority Actions
+      if (inspectionReport.actionItems) {
+        doc.setFont(undefined, 'bold');
+        doc.text('Priority Actions (Maintenance & Repair Recommendations):', 15, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        const actionLines = doc.splitTextToSize(inspectionReport.actionItems, 175);
+        doc.text(actionLines, 15, yPos);
+        yPos += actionLines.length * 4.5 + 6;
+      }
+
+      // Specialist
+      if (inspectionReport.requiresSpecialist && inspectionReport.specialistNotes) {
+        if (yPos > 260) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont(undefined, 'bold');
+        doc.text('Specialist Required: Yes', 15, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        const specLines = doc.splitTextToSize(inspectionReport.specialistNotes, 175);
+        doc.text(specLines, 15, yPos);
+        yPos += specLines.length * 4.5 + 6;
+      }
+
+      // Next Inspection
+      if (inspectionReport.inspectionFrequency || inspectionReport.nextInspectionDate) {
+        if (yPos > 265) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont(undefined, 'bold');
+        doc.text('Next Inspection Schedule:', 15, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        if (inspectionReport.inspectionFrequency) {
+          doc.text(`Frequency: ${inspectionReport.inspectionFrequency}`, 15, yPos);
+          yPos += 4;
+        }
+        if (inspectionReport.nextInspectionDate) {
+          doc.text(`Next Inspection Date: ${inspectionReport.nextInspectionDate}`, 15, yPos);
+          yPos += 4;
+        }
+        yPos += 6;
+      }
+
+      // Inspector Certification
+      if (inspectionReport.inspectorDesignation) {
+        if (yPos > 265) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont(undefined, 'bold');
+        doc.text('Inspector Certification:', 15, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        doc.text(`Name: ${basicInfo.assessor || 'Not specified'}`, 15, yPos);
+        yPos += 4;
+        doc.text(`Designation: ${inspectionReport.inspectorDesignation}`, 15, yPos);
+        yPos += 4;
+        doc.text(`Date: ${basicInfo.assessmentDate || 'Not specified'}`, 15, yPos);
+        yPos += 8;
+      }
+    }
+
+    // Section 11 Notice (if culvert work detected)
+    const hasCulvertWork = inspectionReport.actionItems?.toLowerCase().includes('culvert') ||
+                          (useSegments && segments.some(s => s.quickCapture?.points?.some(p => 
+                            p.featureType?.toLowerCase().includes('install culvert') || 
+                            p.featureType?.toLowerCase().includes('remove culvert')))) ||
+                          (!useSegments && data.quickCapture?.points?.some(p => 
+                            p.featureType?.toLowerCase().includes('install culvert') || 
+                            p.featureType?.toLowerCase().includes('remove culvert')));
+
+    if (hasCulvertWork) {
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFillColor(255, 243, 224);
+      doc.setDrawColor(...orange);
+      doc.roundedRect(15, yPos, 180, 35, 2, 2, 'FD');
+      
+      yPos += 6;
+      doc.setTextColor(...orange);
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text('⚠ SECTION 11 COMPLIANCE NOTICE', 20, yPos);
+      
+      yPos += 6;
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      const notice = 'Culvert replacement/installation work identified in this assessment. A Planned Maintenance Event must be scheduled in LRM for Section 11 notification requirements under FRPA before commencing work on stream crossings or NCD culverts.';
+      const noticeLines = doc.splitTextToSize(notice, 170);
+      doc.text(noticeLines, 20, yPos);
+      yPos += noticeLines.length * 4 + 10;
+    }
+
+    // Footer
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -462,7 +492,7 @@ export async function generateProfessionalPDF(assessment) {
       doc.rect(0, 270, 220, 27, 'F');
       doc.setTextColor(120, 120, 120);
       doc.setFontSize(8);
-      doc.text('Road Risk Assessment v2.6.0', 105, 278, { align: 'center' });
+      doc.text('Road Risk Assessment v2.7.0 - EGBC Inspection Compliance', 105, 278, { align: 'center' });
       doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, 283, { align: 'center' });
       doc.text('Mosaic Forest Management', 105, 288, { align: 'center' });
       doc.text(`Page ${i} of ${pageCount}`, 195, 288, { align: 'right' });
