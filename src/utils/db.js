@@ -18,7 +18,7 @@ db.open()
     console.error('❌ Failed to open RoadRiskDB:', err);
   });
 
-export async function saveAssessmentDB(assessmentData) {
+export async function saveAssessmentDB(assessmentData, existingId = null) {
   try {
     const savedPhotos = localStorage.getItem('currentPhotos');
     const photos = savedPhotos ? JSON.parse(savedPhotos) : [];
@@ -32,10 +32,26 @@ export async function saveAssessmentDB(assessmentData) {
       photoCount: photos.length
     };
     
-    const assessmentId = await db.assessments.add(assessment);
-    console.log('✅ Assessment saved to IndexedDB:', assessmentId);
+    let assessmentId;
+    
+    if (existingId) {
+      // Update existing assessment
+      await db.assessments.update(existingId, {
+        roadName: assessment.roadName,
+        riskMethod: assessment.riskMethod,
+        data: assessmentData,
+        photoCount: photos.length
+      });
+      assessmentId = existingId;
+      console.log('✅ Assessment updated in IndexedDB:', assessmentId);
+    } else {
+      // Create new assessment
+      assessmentId = await db.assessments.add(assessment);
+      console.log('✅ Assessment saved to IndexedDB:', assessmentId);
+    }
     
     if (photos.length > 0) {
+      await db.photos.where('assessmentId').equals(assessmentId).delete();
       const photoRecords = photos.map(photo => ({
         assessmentId: assessmentId,
         ...photo
@@ -51,6 +67,21 @@ export async function saveAssessmentDB(assessmentData) {
   } catch (error) {
     console.error('❌ Error saving to IndexedDB:', error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function getAssessmentDB(id) {
+  try {
+    const assessment = await db.assessments.get(id);
+    if (assessment) {
+      const photos = await db.photos.where('assessmentId').equals(id).toArray();
+      if (!assessment.data) assessment.data = {};
+      assessment.data.photos = photos;
+    }
+    return assessment;
+  } catch (error) {
+    console.error('❌ Error loading assessment:', error);
+    return null;
   }
 }
 
