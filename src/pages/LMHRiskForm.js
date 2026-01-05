@@ -1,4 +1,4 @@
-// src/pages/LMHRiskForm.js - Add edit mode with proper loading
+// src/pages/LMHRiskForm.js - Fix Section 11 to reference WSA
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { saveAssessmentDB, getAssessmentDB } from '../utils/db';
@@ -42,7 +42,6 @@ const LMHRiskForm = () => {
     inspectorDesignation: ''
   });
 
-  // Load existing assessment if editing
   useEffect(() => {
     const loadAssessment = async () => {
       if (location.state?.assessmentId) {
@@ -91,10 +90,8 @@ const LMHRiskForm = () => {
     };
     
     loadAssessment();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.assessmentId]);
 
-  // Auto-calculate inspection date when frequency changes
   const handleFrequencyChange = (frequency) => {
     setInspectionReport({...inspectionReport, inspectionFrequency: frequency});
     
@@ -554,7 +551,7 @@ const LMHRiskForm = () => {
                       {segments.map((seg, idx) => {
                         const risk = getRiskMatrix(seg.likelihood, seg.consequence);
                         const length = seg.endKm && seg.startKm ? (parseFloat(seg.endKm) - parseFloat(seg.startKm)).toFixed(1) : '?';
-                        const hasContent = seg.observations || (seg.quickCapture?.points && seg.quickCapture.points.some(p => p.description));
+                        const hasContent = seg.observations || seg.quickCapture?.lineType || (seg.quickCapture?.points && seg.quickCapture.points.some(p => p.description));
                         
                         return risk && (
                           <div key={seg.id} style={{background: 'white', padding: '16px', borderRadius: '8px', marginBottom: '12px', border: `2px solid ${risk.color}`, borderLeft: `6px solid ${risk.color}`}}>
@@ -571,6 +568,15 @@ const LMHRiskForm = () => {
                                 Class {risk.class}<br/>{risk.level}
                               </div>
                             </div>
+                            
+                            {seg.quickCapture?.lineType && (
+                              <div style={{marginTop: '12px', padding: '12px', background: '#f0f4ff', borderRadius: '6px', borderLeft: '3px solid #5c6bc0'}}>
+                                <div style={{fontSize: '11px', fontWeight: 'bold', color: '#3f51b5', marginBottom: '6px'}}>QUICKCAPTURE LINE</div>
+                                <div style={{fontSize: '13px', color: '#555'}}>
+                                  {seg.quickCapture.lineType} ({seg.quickCapture.lineRange || `KM ${seg.startKm}-${seg.endKm}`})
+                                </div>
+                              </div>
+                            )}
                             
                             {seg.observations && (
                               <div style={{marginTop: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '6px', borderLeft: '3px solid #2196f3'}}>
@@ -624,6 +630,15 @@ const LMHRiskForm = () => {
                               <div style={{fontSize: '24px', fontWeight: 'bold', color: '#9c27b0'}}>{risk.class}</div>
                             </div>
                           </div>
+
+                          {entireRoad.quickCapture?.lineType && (
+                            <div style={{padding: '12px', background: '#f0f4ff', borderRadius: '6px', borderLeft: '3px solid #5c6bc0', marginBottom: '12px'}}>
+                              <div style={{fontSize: '11px', fontWeight: 'bold', color: '#3f51b5', marginBottom: '6px'}}>QUICKCAPTURE LINE</div>
+                              <div style={{fontSize: '13px', color: '#555'}}>
+                                {entireRoad.quickCapture.lineType} (KM {roadInfo.startKm}-{roadInfo.endKm})
+                              </div>
+                            </div>
+                          )}
 
                           {entireRoad.observations && (
                             <div style={{padding: '12px', background: '#f9f9f9', borderRadius: '6px', borderLeft: '3px solid #2196f3', marginBottom: '12px'}}>
@@ -815,14 +830,14 @@ const LMHRiskForm = () => {
                   <div style={{fontSize: '32px'}}>⚠️</div>
                   <div>
                     <div style={{fontWeight: 'bold', color: '#f57c00', marginBottom: '6px', fontSize: '15px'}}>
-                      Section 11 Reporting Reminder
+                      Section 11 Compliance Reminder (WSA)
                     </div>
                     <div style={{fontSize: '13px', color: '#555', lineHeight: '1.6'}}>
                       <strong>Culvert replacement/installation detected in this assessment.</strong>
                       <div style={{marginTop: '8px'}}>
                         If replacing or installing <strong>stream crossings or NCD (Non-Classified Drain) culverts</strong>, 
                         you must schedule a <strong>Planned Maintenance Event in LRM</strong> to meet Section 11 
-                        notification requirements under FRPA.
+                        notification requirements under the <strong>Water Sustainability Act (WSA)</strong>.
                       </div>
                       <div style={{marginTop: '8px', paddingLeft: '12px', borderLeft: '3px solid #ff9800'}}>
                         <strong>Action Required:</strong> Create planned maintenance event in LRM for any culvert work 
