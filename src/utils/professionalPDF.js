@@ -169,7 +169,7 @@ export async function generateProfessionalPDF(assessment) {
         // QuickCapture
         if (seg.quickCapture?.lineType || (seg.quickCapture?.points && seg.quickCapture.points.length > 0)) {
           doc.setFont(undefined, 'bold');
-          doc.text('QuickCapture Field Data:', 20, yPos);
+          doc.text('QuickCapture Reference Lines/Points:', 20, yPos);
           yPos += 5;
           doc.setFont(undefined, 'normal');
           
@@ -258,7 +258,7 @@ export async function generateProfessionalPDF(assessment) {
         doc.setTextColor(...mosaicGreen);
         doc.setFontSize(12);
         doc.setFont(undefined, 'bold');
-        doc.text('QUICKCAPTURE FIELD DATA', 15, yPos);
+        doc.text('QUICKCAPTURE REFERENCE LINES/POINTS', 15, yPos);
         yPos += 2;
         doc.setDrawColor(224, 224, 224);
         doc.line(15, yPos, 195, yPos);
@@ -449,7 +449,7 @@ export async function generateProfessionalPDF(assessment) {
       }
     }
 
-    // Section 11 Notice (if culvert work detected)
+    // Section 11 Notice (WSA requirement, if culvert work detected)
     const hasCulvertWork = inspectionReport.actionItems?.toLowerCase().includes('culvert') ||
                           (useSegments && segments.some(s => s.quickCapture?.points?.some(p => 
                             p.featureType?.toLowerCase().includes('install culvert') || 
@@ -466,19 +466,19 @@ export async function generateProfessionalPDF(assessment) {
 
       doc.setFillColor(255, 243, 224);
       doc.setDrawColor(...orange);
-      doc.roundedRect(15, yPos, 180, 35, 2, 2, 'FD');
+      doc.roundedRect(15, yPos, 180, 40, 2, 2, 'FD');
       
       yPos += 6;
       doc.setTextColor(...orange);
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
-      doc.text('⚠ SECTION 11 COMPLIANCE NOTICE', 20, yPos);
+      doc.text('⚠ SECTION 11 COMPLIANCE NOTICE (WSA)', 20, yPos);
       
       yPos += 6;
       doc.setTextColor(...darkGray);
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
-      const notice = 'Culvert replacement/installation work identified in this assessment. A Planned Maintenance Event must be scheduled in LRM for Section 11 notification requirements under FRPA before commencing work on stream crossings or NCD culverts.';
+      const notice = 'Culvert replacement/installation work identified in this assessment. A Planned Maintenance Event must be scheduled in LRM for Section 11 notification requirements under the Water Sustainability Act (WSA) before commencing work on stream crossings or NCD culverts.';
       const noticeLines = doc.splitTextToSize(notice, 170);
       doc.text(noticeLines, 20, yPos);
       yPos += noticeLines.length * 4 + 10;
@@ -492,7 +492,7 @@ export async function generateProfessionalPDF(assessment) {
       doc.rect(0, 270, 220, 27, 'F');
       doc.setTextColor(120, 120, 120);
       doc.setFontSize(8);
-      doc.text('Road Risk Assessment v2.7.0 - EGBC Inspection Compliance', 105, 278, { align: 'center' });
+      doc.text('Road Risk Assessment v2.7.0 - EGBC/FPBC Compliant', 105, 278, { align: 'center' });
       doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, 283, { align: 'center' });
       doc.text('Mosaic Forest Management', 105, 288, { align: 'center' });
       doc.text(`Page ${i} of ${pageCount}`, 195, 288, { align: 'right' });
