@@ -1,7 +1,7 @@
-// src/pages/LMHRiskForm.js - Revert to stable version, will add edit mode separately
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { saveAssessmentDB } from '../utils/db';
+// src/pages/LMHRiskForm.js - Add edit mode with proper loading
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { saveAssessmentDB, getAssessmentDB } from '../utils/db';
 import RiskSegmentCard from '../components/RiskSegmentCard';
 import LMHRiskMatrix from '../components/LMHRiskMatrix';
 import LikelihoodGuidance from '../components/LikelihoodGuidance';
@@ -11,10 +11,14 @@ import '../styles/enhanced-form.css';
 
 const LMHRiskForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [useSegments, setUseSegments] = useState(false);
   const [showFrameworks, setShowFrameworks] = useState({ likelihood: false, consequence: false, matrix: false });
+  const [editMode, setEditMode] = useState(false);
+  const [assessmentId, setAssessmentId] = useState(null);
 
   const [roadInfo, setRoadInfo] = useState({
     roadName: '', startKm: '', endKm: '',
@@ -37,6 +41,58 @@ const LMHRiskForm = () => {
     inspectionFrequency: '',
     inspectorDesignation: ''
   });
+
+  // Load existing assessment if editing
+  useEffect(() => {
+    const loadAssessment = async () => {
+      if (location.state?.assessmentId) {
+        setIsLoading(true);
+        try {
+          const existing = await getAssessmentDB(location.state.assessmentId);
+          if (existing && existing.data) {
+            setEditMode(true);
+            setAssessmentId(location.state.assessmentId);
+            
+            const data = existing.data;
+            setRoadInfo(data.basicInfo || roadInfo);
+            setUseSegments(data.useSegments || false);
+            
+            if (data.useSegments) {
+              setSegments(data.segments || []);
+            } else {
+              setEntireRoad({
+                likelihood: data.likelihood || '',
+                consequence: data.consequence || '',
+                observations: data.observations || '',
+                quickCapture: data.quickCapture || { lineType: '', points: [] }
+              });
+            }
+            
+            setInspectionReport(data.inspectionReport || {
+              actionItems: '',
+              requiresSpecialist: false,
+              specialistNotes: '',
+              nextInspectionDate: '',
+              inspectionFrequency: '',
+              inspectorDesignation: ''
+            });
+            
+            if (data.fieldNotes) {
+              localStorage.setItem('currentFieldNotes', JSON.stringify(data.fieldNotes));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading assessment:', error);
+          alert('Error loading assessment for editing');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadAssessment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.assessmentId]);
 
   // Auto-calculate inspection date when frequency changes
   const handleFrequencyChange = (frequency) => {
@@ -172,35 +228,31 @@ const LMHRiskForm = () => {
     try {
       const fieldNotes = JSON.parse(localStorage.getItem('currentFieldNotes') || '{}');
       
+      const assessmentData = {
+        basicInfo: roadInfo,
+        riskMethod: useSegments ? 'LMH-Multi' : 'LMH',
+        useSegments: useSegments,
+        inspectionReport: inspectionReport,
+        fieldNotes
+      };
+
       if (useSegments) {
-        await saveAssessmentDB({
-          basicInfo: roadInfo,
-          riskMethod: 'LMH-Multi',
-          useSegments: true,
-          segments: segments,
-          inspectionReport: inspectionReport,
-          fieldNotes,
-          summary: getSegmentStats()
-        });
+        assessmentData.segments = segments;
+        assessmentData.summary = getSegmentStats();
       } else {
         const risk = getRiskMatrix(entireRoad.likelihood, entireRoad.consequence);
-        await saveAssessmentDB({
-          basicInfo: roadInfo,
-          riskMethod: 'LMH',
-          useSegments: false,
-          likelihood: entireRoad.likelihood,
-          consequence: entireRoad.consequence,
-          riskAssessment: { ...risk, method: 'LMH', riskLevel: risk?.level, riskClass: risk?.class },
-          quickCapture: entireRoad.quickCapture,
-          observations: entireRoad.observations,
-          inspectionReport: inspectionReport,
-          fieldNotes,
-          riskScore: `${entireRoad.likelihood}/${entireRoad.consequence}`,
-          riskCategory: risk?.level
-        });
+        assessmentData.likelihood = entireRoad.likelihood;
+        assessmentData.consequence = entireRoad.consequence;
+        assessmentData.riskAssessment = { ...risk, method: 'LMH', riskLevel: risk?.level, riskClass: risk?.class };
+        assessmentData.quickCapture = entireRoad.quickCapture;
+        assessmentData.observations = entireRoad.observations;
+        assessmentData.riskScore = `${entireRoad.likelihood}/${entireRoad.consequence}`;
+        assessmentData.riskCategory = risk?.level;
       }
+
+      await saveAssessmentDB(assessmentData, assessmentId);
       
-      alert('Assessment saved!');
+      alert(editMode ? 'Assessment updated!' : 'Assessment saved!');
       setTimeout(() => navigate('/history'), 1000);
     } catch (error) {
       alert('Error: ' + error.message);
@@ -216,13 +268,45 @@ const LMHRiskForm = () => {
     { id: 'results', title: 'Summary', icon: '📊' }
   ];
 
+  if (isLoading) {
+    return (
+      <div style={{padding: '60px', textAlign: 'center'}}>
+        <div style={{fontSize: '64px', marginBottom: '16px'}}>⏳</div>
+        <h2 style={{color: '#666'}}>Loading assessment...</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="road-risk-form">
       <div className="form-header">
         <h1>⚖️ LMH Risk Assessment</h1>
-        <p>Assess entire road or identify risk segments</p>
+        <p>{editMode ? '✏️ Editing existing assessment' : 'Assess entire road or identify risk segments'}</p>
         <button onClick={() => navigate('/')} className="back-button">← Back</button>
       </div>
+
+      {editMode && (
+        <div style={{
+          background: '#e3f2fd', 
+          padding: '16px', 
+          borderRadius: '8px', 
+          margin: '0 20px 20px 20px',
+          border: '2px solid #2196f3',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <div style={{fontSize: '32px'}}>✏️</div>
+          <div>
+            <div style={{fontWeight: 'bold', color: '#1976d2', marginBottom: '4px'}}>
+              Edit Mode
+            </div>
+            <div style={{fontSize: '14px', color: '#555'}}>
+              Updating existing assessment. Changes will be saved to the same record.
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="section-navigation">
         {sections.map(s => (
@@ -752,7 +836,7 @@ const LMHRiskForm = () => {
 
             <div style={{textAlign: 'center', marginTop: '32px'}}>
               <button onClick={handleSave} disabled={isSaving} style={{background: 'linear-gradient(135deg, #2e7d32, #66bb6a)', color: 'white', border: 'none', padding: '18px 56px', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1, boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)'}}>
-                {isSaving ? '💾 Saving...' : '💾 Save Assessment'}
+                {isSaving ? '💾 Saving...' : (editMode ? '💾 Update Assessment' : '💾 Save Assessment')}
               </button>
             </div>
           </div>
