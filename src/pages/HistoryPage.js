@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { exportToProfessionalPDF } from '../utils/professionalPDF';
 import { loadAssessmentsDB, migrateFromLocalStorage } from '../utils/db';
 
 function HistoryPage() {
+  const navigate = useNavigate();
   const [assessmentHistory, setAssessmentHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -73,6 +74,16 @@ function HistoryPage() {
       level: riskLevel,
       color: colorMap[riskLevel] || '#666'
     };
+  };
+
+  const handleEditAssessment = (assessment) => {
+    const method = assessment.riskMethod || assessment.data?.riskMethod;
+    
+    if (method === 'LMH' || method === 'LMH-Multi') {
+      navigate('/lmh-risk', { state: { assessmentId: assessment.id } });
+    } else {
+      navigate('/road-risk', { state: { assessmentId: assessment.id } });
+    }
   };
   
   const handleViewAssessment = (assessment) => {
@@ -174,12 +185,12 @@ function HistoryPage() {
                     <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
                       <span style={{
                         fontSize: '0.85rem',
-                        backgroundColor: method === 'LMH' ? '#e1bee7' : '#e6f7ff',
-                        color: method === 'LMH' ? '#6a1b9a' : '#0066cc',
+                        backgroundColor: method === 'LMH' || method === 'LMH-Multi' ? '#e1bee7' : '#e6f7ff',
+                        color: method === 'LMH' || method === 'LMH-Multi' ? '#6a1b9a' : '#0066cc',
                         padding: '3px 10px',
                         borderRadius: '4px'
                       }}>
-                        {method === 'LMH' ? '⚖️ LMH' : '🔬 Scorecard'}
+                        {method === 'LMH' || method === 'LMH-Multi' ? '⚖️ LMH' : '🔬 Scorecard'}
                       </span>
                       
                       {riskLevel && (
@@ -211,7 +222,21 @@ function HistoryPage() {
                   📍 {getLocationInfo(assessment)}
                 </div>
                 
-                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px'}}>
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap'}}>
+                  <button 
+                    onClick={() => handleEditAssessment(assessment)}
+                    style={{
+                      backgroundColor: '#2196f3',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
                   <button 
                     onClick={() => handleExportPDF(assessment)}
                     style={{
@@ -224,7 +249,7 @@ function HistoryPage() {
                       fontWeight: 'bold'
                     }}
                   >
-                    📄 Download PDF
+                    📄 PDF
                   </button>
                   <button 
                     onClick={() => handleViewAssessment(assessment)}
