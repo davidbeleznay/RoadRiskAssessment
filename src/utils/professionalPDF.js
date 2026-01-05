@@ -1,5 +1,5 @@
 // src/utils/professionalPDF.js
-// Enhanced PDF with inspection report section
+// Fix: Show ALL points in PDF, not just first one
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -166,7 +166,7 @@ export async function generateProfessionalPDF(assessment) {
         doc.text(`Assessment: ${seg.likelihood || '?'} × ${seg.consequence || '?'}`, 20, yPos);
         yPos += 8;
 
-        // QuickCapture
+        // QuickCapture - FIXED to show all points
         if (seg.quickCapture?.lineType || (seg.quickCapture?.points && seg.quickCapture.points.length > 0)) {
           doc.setFont(undefined, 'bold');
           doc.text('QuickCapture Reference Lines/Points:', 20, yPos);
@@ -180,24 +180,34 @@ export async function generateProfessionalPDF(assessment) {
 
           if (seg.quickCapture.points && seg.quickCapture.points.length > 0) {
             doc.setFont(undefined, 'bold');
-            doc.text('Point Features:', 20, yPos);
+            doc.text(`Point Features (${seg.quickCapture.points.length} total):`, 20, yPos);
             yPos += 5;
             doc.setFont(undefined, 'normal');
             
-            seg.quickCapture.points.forEach(pt => {
-              if (yPos > 270) {
+            seg.quickCapture.points.forEach((pt, ptIdx) => {
+              // Check pagination BEFORE each point
+              if (yPos > 265) {
                 doc.addPage();
                 yPos = 20;
               }
+              
               doc.text(`  KM ${pt.km || '?'}: ${pt.featureType || 'Unknown'} ${pt.photoTaken ? '[Photo]' : ''}`, 20, yPos);
-              yPos += 4;
+              yPos += 5;  // Increased from 4 to 5
+              
               if (pt.description) {
+                if (yPos > 260) {
+                  doc.addPage();
+                  yPos = 20;
+                }
                 const descLines = doc.splitTextToSize(`     ${pt.description}`, 170);
                 doc.setFont(undefined, 'italic');
                 doc.text(descLines, 20, yPos);
                 doc.setFont(undefined, 'normal');
-                yPos += descLines.length * 4;
+                yPos += descLines.length * 4.5;
               }
+              
+              // Add space between points for readability
+              yPos += 3;
             });
           }
           yPos += 6;
@@ -222,7 +232,7 @@ export async function generateProfessionalPDF(assessment) {
       });
 
     } else {
-      // ENTIRE ROAD
+      // ENTIRE ROAD - FIXED to show all points
       const riskAssessment = data.riskAssessment || {};
       const riskLevel = riskAssessment.riskLevel || data.riskCategory || 'N/A';
       const riskColors = { 'Very High': [244, 67, 54], 'High': [255, 152, 0], 'Moderate': [255, 193, 7], 'Low': [76, 175, 80] };
@@ -253,7 +263,7 @@ export async function generateProfessionalPDF(assessment) {
 
       yPos += 40;
 
-      // QuickCapture
+      // QuickCapture - FIXED
       if (data.quickCapture?.lineType || (data.quickCapture?.points && data.quickCapture.points.length > 0)) {
         doc.setTextColor(...mosaicGreen);
         doc.setFontSize(12);
@@ -270,29 +280,49 @@ export async function generateProfessionalPDF(assessment) {
 
         if (data.quickCapture.lineType) {
           doc.text(`Line: ${data.quickCapture.lineType} (KM ${basicInfo.startKm}-${basicInfo.endKm})`, 15, yPos);
-          yPos += 5;
+          yPos += 6;
         }
 
         if (data.quickCapture.points && data.quickCapture.points.length > 0) {
           doc.setFont(undefined, 'bold');
-          doc.text('Point Features:', 15, yPos);
+          doc.text(`Point Features (${data.quickCapture.points.length} total):`, 15, yPos);
           yPos += 5;
           doc.setFont(undefined, 'normal');
 
-          data.quickCapture.points.forEach(pt => {
-            if (yPos > 270) {
+          data.quickCapture.points.forEach((pt, ptIdx) => {
+            // Check if we need new page BEFORE adding content
+            if (yPos > 265) {
               doc.addPage();
               yPos = 20;
-            }
-            doc.text(`  KM ${pt.km}: ${pt.featureType} ${pt.photoTaken ? '[Photo]' : ''}`, 15, yPos);
-            yPos += 4;
-            if (pt.description) {
-              const desc = doc.splitTextToSize(`     ${pt.description}`, 170);
-              doc.setFont(undefined, 'italic');
-              doc.text(desc, 15, yPos);
+              // Re-add section header on new page
+              doc.setTextColor(...mosaicGreen);
+              doc.setFontSize(10);
+              doc.setFont(undefined, 'bold');
+              doc.text('QUICKCAPTURE REFERENCE (continued):', 15, yPos);
+              yPos += 6;
+              doc.setTextColor(...darkGray);
+              doc.setFontSize(9);
               doc.setFont(undefined, 'normal');
-              yPos += desc.length * 4;
             }
+            
+            doc.text(`  KM ${pt.km || '?'}: ${pt.featureType || 'Unknown'} ${pt.photoTaken ? '[Photo]' : ''}`, 15, yPos);
+            yPos += 5;
+            
+            if (pt.description) {
+              // Check if description will fit
+              if (yPos > 260) {
+                doc.addPage();
+                yPos = 20;
+              }
+              const descLines = doc.splitTextToSize(`     ${pt.description}`, 170);
+              doc.setFont(undefined, 'italic');
+              doc.text(descLines, 15, yPos);
+              doc.setFont(undefined, 'normal');
+              yPos += descLines.length * 4.5;
+            }
+            
+            // Add spacing between points
+            yPos += 3;
           });
         }
         yPos += 8;
@@ -449,7 +479,7 @@ export async function generateProfessionalPDF(assessment) {
       }
     }
 
-    // Section 11 Notice (WSA requirement, if culvert work detected)
+    // Section 11 Notice (WSA requirement)
     const hasCulvertWork = inspectionReport.actionItems?.toLowerCase().includes('culvert') ||
                           (useSegments && segments.some(s => s.quickCapture?.points?.some(p => 
                             p.featureType?.toLowerCase().includes('install culvert') || 
