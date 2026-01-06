@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomeScreen from '../screens/HomeScreen';
 import RoadRiskForm from '../pages/RoadRiskForm';
-import LMHRiskForm from '../pages/LMHRiskForm';
+// Temporarily disabled while fixing encoding issues
+// import LMHRiskForm from '../pages/LMHRiskForm';
 import HistoryPage from '../pages/HistoryPage';
 import Dashboard from '../pages/Dashboard';
 import EnhancedDashboard from '../pages/EnhancedDashboard';
@@ -17,7 +18,9 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<EnhancedDashboard />} />
         <Route path="/dashboard-old" element={<Dashboard />} />
         <Route path="/road-risk" element={<RoadRiskForm />} />
+        {/* Temporarily disabled while fixing encoding 
         <Route path="/lmh-risk" element={<LMHRiskForm />} />
+        */}
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/assessment/:id" element={<AssessmentDetailPage />} />
         <Route path="/references" element={<ProfessionalReferences />} />
