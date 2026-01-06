@@ -1,112 +1,157 @@
 // src/utils/dataExport.js
-// Data export utilities for road risk assessments
+// Enhanced CSV export with full inspection details from IndexedDB
+
+import { loadAssessmentsDB } from './db';
 
 /**
- * Export assessments to JSON format from localStorage
- * @param {Object} options - Export options
- * @returns {Object} - Export data
+ * Export all assessments to comprehensive CSV format
+ * Includes road info, risk assessment, segments, QuickCapture points, observations, and inspection reports
  */
-export function exportToJSON(options = {}) {
+export async function exportToCSV() {
   try {
-    // Get data from localStorage
-    const historyData = localStorage.getItem('assessmentHistory');
-    const inspections = historyData ? JSON.parse(historyData) : [];
+    // Load from IndexedDB instead of localStorage
+    const assessments = await loadAssessmentsDB();
     
-    // Filter to road risk only
-    const roadRiskInspections = inspections.filter(i => i.type === 'roadRisk');
-
-    const exportData = {
-      metadata: {
-        exportDate: new Date().toISOString(),
-        appVersion: '2.0.0',
-        totalInspections: roadRiskInspections.length
-      },
-      inspections: roadRiskInspections
-    };
-
-    return exportData;
-  } catch (error) {
-    console.error('Error exporting to JSON:', error);
-    throw error;
-  }
-}
-
-/**
- * Export assessments to CSV format
- * @returns {string} - CSV string
- */
-export function exportToCSV() {
-  try {
-    // Get data from localStorage
-    const historyData = localStorage.getItem('assessmentHistory');
-    const allInspections = historyData ? JSON.parse(historyData) : [];
-    
-    // Filter to road risk only
-    const inspections = allInspections.filter(i => i.type === 'roadRisk');
-    
-    if (inspections.length === 0) {
-      return 'No assessments to export';
+    if (assessments.length === 0) {
+      throw new Error('No assessments found to export');
     }
 
-    // CSV headers
+    // CSV with comprehensive headers
     const headers = [
       'Road Name',
       'Assessment Date',
-      'Inspector/Assessor',
+      'Assessor',
       'Start KM',
       'End KM',
-      'Hazard Score',
-      'Consequence Score',
-      'Total Risk Score',
-      'Risk Category',
+      'Length (km)',
+      'Method',
+      'Weather',
       'Risk Level',
-      'Priority',
-      'Start Latitude',
-      'Start Longitude',
-      'End Latitude',
-      'End Longitude',
-      'Weather Conditions',
+      'Risk Class',
+      'Likelihood',
+      'Consequence',
+      'Segments',
+      'Segment Details',
+      'QuickCapture Lines',
+      'QuickCapture Points',
+      'Point Descriptions',
+      'Observations',
       'Hazard Notes',
       'Consequence Notes',
       'General Comments',
       'Recommendations',
+      'Priority Actions',
+      'Specialist Required',
+      'Specialist Notes',
+      'Inspection Frequency',
+      'Next Inspection Date',
+      'Inspector Designation',
       'Created Date'
     ];
 
-    // Convert data to rows
-    const rows = inspections.map(inspection => {
-      const data = inspection.data || {};
+    // Convert each assessment to CSV row
+    const rows = assessments.map(assessment => {
+      const data = assessment.data || {};
       const basicInfo = data.basicInfo || {};
       const riskAssessment = data.riskAssessment || {};
       const fieldNotes = data.fieldNotes || {};
+      const inspectionReport = data.inspectionReport || {};
+      const useSegments = data.useSegments || false;
       
-      // Calculate scores
-      const hazardScore = Object.values(data.hazardFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
-      const consequenceScore = Object.values(data.consequenceFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
-      const totalRiskScore = data.riskScore || (hazardScore * consequenceScore);
+      // Calculate length
+      const length = basicInfo.endKm && basicInfo.startKm ? 
+        (parseFloat(basicInfo.endKm) - parseFloat(basicInfo.startKm)).toFixed(1) : '';
       
+      // Segment summary
+      let segmentCount = '';
+      let segmentDetails = '';
+      if (useSegments && data.segments) {
+        segmentCount = data.segments.length;
+        segmentDetails = data.segments.map((seg, idx) => 
+          `Seg${idx+1}: KM${seg.startKm}-${seg.endKm} ${seg.likelihood}×${seg.consequence}`
+        ).join('; ');
+      }
+      
+      // QuickCapture Lines
+      let qcLines = '';
+      if (useSegments && data.segments) {
+        qcLines = data.segments
+          .filter(s => s.quickCapture?.lineType)
+          .map((s, idx) => `Seg${idx+1}: ${s.quickCapture.lineType}`)
+          .join('; ');
+      } else if (data.quickCapture?.lineType) {
+        qcLines = data.quickCapture.lineType;
+      }
+      
+      // QuickCapture Points
+      let qcPoints = '';
+      let pointDescriptions = '';
+      if (useSegments && data.segments) {
+        const allPoints = [];
+        const allDescs = [];
+        data.segments.forEach((seg, idx) => {
+          if (seg.quickCapture?.points) {
+            seg.quickCapture.points.forEach(pt => {
+              allPoints.push(`KM${pt.km}: ${pt.featureType}`);
+              if (pt.description) {
+                allDescs.push(`KM${pt.km}: ${pt.description}`);
+              }
+            });
+          }
+        });
+        qcPoints = allPoints.join('; ');
+        pointDescriptions = allDescs.join('; ');
+      } else if (data.quickCapture?.points) {
+        qcPoints = data.quickCapture.points
+          .map(pt => `KM${pt.km}: ${pt.featureType}`)
+          .join('; ');
+        pointDescriptions = data.quickCapture.points
+          .filter(pt => pt.description)
+          .map(pt => `KM${pt.km}: ${pt.description}`)
+          .join('; ');
+      }
+      
+      // Observations
+      let observations = '';
+      if (useSegments && data.segments) {
+        observations = data.segments
+          .filter(s => s.observations)
+          .map((s, idx) => `Seg${idx+1}: ${s.observations}`)
+          .join('; ');
+      } else if (data.observations) {
+        observations = data.observations;
+      }
+
       return [
-        basicInfo.roadName || 'Untitled',
+        basicInfo.roadName || '',
         basicInfo.assessmentDate || '',
-        basicInfo.assessor || data.assessor || '',
+        basicInfo.assessor || '',
         basicInfo.startKm || '',
         basicInfo.endKm || '',
-        hazardScore,
-        consequenceScore,
-        totalRiskScore,
-        data.riskCategory || riskAssessment.riskLevel || '',
-        riskAssessment.finalRisk || riskAssessment.riskLevel || '',
-        riskAssessment.priority || data.recommendation || '',
-        basicInfo.startGPS?.latitude || '',
-        basicInfo.startGPS?.longitude || '',
-        basicInfo.endGPS?.latitude || '',
-        basicInfo.endGPS?.longitude || '',
+        length,
+        data.riskMethod || 'Scorecard',
         basicInfo.weatherConditions || '',
+        riskAssessment.riskLevel || data.riskCategory || '',
+        riskAssessment.riskClass || '',
+        data.likelihood || '',
+        data.consequence || '',
+        segmentCount,
+        segmentDetails,
+        qcLines,
+        qcPoints,
+        pointDescriptions,
+        observations,
         fieldNotes.hazardObservations || '',
         fieldNotes.consequenceObservations || '',
         fieldNotes.generalComments || '',
         fieldNotes.recommendations || '',
-        inspection.dateCreated || inspection.completedAt || ''
+        inspectionReport.actionItems || '',
+        inspectionReport.requiresSpecialist ? 'Yes' : 'No',
+        inspectionReport.specialistNotes || '',
+        inspectionReport.inspectionFrequency || '',
+        inspectionReport.nextInspectionDate || '',
+        inspectionReport.inspectorDesignation || '',
+        assessment.dateCreated || ''
       ];
     });
 
@@ -115,7 +160,7 @@ export function exportToCSV() {
       headers.join(','),
       ...rows.map(row => row.map(cell => {
         const cellStr = String(cell || '');
-        // Escape commas, quotes, and newlines
+        // Escape quotes, commas, and newlines
         if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
           return `"${cellStr.replace(/"/g, '""')}"`;
         }
@@ -131,122 +176,56 @@ export function exportToCSV() {
 }
 
 /**
- * Download JSON export as file with road name
- * @param {Object} data - Data to export
- * @param {string} roadName - Road name for filename
- */
-export function downloadJSON(data, roadName = null) {
-  const timestamp = new Date().toISOString().split('T')[0];
-  const safeName = roadName ? roadName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'road-risk';
-  const filename = `${safeName}_export_${timestamp}.json`;
-  
-  const jsonString = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-/**
- * Download CSV export as file
- * @param {string} csvContent - CSV string
+ * Download CSV file
  */
 export function downloadCSV(csvContent) {
   const timestamp = new Date().toISOString().split('T')[0];
-  const filename = `road_risk_assessments_${timestamp}.csv`;
+  const filename = `Mosaic_Road_Assessments_${timestamp}.csv`;
   
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-/**
- * Export to GeoJSON format (for GIS integration)
- * @returns {Object} - GeoJSON FeatureCollection
- */
-export function exportToGeoJSON() {
-  try {
-    // Get data from localStorage
-    const historyData = localStorage.getItem('assessmentHistory');
-    const allInspections = historyData ? JSON.parse(historyData) : [];
+  // Add BOM for Excel compatibility
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+  
+  // Mobile and desktop compatible download
+  if (navigator.msSaveBlob) {
+    // IE 10+
+    navigator.msSaveBlob(blob, filename);
+  } else {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
     
-    // Filter to road risk with GPS coordinates
-    const inspections = allInspections.filter(i => 
-      i.type === 'roadRisk' && 
-      i.data?.basicInfo?.startGPS?.latitude
-    );
-
-    const features = inspections.map(inspection => {
-      const data = inspection.data || {};
-      const basicInfo = data.basicInfo || {};
-      const riskAssessment = data.riskAssessment || {};
-      
-      const hazardScore = Object.values(data.hazardFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
-      const consequenceScore = Object.values(data.consequenceFactors || {}).reduce((sum, val) => sum + (val || 0), 0);
-      
-      return {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [
-            parseFloat(basicInfo.startGPS.longitude),
-            parseFloat(basicInfo.startGPS.latitude)
-          ]
-        },
-        properties: {
-          inspectionId: inspection.id,
-          roadName: basicInfo.roadName || 'Untitled',
-          assessmentDate: basicInfo.assessmentDate,
-          inspector: basicInfo.assessor,
-          startKm: basicInfo.startKm,
-          endKm: basicInfo.endKm,
-          hazardScore: hazardScore,
-          consequenceScore: consequenceScore,
-          riskScore: data.riskScore || (hazardScore * consequenceScore),
-          riskCategory: data.riskCategory || riskAssessment.riskLevel,
-          priority: riskAssessment.priority,
-          weatherConditions: basicInfo.weatherConditions,
-          timestamp: inspection.dateCreated
-        }
-      };
-    });
-
-    return {
-      type: 'FeatureCollection',
-      features,
-      metadata: {
-        exportDate: new Date().toISOString(),
-        count: features.length,
-        appVersion: '2.0.0'
-      }
-    };
-  } catch (error) {
-    console.error('Error exporting to GeoJSON:', error);
-    throw error;
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 }
 
-/**
- * Download GeoJSON export as file
- * @param {Object} geoJSON - GeoJSON data
- */
-export function downloadGeoJSON(geoJSON) {
+// Keep these for backwards compatibility but they now use IndexedDB
+export async function exportToJSON() {
+  const assessments = await loadAssessmentsDB();
+  return {
+    metadata: {
+      exportDate: new Date().toISOString(),
+      appVersion: '2.7.0',
+      totalAssessments: assessments.length
+    },
+    assessments: assessments
+  };
+}
+
+export function downloadJSON(data) {
   const timestamp = new Date().toISOString().split('T')[0];
-  const filename = `road_risk_gis_${timestamp}.geojson`;
+  const filename = `Mosaic_Road_Assessments_${timestamp}.json`;
   
-  const jsonString = JSON.stringify(geoJSON, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/geo+json' });
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
