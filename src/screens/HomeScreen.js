@@ -73,11 +73,11 @@ const HomeScreen = () => {
             fontSize: '13px',
             whiteSpace: 'nowrap'
           }}>
-            ✅ v2.7.0
+            ✅ v2.8.0
           </div>
         </div>
         <p style={{fontSize: '13px', color: '#555', lineHeight: '1.4', margin: '8px 0 0 0'}}>
-          EGBC/FPBC inspection-ready with Section 11 compliance - Supplements QuickCapture
+          EGBC/FPBC compliant with CSV export - Edit assessments - Section 11 WSA
         </p>
       </div>
 
@@ -206,7 +206,7 @@ const HomeScreen = () => {
       </div>
       
       <div className="app-footer">
-        <div className="app-version">v2.7.0 - EGBC Inspection Reports + Section 11 Compliance</div>
+        <div className="app-version">v2.8.0 - Full CSV Export + Edit Mode + Section 11 WSA</div>
         <div className="app-copyright">© 2025 Mosaic Forest Management</div>
       </div>
     </div>
