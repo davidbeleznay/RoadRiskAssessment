@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { exportToJSON, exportToCSV, downloadJSON, downloadCSV } from '../utils/dataExport';
+import { exportToCSV, downloadCSV } from '../utils/dataExport';
 import { getAssessmentCountDB } from '../utils/db';
 
 const HomeScreen = () => {
   const navigate = useNavigate();
-  const [showExport, setShowExport] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [stats, setStats] = useState(null);
   
@@ -37,24 +36,16 @@ const HomeScreen = () => {
   const navigateToDashboard = () => navigate('/dashboard');
   const navigateToReferences = () => navigate('/references');
 
-  const handleExport = async (format) => {
+  const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      if (format === 'json') {
-        const data = exportToJSON();
-        downloadJSON(data);
-        alert('✅ Exported to JSON');
-      } else if (format === 'csv') {
-        const csvContent = exportToCSV();
-        downloadCSV(csvContent);
-        alert('✅ Exported to CSV!');
-      }
-      await loadStats();
+      const csvContent = await exportToCSV();
+      downloadCSV(csvContent);
+      alert('✅ Assessment data exported to CSV!\n\nFile includes: road info, segments, points, observations, and inspection reports.');
     } catch (error) {
       alert('❌ Export failed: ' + error.message);
     } finally {
       setIsExporting(false);
-      setShowExport(false);
     }
   };
   
@@ -163,15 +154,21 @@ const HomeScreen = () => {
             <div className="field-card-icon">📋</div>
           </div>
 
-          <div className="field-card success" onClick={() => setShowExport(!showExport)}>
+          <div 
+            className="field-card success" 
+            onClick={handleExportCSV}
+            style={{cursor: isExporting ? 'not-allowed' : 'pointer', opacity: isExporting ? 0.6 : 1}}
+          >
             <div className="field-card-content">
-              <div className="field-card-title">📤 Export Data</div>
+              <div className="field-card-title">
+                {isExporting ? '⏳ Exporting...' : '📊 Export CSV'}
+              </div>
               <div className="field-card-description">
-                Export assessment data
+                Export all assessments to spreadsheet
               </div>
             </div>
             <div className="field-card-icon" style={{fontSize: '48px'}}>
-              {showExport ? '▼' : '📤'}
+              {isExporting ? '⏳' : '📊'}
             </div>
           </div>
 
@@ -207,27 +204,6 @@ const HomeScreen = () => {
           </div>
         </div>
       </div>
-
-      {showExport && (
-        <div style={{
-          background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)',
-          borderRadius: '12px', padding: '24px', marginTop: '20px',
-          boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
-          border: '3px solid #4caf50'
-        }}>
-          <h3 style={{marginTop: 0, color: '#2e7d32'}}>📊 Export Assessment Data</h3>
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px'}}>
-            <button onClick={() => handleExport('json')} disabled={isExporting}
-              style={{background: '#2196f3', color: 'white', border: 'none', padding: '20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'}}>
-              📄 JSON
-            </button>
-            <button onClick={() => handleExport('csv')} disabled={isExporting}
-              style={{background: '#4caf50', color: 'white', border: 'none', padding: '20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'}}>
-              📊 CSV
-            </button>
-          </div>
-        </div>
-      )}
       
       <div className="app-footer">
         <div className="app-version">v2.7.0 - EGBC Inspection Reports + Section 11 Compliance</div>
