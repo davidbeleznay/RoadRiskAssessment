@@ -1,7 +1,7 @@
 {
   "name": "road-risk-assessment",
-  "version": "2.7.0",
-  "description": "Professional road risk assessment tool with EGBC inspection compliance",
+  "version": "2.8.0",
+  "description": "Professional road risk assessment tool with EGBC inspection compliance and CSV export",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
