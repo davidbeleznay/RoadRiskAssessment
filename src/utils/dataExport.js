@@ -5,18 +5,15 @@ import { loadAssessmentsDB } from './db';
 
 /**
  * Export all assessments to comprehensive CSV format
- * Includes road info, risk assessment, segments, QuickCapture points, observations, and inspection reports
  */
 export async function exportToCSV() {
   try {
-    // Load from IndexedDB instead of localStorage
     const assessments = await loadAssessmentsDB();
     
     if (assessments.length === 0) {
       throw new Error('No assessments found to export');
     }
 
-    // CSV with comprehensive headers
     const headers = [
       'Road Name',
       'Assessment Date',
@@ -49,7 +46,6 @@ export async function exportToCSV() {
       'Created Date'
     ];
 
-    // Convert each assessment to CSV row
     const rows = assessments.map(assessment => {
       const data = assessment.data || {};
       const basicInfo = data.basicInfo || {};
@@ -58,21 +54,18 @@ export async function exportToCSV() {
       const inspectionReport = data.inspectionReport || {};
       const useSegments = data.useSegments || false;
       
-      // Calculate length
       const length = basicInfo.endKm && basicInfo.startKm ? 
         (parseFloat(basicInfo.endKm) - parseFloat(basicInfo.startKm)).toFixed(1) : '';
       
-      // Segment summary
       let segmentCount = '';
       let segmentDetails = '';
       if (useSegments && data.segments) {
         segmentCount = data.segments.length;
         segmentDetails = data.segments.map((seg, idx) => 
-          `Seg${idx+1}: KM${seg.startKm}-${seg.endKm} ${seg.likelihood}×${seg.consequence}`
+          `Seg${idx+1}: KM${seg.startKm}-${seg.endKm} ${seg.likelihood}x${seg.consequence}`
         ).join('; ');
       }
       
-      // QuickCapture Lines
       let qcLines = '';
       if (useSegments && data.segments) {
         qcLines = data.segments
@@ -83,7 +76,6 @@ export async function exportToCSV() {
         qcLines = data.quickCapture.lineType;
       }
       
-      // QuickCapture Points
       let qcPoints = '';
       let pointDescriptions = '';
       if (useSegments && data.segments) {
@@ -111,7 +103,6 @@ export async function exportToCSV() {
           .join('; ');
       }
       
-      // Observations
       let observations = '';
       if (useSegments && data.segments) {
         observations = data.segments
@@ -155,12 +146,10 @@ export async function exportToCSV() {
       ];
     });
 
-    // Build CSV string with proper escaping
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => {
         const cellStr = String(cell || '');
-        // Escape quotes, commas, and newlines
         if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
           return `"${cellStr.replace(/"/g, '""')}"`;
         }
@@ -182,13 +171,10 @@ export function downloadCSV(csvContent) {
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `Mosaic_Road_Assessments_${timestamp}.csv`;
   
-  // Add BOM for Excel compatibility
   const BOM = '\uFEFF';
   const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
   
-  // Mobile and desktop compatible download
   if (navigator.msSaveBlob) {
-    // IE 10+
     navigator.msSaveBlob(blob, filename);
   } else {
     const url = URL.createObjectURL(blob);
@@ -199,7 +185,6 @@ export function downloadCSV(csvContent) {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
@@ -207,13 +192,13 @@ export function downloadCSV(csvContent) {
   }
 }
 
-// Keep these for backwards compatibility but they now use IndexedDB
+// Keep these exports that other files might expect
 export async function exportToJSON() {
   const assessments = await loadAssessmentsDB();
   return {
     metadata: {
       exportDate: new Date().toISOString(),
-      appVersion: '2.7.0',
+      appVersion: '2.8.0',
       totalAssessments: assessments.length
     },
     assessments: assessments
@@ -226,6 +211,36 @@ export function downloadJSON(data) {
   
   const jsonString = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Add back exportToGeoJSON that was removed
+export function exportToGeoJSON() {
+  // Placeholder - returns empty for now
+  return {
+    type: 'FeatureCollection',
+    features: [],
+    metadata: {
+      exportDate: new Date().toISOString(),
+      count: 0,
+      appVersion: '2.8.0'
+    }
+  };
+}
+
+export function downloadGeoJSON(geoJSON) {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = `road_risk_gis_${timestamp}.geojson`;
+  
+  const jsonString = JSON.stringify(geoJSON, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/geo+json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
