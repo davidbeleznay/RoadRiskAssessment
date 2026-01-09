@@ -25,12 +25,16 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
         setIsGetting(false);
       },
       (error) => {
-        setError('GPS failed: ' + error.message);
+        let msg = 'GPS failed';
+        if (error.code === 1) msg = 'GPS permission denied';
+        else if (error.code === 2) msg = 'GPS position unavailable';
+        else if (error.code === 3) msg = 'GPS timeout - try again';
+        setError(msg);
         setIsGetting(false);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 30000,
         maximumAge: 0
       }
     );
