@@ -3,19 +3,218 @@ import GPSCapture from './GPSCapture';
 
 const RiskSegmentCard = ({ segment, onUpdate, onDelete, segmentNumber }) => {
   const [showQCPoints, setShowQCPoints] = useState(false);
-  const lineTypes = ["Road Inspection", "High Risk Road", "Moderate Road Risk", "Road Unsafe to Drive", "Brushing", "Capping", "Ditching", "Grading", "Reconstruction", "Seasonal Deactivation", "Roadside Broom", "Light Cut Slope Pullback"];
-  const pointTypes = ["Existing culvert 400", "Existing culvert 500", "Existing culvert 600", "Existing culvert 800", "Existing culvert 1000", "Existing culvert 1200", "Existing culvert 1400", "Existing culvert 1600", "Existing culvert 1800", "Install culvert 400", "Install culvert 500", "Install culvert 600", "Install culvert 800", "Install culvert 1000", "Install culvert 1200", "Install culvert 1400", "Install culvert 1600", "Install culvert 1800", "No Culvert Observed", "Remove Culvert", "Clean Culvert", "Install Water Bar", "Install Water Bar Reversed (into Ditch)", "Install Cross Ditch", "Install Cross Ditch at Culvert as Backup", "Install Ford", "Install French Drain", "Install Swale", "Danger tree", "Gate", "Water flowing across road surface", "Infrastructure or road failures", "Excessive soil rutting", "Excessive discolored water", "Tension cracks or instability signs", "Rockfall", "Other Storm Observations"];
-  const riskMatrix = {'High-High': {class: 5, level: 'Very High', color: '#f44336'}, 'High-Moderate': {class: 4, level: 'High', color: '#ff9800'}, 'High-Low': {class: 3, level: 'Moderate', color: '#ffc107'}, 'High-Very Low': {class: 1, level: 'Low', color: '#8bc34a'}, 'Moderate-High': {class: 4, level: 'High', color: '#ff9800'}, 'Moderate-Moderate': {class: 3, level: 'Moderate', color: '#ffc107'}, 'Moderate-Low': {class: 2, level: 'Moderate', color: '#ffc107'}, 'Moderate-Very Low': {class: 1, level: 'Low', color: '#8bc34a'}, 'Low-High': {class: 3, level: 'Moderate', color: '#ffc107'}, 'Low-Moderate': {class: 2, level: 'Moderate', color: '#ffc107'}, 'Low-Low': {class: 2, level: 'Moderate', color: '#ffc107'}, 'Low-Very Low': {class: 1, level: 'Low', color: '#8bc34a'}, 'Very Low-High': {class: 1, level: 'Low', color: '#8bc34a'}, 'Very Low-Moderate': {class: 1, level: 'Low', color: '#8bc34a'}, 'Very Low-Low': {class: 1, level: 'Low', color: '#8bc34a'}, 'Very Low-Very Low': {class: 1, level: 'Low', color: '#8bc34a'}};
-  const getRisk = () => { if (!segment.likelihood || !segment.consequence) return null; return riskMatrix[`${segment.likelihood}-${segment.consequence}`]; };
+  
+  const lineTypes = ["Road Inspection", "High Risk Road", "Moderate Road Risk", "Low Road Risk", "Road Unsafe to Drive"];
+  const pointTypes = ["Existing culvert", "Install culvert", "Remove Culvert", "Clean Culvert", "Install Water Bar", "Install Cross Ditch", "Danger tree", "Water flowing across road surface", "Infrastructure failure", "Excessive rutting", "Rockfall", "Other"];
+  
+  const riskMatrix = {
+    'High-High': {class: 5, level: 'Very High', color: '#f44336'},
+    'High-Moderate': {class: 4, level: 'High', color: '#ff9800'},
+    'High-Low': {class: 3, level: 'Moderate', color: '#ffc107'},
+    'High-Very Low': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Moderate-High': {class: 4, level: 'High', color: '#ff9800'},
+    'Moderate-Moderate': {class: 3, level: 'Moderate', color: '#ffc107'},
+    'Moderate-Low': {class: 2, level: 'Moderate', color: '#ffc107'},
+    'Moderate-Very Low': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Low-High': {class: 3, level: 'Moderate', color: '#ffc107'},
+    'Low-Moderate': {class: 2, level: 'Moderate', color: '#ffc107'},
+    'Low-Low': {class: 2, level: 'Moderate', color: '#ffc107'},
+    'Low-Very Low': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Very Low-High': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Very Low-Moderate': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Very Low-Low': {class: 1, level: 'Low', color: '#8bc34a'},
+    'Very Low-Very Low': {class: 1, level: 'Low', color: '#8bc34a'}
+  };
+  
+  const getRisk = () => {
+    if (!segment.likelihood || !segment.consequence) return null;
+    return riskMatrix[`${segment.likelihood}-${segment.consequence}`];
+  };
+  
   const risk = getRisk();
   const length = segment.endKm && segment.startKm ? (parseFloat(segment.endKm) - parseFloat(segment.startKm)).toFixed(1) : '0.0';
+  
   const updateSegment = (field, value) => onUpdate({...segment, [field]: value});
   const updateQC = (field, value) => onUpdate({...segment, quickCapture: {...segment.quickCapture, [field]: value}});
-  const addPoint = () => { const newPoint = {km: '', featureType: '', photoTaken: false, description: '', gps: null}; const points = segment.quickCapture?.points || []; updateQC('points', [...points, newPoint]); setShowQCPoints(true); };
-  const updatePoint = (index, field, value) => { const points = [...(segment.quickCapture?.points || [])]; points[index] = {...points[index], [field]: value}; updateQC('points', points); };
-  const deletePoint = (index) => { const points = [...(segment.quickCapture?.points || [])]; points.splice(index, 1); updateQC('points', points); };
+  
+  const addPoint = () => {
+    const newPoint = {km: '', featureType: '', photoTaken: false, description: '', gps: null};
+    const points = segment.quickCapture?.points || [];
+    updateQC('points', [...points, newPoint]);
+    setShowQCPoints(true);
+  };
+  
+  const updatePoint = (index, field, value) => {
+    const points = [...(segment.quickCapture?.points || [])];
+    points[index] = {...points[index], [field]: value};
+    updateQC('points', points);
+  };
+  
+  const deletePoint = (index) => {
+    const points = [...(segment.quickCapture?.points || [])];
+    points.splice(index, 1);
+    updateQC('points', points);
+  };
 
-  return (<div style={{background: 'white', border: `3px solid ${risk?.color || '#ddd'}`, borderRadius: '8px', padding: '20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}><div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px'}}><div><h3 style={{margin: 0, color: risk?.color || '#333'}}>Segment {segmentNumber} {risk && `- ${risk.level.toUpperCase()} RISK (Class ${risk.class})`}</h3><div style={{fontSize: '13px', color: '#666', marginTop: '4px'}}>{length} km • KM {segment.startKm || '?'} - {segment.endKm || '?'}</div></div>{onDelete && (<button onClick={onDelete} style={{background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'}}>🗑️ Delete</button>)}</div><div style={{marginBottom: '16px'}}><div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>📍 Location</div><div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px'}}><div><label style={{fontSize: '12px', color: '#666'}}>Start KM</label><input type="text" value={segment.startKm || ''} onChange={e => updateSegment('startKm', e.target.value)} style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}} placeholder="5.2" /></div><div><label style={{fontSize: '12px', color: '#666'}}>End KM</label><input type="text" value={segment.endKm || ''} onChange={e => updateSegment('endKm', e.target.value)} style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}} placeholder="7.8" /></div><div><label style={{fontSize: '12px', color: '#666'}}>Length</label><input type="text" value={length + ' km'} readOnly style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', background: '#f5f5f5', fontSize: '13px'}} /></div></div></div><div style={{marginBottom: '16px'}}><div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>⚖️ LMH Assessment</div><div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}><div><label style={{fontSize: '12px', color: '#666'}}>Likelihood</label><select value={segment.likelihood || ''} onChange={e => updateSegment('likelihood', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}><option value="">Select...</option>{['High', 'Moderate', 'Low', 'Very Low'].map(l => <option key={l} value={l}>{l}</option>)}</select></div><div><label style={{fontSize: '12px', color: '#666'}}>Consequence</label><select value={segment.consequence || ''} onChange={e => updateSegment('consequence', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}><option value="">Select...</option>{['High', 'Moderate', 'Low', 'Very Low'].map(c => <option key={c} value={c}>{c}</option>)}</select></div></div>{risk && (<div style={{marginTop: '10px', background: risk.color, color: 'white', padding: '12px', borderRadius: '6px', textAlign: 'center', fontWeight: 'bold'}}>Risk Class {risk.class}: {risk.level}</div>)}</div><div style={{marginBottom: '16px'}}><div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>📍 QuickCapture Line</div><div><label style={{fontSize: '12px', color: '#666'}}>Line Type</label><select value={segment.quickCapture?.lineType || ''} onChange={e => updateQC('lineType', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}><option value="">Select QuickCapture line layer...</option>{lineTypes.map(t => <option key={t} value={t}>{t}</option>)}</select></div><div style={{fontSize: '11px', color: '#666', marginTop: '6px', fontStyle: 'italic'}}>Note: Photos are captured at point features</div></div><div style={{marginBottom: '16px'}}><div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}><div style={{fontWeight: 'bold', fontSize: '14px'}}>📌 Point Features ({(segment.quickCapture?.points || []).length})</div><button onClick={() => setShowQCPoints(!showQCPoints)} style={{background: '#2196f3', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'}}>{showQCPoints ? '▼ Hide' : '▶ Show'}</button></div>{showQCPoints && (<div style={{background: '#f9f9f9', padding: '12px', borderRadius: '6px'}}>{(segment.quickCapture?.points || []).map((point, idx) => (<div key={idx} style={{background: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px', border: '2px solid #e0e0e0'}}><div style={{display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'flex-end'}}><div style={{flex: '0 0 100px'}}><label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>KM</label><input type="text" value={point.km || ''} onChange={e => updatePoint(idx, 'km', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '2px solid #2196f3', fontSize: '14px', fontWeight: 'bold'}} placeholder="5.4" /></div><GPSCapture label="GPS" small={true} onCapture={gps => { updatePoint(idx, 'gps', gps); if (!point.km) { const kmInput = window.prompt('Enter KM for this GPS location:', ''); if (kmInput) updatePoint(idx, 'km', kmInput); } }} /></div>{point.gps && (<div style={{fontSize: '11px', color: '#4caf50', marginBottom: '10px', padding: '8px', background: '#e8f5e9', borderRadius: '4px', border: '1px solid #4caf50'}}><div style={{display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px'}}><span>📍</span><span style={{fontWeight: 'bold'}}>{point.gps.latitude.toFixed(6)}, {point.gps.longitude.toFixed(6)}</span></div><div style={{fontSize: '10px', opacity: 0.8'}}>Accuracy: ±{Math.round(point.gps.accuracy)}m • {new Date(point.gps.timestamp).toLocaleTimeString()}</div></div>)}<div style={{marginBottom: '10px'}}><label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px'}}>Feature Type</label><select value={point.featureType || ''} onChange={e => updatePoint(idx, 'featureType', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}}><option value="">Select feature type...</option>{pointTypes.map(t => <option key={t} value={t}>{t}</option>)}</select></div><div style={{marginBottom: '10px'}}><label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer'}}><input type="checkbox" checked={point.photoTaken || false} onChange={e => updatePoint(idx, 'photoTaken', e.target.checked)} /><span style={{fontSize: '13px', fontWeight: '600'}}>📷 Photo Taken</span></label></div><div><label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px'}}>Description (what photo shows)</label><textarea value={point.description || ''} onChange={e => updatePoint(idx, 'description', e.target.value)} rows={3} placeholder="Describe condition, issue, or what photo shows..." style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}} /></div><button onClick={() => deletePoint(idx)} style={{marginTop: '10px', background: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'}}>🗑️ Delete Point</button></div>))}<button onClick={addPoint} style={{background: '#4caf50', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', width: '100%', marginTop: '8px'}}>+ Add Point Feature</button></div>)}</div><div><label style={{fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '6px'}}>📝 Observations</label><textarea value={segment.observations || ''} onChange={e => updateSegment('observations', e.target.value)} rows={4} placeholder="Describe terrain, drainage, soils, hazards observed in this segment..." style={{width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px'}} /></div></div>);
+  return (
+    <div style={{
+      background: 'white',
+      border: `3px solid ${risk?.color || '#ddd'}`,
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '20px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px'}}>
+        <div>
+          <h3 style={{margin: 0, color: risk?.color || '#333'}}>
+            Segment {segmentNumber} {risk && `- ${risk.level.toUpperCase()} RISK (Class ${risk.class})`}
+          </h3>
+          <div style={{fontSize: '13px', color: '#666', marginTop: '4px'}}>
+            {length} km • KM {segment.startKm || '?'} - {segment.endKm || '?'}
+          </div>
+        </div>
+        {onDelete && (
+          <button onClick={onDelete} style={{
+            background: '#dc3545',
+            color: 'white',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px'
+          }}>
+            Delete
+          </button>
+        )}
+      </div>
+
+      <div style={{marginBottom: '16px'}}>
+        <div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>Location</div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px'}}>
+          <div>
+            <label style={{fontSize: '12px', color: '#666'}}>Start KM</label>
+            <input type="text" value={segment.startKm || ''} onChange={e => updateSegment('startKm', e.target.value)} style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd'}} placeholder="5.2" />
+          </div>
+          <div>
+            <label style={{fontSize: '12px', color: '#666'}}>End KM</label>
+            <input type="text" value={segment.endKm || ''} onChange={e => updateSegment('endKm', e.target.value)} style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd'}} placeholder="7.8" />
+          </div>
+          <div>
+            <label style={{fontSize: '12px', color: '#666'}}>Length</label>
+            <input type="text" value={length + ' km'} readOnly style={{width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ddd', background: '#f5f5f5'}} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{marginBottom: '16px'}}>
+        <div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>LMH Assessment</div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+          <div>
+            <label style={{fontSize: '12px', color: '#666'}}>Likelihood</label>
+            <select value={segment.likelihood || ''} onChange={e => updateSegment('likelihood', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}>
+              <option value="">Select...</option>
+              {['High', 'Moderate', 'Low', 'Very Low'].map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{fontSize: '12px', color: '#666'}}>Consequence</label>
+            <select value={segment.consequence || ''} onChange={e => updateSegment('consequence', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}>
+              <option value="">Select...</option>
+              {['High', 'Moderate', 'Low', 'Very Low'].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+        {risk && (
+          <div style={{
+            marginTop: '10px',
+            background: risk.color,
+            color: 'white',
+            padding: '12px',
+            borderRadius: '6px',
+            textAlign: 'center',
+            fontWeight: 'bold'
+          }}>
+            Risk Class {risk.class}: {risk.level}
+          </div>
+        )}
+      </div>
+
+      <div style={{marginBottom: '16px'}}>
+        <div style={{fontWeight: 'bold', marginBottom: '6px', fontSize: '14px'}}>QuickCapture Line</div>
+        <select value={segment.quickCapture?.lineType || ''} onChange={e => updateQC('lineType', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}>
+          <option value="">Select line type...</option>
+          {lineTypes.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+
+      <div style={{marginBottom: '16px'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+          <div style={{fontWeight: 'bold', fontSize: '14px'}}>
+            Point Features ({(segment.quickCapture?.points || []).length})
+          </div>
+          <button onClick={() => setShowQCPoints(!showQCPoints)} style={{background: '#2196f3', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'}}>
+            {showQCPoints ? 'Hide' : 'Show'}
+          </button>
+        </div>
+        
+        {showQCPoints && (
+          <div style={{background: '#f9f9f9', padding: '12px', borderRadius: '6px'}}>
+            {(segment.quickCapture?.points || []).map((point, idx) => (
+              <div key={idx} style={{background: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px', border: '2px solid #e0e0e0'}}>
+                <div style={{display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'flex-end'}}>
+                  <div style={{flex: '0 0 100px'}}>
+                    <label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px', fontWeight: 'bold'}}>KM</label>
+                    <input type="text" value={point.km || ''} onChange={e => updatePoint(idx, 'km', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '2px solid #2196f3', fontSize: '14px', fontWeight: 'bold'}} placeholder="5.4" />
+                  </div>
+                  <GPSCapture label="GPS" small={true} onCapture={gps => { updatePoint(idx, 'gps', gps); if (!point.km) { const kmInput = window.prompt('Enter KM for this GPS location:', ''); if (kmInput) updatePoint(idx, 'km', kmInput); } }} />
+                </div>
+
+                {point.gps && (
+                  <div style={{fontSize: '11px', color: '#4caf50', marginBottom: '10px', padding: '8px', background: '#e8f5e9', borderRadius: '4px', border: '1px solid #4caf50'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px'}}>
+                      <span>GPS:</span>
+                      <span style={{fontWeight: 'bold'}}>{point.gps.latitude.toFixed(6)}, {point.gps.longitude.toFixed(6)}</span>
+                    </div>
+                    <div style={{fontSize: '10px', opacity: 0.8}}>Accuracy: ±{Math.round(point.gps.accuracy)}m</div>
+                  </div>
+                )}
+
+                <div style={{marginBottom: '10px'}}>
+                  <label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px'}}>Feature Type</label>
+                  <select value={point.featureType || ''} onChange={e => updatePoint(idx, 'featureType', e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}>
+                    <option value="">Select...</option>
+                    {pointTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+
+                <div style={{marginBottom: '10px'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer'}}>
+                    <input type="checkbox" checked={point.photoTaken || false} onChange={e => updatePoint(idx, 'photoTaken', e.target.checked)} />
+                    <span style={{fontSize: '13px', fontWeight: '600'}}>Photo Taken</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{fontSize: '11px', color: '#666', display: 'block', marginBottom: '4px'}}>Description</label>
+                  <textarea value={point.description || ''} onChange={e => updatePoint(idx, 'description', e.target.value)} rows={3} placeholder="Describe condition or what photo shows..." style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}} />
+                </div>
+
+                <button onClick={() => deletePoint(idx)} style={{marginTop: '10px', background: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'}}>Delete Point</button>
+              </div>
+            ))}
+            
+            <button onClick={addPoint} style={{background: '#4caf50', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', width: '100%', marginTop: '8px'}}>+ Add Point Feature</button>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label style={{fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '6px'}}>Observations</label>
+        <textarea value={segment.observations || ''} onChange={e => updateSegment('observations', e.target.value)} rows={4} placeholder="Describe terrain, drainage, soils, hazards..." style={{width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd'}} />
+      </div>
+    </div>
+  );
 };
 
 export default RiskSegmentCard;
