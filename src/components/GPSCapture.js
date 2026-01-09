@@ -3,19 +3,21 @@ import React, { useState } from 'react';
 const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
   const [isGetting, setIsGetting] = useState(false);
   const [error, setError] = useState(null);
-  const [attempt, setAttempt] = useState(0);
 
   const captureGPS = () => {
     if (!navigator.geolocation) {
-      setError('GPS not supported on this device');
+      alert('GPS not available on this device');
       return;
     }
 
     setIsGetting(true);
     setError(null);
-    setAttempt(attempt + 1);
 
-    const timeout = attempt === 0 ? 30000 : 60000;
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 45000,
+      maximumAge: 0
+    };
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -27,25 +29,25 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
         };
         onCapture(gpsData);
         setIsGetting(false);
-        setAttempt(0);
+        setError(null);
       },
-      (error) => {
-        let msg = 'GPS failed';
-        if (error.code === 1) {
-          msg = 'GPS permission denied. Enable location in browser settings.';
-        } else if (error.code === 2) {
-          msg = 'GPS unavailable. Move to open area with clear sky view.';
-        } else if (error.code === 3) {
-          msg = attempt === 0 ? 'GPS timeout. Click again to retry with 60s timeout.' : 'GPS timeout again. Try moving to better location.';
-        }
-        setError(msg);
+      (err) => {
         setIsGetting(false);
+        if (err.code === 1) {
+          alert('GPS Permission Denied!\n\nGo to browser settings and enable location permissions for this site.');
+          setError('Permission denied');
+        } else if (err.code === 2) {
+          alert('GPS Position Unavailable!\n\nMake sure you are outdoors with clear view of sky. GPS may not work indoors.');
+          setError('Position unavailable');
+        } else if (err.code === 3) {
+          alert('GPS Timeout!\n\nStill searching after 45 seconds. Try:\n1. Move outdoors\n2. Wait a moment and try again\n3. Restart your browser\n\nOr enter coordinates manually.');
+          setError('Timeout - try again');
+        } else {
+          alert('GPS Error: ' + err.message);
+          setError('GPS failed');
+        }
       },
-      {
-        enableHighAccuracy: true,
-        timeout: timeout,
-        maximumAge: 0
-      }
+      options
     );
   };
 
@@ -56,50 +58,32 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
         onClick={captureGPS}
         disabled={isGetting}
         style={{
-          background: isGetting ? '#ff9800' : 'linear-gradient(135deg, #4caf50, #66bb6a)',
+          background: isGetting ? '#ff9800' : '#4caf50',
           color: 'white',
           border: 'none',
-          padding: small ? '8px 12px' : '12px 16px',
+          padding: small ? '10px 14px' : '12px 20px',
           borderRadius: '6px',
           cursor: isGetting ? 'not-allowed' : 'pointer',
-          fontSize: small ? '12px' : '14px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          minWidth: small ? '90px' : '120px',
-          boxShadow: '0 2px 6px rgba(76, 175, 80, 0.3)'
+          fontSize: small ? '13px' : '15px',
+          fontWeight: 'bold',
+          minWidth: small ? '100px' : '130px',
+          boxShadow: '0 2px 8px rgba(76, 175, 80, 0.4)'
         }}
       >
-        <span>{isGetting ? '📡' : '📍'}</span>
-        <span>{isGetting ? (attempt > 0 ? 'Waiting...' : 'Getting...') : label}</span>
+        {isGetting ? '📡 Getting GPS...' : `📍 ${label}`}
       </button>
-      {error && (
-        <div style={{
-          fontSize: '11px',
-          color: '#d32f2f',
-          marginTop: '6px',
-          padding: '6px 8px',
-          background: '#ffebee',
-          borderRadius: '4px',
-          border: '1px solid #ef5350',
-          lineHeight: '1.4'
-        }}>
-          {error}
-        </div>
-      )}
       {isGetting && (
         <div style={{
-          fontSize: '11px',
+          fontSize: '12px',
           color: '#f57c00',
-          marginTop: '6px',
-          padding: '6px 8px',
+          marginTop: '8px',
+          padding: '8px',
           background: '#fff3e0',
           borderRadius: '4px',
-          fontStyle: 'italic'
+          fontWeight: '500'
         }}>
-          {attempt === 0 ? 'Acquiring GPS signal... (up to 30s)' : 'Trying longer timeout... (up to 60s)'}
+          Searching for GPS signal... (up to 45 seconds)
+          <div style={{fontSize: '11px', marginTop: '4px', opacity: 0.8}}>Make sure location is enabled and you're outdoors</div>
         </div>
       )}
     </div>
