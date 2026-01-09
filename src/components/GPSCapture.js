@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
   const [isGetting, setIsGetting] = useState(false);
@@ -7,6 +7,12 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
   const watchIdRef = useRef(null);
   const timerRef = useRef(null);
   const countRef = useRef(null);
+  const startTimeRef = useRef(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cleanup();
+  }, []);
 
   const cleanup = () => {
     if (watchIdRef.current !== null) {
@@ -31,21 +37,17 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
 
     cleanup();
     setIsGetting(true);
-    setStatus('Requesting location permission...');
+    setStatus('Requesting location...');
     setSecondsElapsed(0);
+    startTimeRef.current = Date.now();
 
     // Start countdown timer
     countRef.current = setInterval(() => {
-      setSecondsElapsed(prev => prev + 1);
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setSecondsElapsed(elapsed);
     }, 1000);
 
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 60000,
-      maximumAge: 0
-    };
-
-    // Success handler
+    // Success handler - accept FIRST position we get
     const onSuccess = (position) => {
       cleanup();
       const gpsData = {
@@ -55,6 +57,7 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
         altitude: position.coords.altitude,
         timestamp: new Date().toISOString()
       };
+      console.log('GPS captured:', gpsData);
       onCapture(gpsData);
       setIsGetting(false);
       setStatus('');
@@ -63,60 +66,75 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
 
     // Error handler
     const onError = (err) => {
+      console.log('GPS error:', err.code, err.message);
       cleanup();
       setIsGetting(false);
       setSecondsElapsed(0);
       
       if (err.code === 1) {
         setStatus('Permission denied');
-        alert('📍 GPS Permission Denied!\n\nTo enable:\n• iOS: Settings → Safari → Location → Allow\n• Android: Tap lock icon in browser → Site settings → Location → Allow\n\nThen refresh the page and try again.');
+        alert('📍 Location Permission Denied!\n\nPlease enable location access:\n• Check browser address bar for location icon\n• Or go to browser Settings → Site Settings → Location\n\nThen refresh and try again.');
       } else if (err.code === 2) {
         setStatus('Position unavailable');
-        alert('📍 GPS Position Unavailable!\n\nTry these steps:\n1. Go OUTSIDE with clear sky view\n2. Wait 10 seconds, try again\n3. Toggle Airplane mode on/off\n4. Restart browser\n\nGPS works best outdoors away from buildings.');
+        alert('📍 Position Unavailable\n\nYour device couldn\'t determine location.\n\nTry:\n1. Enable WiFi (helps indoor positioning)\n2. Move near a window\n3. Try again in a moment');
       } else if (err.code === 3) {
-        setStatus('Timeout - try outdoors');
-        alert('📍 GPS Timeout After 60 Seconds\n\nThe GPS couldn\'t get a fix. Try:\n1. Move to open area with sky view\n2. Wait 30 seconds, try again\n3. Open Google/Apple Maps first (helps warm up GPS)\n4. Enter coordinates manually if needed');
+        setStatus('Timeout - try again');
+        alert('📍 Location Timeout\n\nCouldn\'t get position in time.\n\nTip: Open Google Maps or Apple Maps first, let it find you, then come back and try again.');
       } else {
-        setStatus('GPS error');
+        setStatus('Error: ' + err.message);
         alert('GPS Error: ' + err.message);
       }
     };
 
-    // Update status after permission granted
-    setTimeout(() => {
-      if (isGetting) {
-        setStatus('Searching for satellites...');
-      }
-    }, 1000);
+    // Try high accuracy first
+    const highAccuracyOptions = {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 60000  // Accept cached position up to 1 minute old
+    };
 
-    // Use watchPosition for better success rate
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        // Accept fix if accuracy is reasonable (under 100m) or after 30s take any fix
-        if (position.coords.accuracy < 100 || secondsElapsed > 30) {
-          onSuccess(position);
-        } else {
-          setStatus(`Getting better accuracy... (±${Math.round(position.coords.accuracy)}m)`);
-        }
+    // Low accuracy fallback options
+    const lowAccuracyOptions = {
+      enableHighAccuracy: false,
+      timeout: 30000,
+      maximumAge: 300000  // Accept cached position up to 5 minutes old
+    };
+
+    setStatus('Trying high accuracy GPS...');
+
+    // First try: High accuracy
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      (err) => {
+        console.log('High accuracy failed, trying low accuracy...', err.code);
+        setStatus('Trying network location...');
+        
+        // Second try: Low accuracy (WiFi/cell)
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          onError,
+          lowAccuracyOptions
+        );
       },
-      onError,
-      options
+      highAccuracyOptions
     );
 
-    // Timeout fallback after 60 seconds
+    // Overall timeout after 60 seconds
     timerRef.current = setTimeout(() => {
-      cleanup();
-      setIsGetting(false);
-      setSecondsElapsed(0);
-      setStatus('Timeout');
-      alert('📍 GPS Timeout After 60 Seconds\n\nCouldn\'t get GPS fix. For best results:\n1. Go outdoors with clear sky view\n2. Try opening Maps app first\n3. Or manually enter coordinates');
+      if (isGetting) {
+        cleanup();
+        setIsGetting(false);
+        setSecondsElapsed(0);
+        setStatus('Timeout');
+        alert('📍 Location Timeout (60s)\n\nCouldn\'t get your position.\n\nTry:\n1. Make sure Location Services are ON\n2. Open Maps app first to "warm up" GPS\n3. Move near a window or outdoors');
+      }
     }, 60000);
   };
 
   const cancelGPS = () => {
     cleanup();
     setIsGetting(false);
-    setStatus('Cancelled');
+    setStatus('');
     setSecondsElapsed(0);
   };
 
@@ -138,7 +156,7 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
           boxShadow: isGetting ? '0 2px 8px rgba(255, 152, 0, 0.4)' : '0 2px 8px rgba(76, 175, 80, 0.4)'
         }}
       >
-        {isGetting ? `⏳ ${secondsElapsed}s... (tap to cancel)` : `📍 ${label}`}
+        {isGetting ? `⏳ ${secondsElapsed}s (cancel)` : `📍 ${label}`}
       </button>
       {isGetting && (
         <div style={{
@@ -151,14 +169,7 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
           fontWeight: '500',
           border: '1px solid #ffcc80'
         }}>
-          <div style={{marginBottom: '4px'}}>📡 {status || 'Searching for GPS signal...'}</div>
-          <div style={{fontSize: '11px', opacity: 0.8}}>
-            {secondsElapsed < 15 
-              ? 'Make sure location is enabled and you\'re outdoors'
-              : secondsElapsed < 30
-              ? 'Still searching... move to open area if possible'
-              : 'Taking longer than usual - try moving outdoors'}
-          </div>
+          <div style={{marginBottom: '4px'}}>📡 {status}</div>
           <div style={{
             marginTop: '8px',
             height: '4px',
@@ -175,8 +186,8 @@ const GPSCapture = ({ onCapture, label = 'Get GPS', small = false }) => {
           </div>
         </div>
       )}
-      {status && !isGetting && status !== 'Cancelled' && (
-        <div style={{fontSize: '11px', color: '#f44336', marginTop: '4px'}}>{status}</div>
+      {status && !isGetting && (
+        <div style={{fontSize: '11px', color: status.includes('denied') || status.includes('Error') ? '#f44336' : '#666', marginTop: '4px'}}>{status}</div>
       )}
     </div>
   );
